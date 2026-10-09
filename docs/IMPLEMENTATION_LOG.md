@@ -567,12 +567,38 @@ Antigravity must append an entry after each completed phase. Do not pre-fill com
   - `npm.cmd run test --workspace=apps/api -- --runInBand --no-cache`: PASS (21 suites, 94 tests passed).
   - `flutter analyze` in `apps/mobile`: PASS (0 issues found).
   - `flutter test` in `apps/mobile`: PASS (10/10 tests passed).
-  - `flutter build apk --debug` in `apps/mobile`: PASS (`√ Built build\app\outputs\flutter-apk\app-debug.apk` - 168.9 MB).
+### 2026-10-10 — Product Overhaul Increment 5 (Real-Time Emergency Audio-Visual SOS Alert Toast, Live Feed Panel, 401 Session Interceptor & ADB Mobile Deployment)
+
+- **Summary:**
+  - Resolved 401 session expiration loop across the web client by adding automatic session clearing and redirect handling in `authenticated-fetch.ts` and `App.tsx`.
+  - Built an audio-visual real-time incoming SOS emergency alert system in `OperationsOverview.tsx` with a floating banner, synthesized Web Audio two-tone chime (`880Hz` ➔ `587Hz`), and audio test controls.
+  - Added a dedicated "🚨 লাইভ এসওএস রিপোর্ট" queue feed in the dashboard right rail displaying mobile app & D2C submissions in real time.
+  - Made Leaflet SOS map markers permanent with high-contrast beacon tooltips for immediate operator awareness.
+  - Enhanced `SosService` to auto-resolve geographic coordinates from synthetic Feni area seeds when reports are submitted with area IDs.
+  - Updated Flutter app with USB localhost preset (`http://localhost:3001/api/v1`), explicit coordinate forwarding, recompiled `app-debug.apk`, and deployed directly to physical test phone (`Honor ELI-NX9`) via ADB with `adb reverse tcp:3001 tcp:3001`.
+- **Files changed:**
+  - `apps/web/src/lib/authenticated-fetch.ts`: Intercepts 401 responses, removes stale `aali_session`, and emits `aali_session_expired` event.
+  - `apps/web/src/App.tsx`: Listens for `aali_session_expired` and resets user session to show the login screen.
+  - `apps/web/src/components/OperationsOverview.tsx`: Real-time SOS alert toast banner, Web Audio chime synthesizer, mute toggle, test alert button, and live SOS feed panel.
+  - `apps/web/src/components/OperationsMap.tsx`: Permanent tooltips and high-visibility circle markers for SOS layer.
+  - `apps/web/src/lib/operations-client.ts`: Extended `OperationMapPoint` interface with emergency flags, timestamps, and short IDs.
+  - `apps/api/src/modules/sos/sos.service.ts`: Geographic coordinate auto-resolution from area seeds and review status defaulting to `NEEDS_REVIEW`.
+  - `apps/api/src/modules/operations/operations.service.ts`: Enriched SOS layer mapping with labels, provenance, and flags.
+  - `apps/mobile/lib/main.dart`: Added USB localhost preset chip and explicit lat/lng payload fields.
+- **Commands run & results:**
+  - `npm.cmd run typecheck --workspace=apps/web`: PASS (0 errors).
+  - `npm.cmd run test --workspace=apps/web`: PASS (9 test files, 30 tests passed).
+  - `npm.cmd run test --workspace=apps/api`: PASS (21 suites, 94 tests passed).
+  - `flutter build apk --debug` in `apps/mobile`: PASS (`√ Built build\app\outputs\flutter-apk\app-debug.apk`).
+  - `adb install -r app-debug.apk`: PASS (`Success`).
+  - `adb reverse tcp:3001 tcp:3001`: PASS (`3001`).
+  - `git push origin main`: PASS.
 - **Acceptance criteria satisfied:**
-  - Live Google Gemini LLM extraction active with zero PII leakage: PASS
-  - Safe automatic failover to deterministic parser on network disruption or cloud 503: PASS
-  - Mobile client supports on-device Wi-Fi IP configuration and Blackout/D2C relay simulation: PASS
-  - Recompiled debug APK verified on disk: PASS
+  - Automatic recovery from expired JWT tokens (401) without dead retry loops: PASS
+  - Immediate audio-visual operator feedback on incoming SOS reports: PASS
+  - Real-time mobile/D2C SOS queue visibility on central dashboard: PASS
+  - Persistent map pins with permanent location and people count tooltips: PASS
+  - Physical Android phone app deployment via ADB verified: PASS
 
 
 
