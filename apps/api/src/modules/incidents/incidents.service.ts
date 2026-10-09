@@ -36,15 +36,21 @@ export interface IncidentSummary {
     name: string;
     capacity: number;
     suitability: string;
+    status: 'PROPOSED' | 'ACCEPTED' | 'REJECTED';
   };
 }
+
+import { AuditService } from '../audit/audit.service';
 
 @Injectable()
 export class IncidentsService {
   private readonly logger = new Logger(IncidentsService.name);
   private incidents: IncidentSummary[] = [];
 
-  constructor(private readonly sosService: SosService) {
+  constructor(
+    private readonly sosService: SosService,
+    private readonly auditService?: AuditService,
+  ) {
     this.initDemoIncidents();
   }
 
@@ -95,6 +101,7 @@ export class IncidentsService {
           name: 'Engine Boat Red Crescent Unit 1',
           capacity: 12,
           suitability: 'SHALLOW_DRAFT',
+          status: 'PROPOSED',
         },
       },
       {
@@ -115,6 +122,7 @@ export class IncidentsService {
           name: 'Fire Service Inflatable Boat 2',
           capacity: 8,
           suitability: 'SWIFT_WATER',
+          status: 'PROPOSED',
         },
       },
     ];
@@ -143,6 +151,50 @@ export class IncidentsService {
     this.logger.log(
       `Operator reviewed duplicate candidate ${candidateId} on incident ${incidentId}: ${decision}. Reason: ${reason}`,
     );
+
+    this.auditService?.record({
+      action: decision === 'ACCEPT' ? 'MERGE_DUPLICATE_ACCEPTED' : 'MERGE_DUPLICATE_REJECTED',
+      entityType: 'INCIDENT',
+      entityId: incidentId,
+      reason,
+      afterSummary: { candidateId, decision, status: inc.duplicateCandidate.status },
+    });
+
+    return { status: 'success', incident: inc };
+  }
+
+  async reviewBoatSuggestion(
+    incidentId: string,
+    decision: 'ACCEPT' | 'REJECT',
+    reason: string,
+    operatorUserId?: string,
+  ): Promise<{ status: string; incident: IncidentSummary }> {
+    const inc = this.incidents.find((i) => i.id === incidentId);
+    if (!inc || !inc.suggestedBoat) {
+      throw new Error('Suggested boat not found on incident');
+    }
+
+    const prevStatus = inc.suggestedBoat.status;
+    inc.suggestedBoat.status = decision === 'ACCEPT' ? 'ACCEPTED' : 'REJECTED';
+    this.logger.log(
+      `Operator ${operatorUserId || 'RESPONDER'} reviewed boat ${inc.suggestedBoat.name} on incident ${incidentId}: ${decision}. Note: ${reason} (NO AUTO-DISPATCH)`,
+    );
+
+    this.auditService?.record({
+      actorUserId: operatorUserId || '00000000-0000-0000-0000-000000000003',
+      action: decision === 'ACCEPT' ? 'BOAT_DISPATCH_PROPOSAL_ACCEPTED' : 'BOAT_DISPATCH_PROPOSAL_REJECTED',
+      entityType: 'ASSET_PROPOSAL',
+      entityId: inc.suggestedBoat.assetId,
+      reason,
+      beforeSummary: { incidentId, status: prevStatus },
+      afterSummary: {
+        incidentId,
+        boatName: inc.suggestedBoat.name,
+        decision,
+        status: inc.suggestedBoat.status,
+        note: 'HUMAN APPROVAL ONLY: Recommendation acknowledged by responder; no automatic external dispatch triggered.',
+      },
+    });
 
     return { status: 'success', incident: inc };
   }
@@ -177,6 +229,20 @@ export class IncidentsService {
 
     this.incidents.push(newInc);
     this.logger.log(`Incident ${incidentId} split. Separated report ${reportIdToSeparate} into ${newInc.id}.`);
+
+    this.auditService?.record({
+      action: 'SPLIT_INCIDENT',
+      entityType: 'INCIDENT',
+      entityId: incidentId,
+      reason,
+      beforeSummary: { originalLinkedReportIds: [...inc.linkedReportIds, reportIdToSeparate] },
+      afterSummary: {
+        originalIncidentId: inc.id,
+        separatedReportId: reportIdToSeparate,
+        newIncidentId: newInc.id,
+      },
+    });
+
     return { originalIncident: inc, newIncident: newInc };
   }
 

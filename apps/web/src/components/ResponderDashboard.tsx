@@ -29,6 +29,7 @@ export interface IncidentViewItem {
     name: string;
     capacity: number;
     suitability: string;
+    status?: string;
   };
 }
 
@@ -94,6 +95,22 @@ export function ResponderDashboard() {
       }
     } catch (err: unknown) {
       setActionMessage(`Split failed: ${err instanceof Error ? err.message : 'Error'}`);
+    }
+  };
+
+  const handleBoatReview = async (incidentId: string, decision: 'ACCEPT' | 'REJECT') => {
+    try {
+      const res = await fetch(`/api/v1/incidents/${incidentId}/boat-recommendation/review`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ decision, reason: `Responder manual approval: ${decision}` }),
+      });
+      if (res.ok) {
+        setActionMessage(`Boat recommendation ${decision}ED (Recorded in audit trail; no automatic external dispatch).`);
+        fetchData();
+      }
+    } catch (err: unknown) {
+      setActionMessage(`Boat review failed: ${err instanceof Error ? err.message : 'Error'}`);
     }
   };
 
@@ -213,13 +230,36 @@ export function ResponderDashboard() {
 
                 {/* Boat recommendation */}
                 {inc.suggestedBoat && (
-                  <div style={{ fontSize: '0.8rem', background: '#1e293b', padding: '0.5rem', borderRadius: '4px', border: '1px solid #334155', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ fontSize: '0.8rem', background: '#1e293b', padding: '0.6rem', borderRadius: '4px', border: '1px solid #334155', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
                     <div>
                       <span style={{ color: '#38bdf8' }}>🛥️ প্রস্তাবিত উদ্ধারকারী নৌকা (Suggested Boat):</span> <b>{inc.suggestedBoat.name}</b> (ধারণক্ষমতা: {inc.suggestedBoat.capacity} জন)
+                      <span style={{ marginLeft: '0.5rem', fontSize: '0.75rem', padding: '0.1rem 0.4rem', borderRadius: '3px', background: inc.suggestedBoat.status === 'ACCEPTED' ? '#065f46' : inc.suggestedBoat.status === 'REJECTED' ? '#7f1d1d' : '#334155', color: '#f8fafc' }}>
+                        {inc.suggestedBoat.status || 'PROPOSED'}
+                      </span>
                     </div>
-                    <span style={{ fontSize: '0.7rem', color: '#94a3b8', fontStyle: 'italic' }}>
-                      * রেসপন্ডার অনুমোদন প্রয়োজন (No auto-dispatch)
-                    </span>
+                    <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
+                      {(!inc.suggestedBoat.status || inc.suggestedBoat.status === 'PROPOSED') && (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => handleBoatReview(inc.id, 'ACCEPT')}
+                            style={{ background: '#10b981', color: 'black', border: 'none', padding: '0.25rem 0.5rem', borderRadius: '3px', fontSize: '0.75rem', fontWeight: 'bold', cursor: 'pointer' }}
+                          >
+                            ✓ গ্রহণ (Accept)
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleBoatReview(inc.id, 'REJECT')}
+                            style={{ background: '#ef4444', color: 'white', border: 'none', padding: '0.25rem 0.5rem', borderRadius: '3px', fontSize: '0.75rem', cursor: 'pointer' }}
+                          >
+                            ✕ প্রত্যাখ্যান (Reject)
+                          </button>
+                        </>
+                      )}
+                      <span style={{ fontSize: '0.7rem', color: '#94a3b8', fontStyle: 'italic' }}>
+                        * রেসপন্ডার অনুমোদন প্রয়োজন (No auto-dispatch)
+                      </span>
+                    </div>
                   </div>
                 )}
 

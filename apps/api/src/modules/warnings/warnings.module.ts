@@ -1,11 +1,10 @@
 import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { AlertEvaluation, Warning } from './entities/warning.entity';
 import { AlertsService } from './alerts.service';
 import { AlertsController } from './alerts.controller';
+import { AuditModule } from '../audit/audit.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([AlertEvaluation, Warning])],
+  imports: [AuditModule],
   controllers: [AlertsController],
   providers: [AlertsService],
   exports: [AlertsService],

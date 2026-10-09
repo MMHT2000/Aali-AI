@@ -10,6 +10,8 @@ import { SosModule } from './modules/sos/sos.module';
 import { UsersModule } from './modules/users/users.module';
 import { WarningsModule } from './modules/warnings/warnings.module';
 import { AiModule } from './modules/ai/ai.module';
+import { RecoveryModule } from './modules/recovery/recovery.module';
+import { AuditModule } from './modules/audit/audit.module';
 
 @Module({
   imports: [
@@ -26,6 +28,8 @@ import { AiModule } from './modules/ai/ai.module';
     IncidentsModule,
     WarningsModule,
     AiModule,
+    RecoveryModule,
+    AuditModule,
   ],
 })
 export class AppModule {}

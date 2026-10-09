@@ -63,5 +63,18 @@ export class IncidentsController {
       body.reason || 'Operator split action',
     );
   }
+
+  @Post(':id/boat-recommendation/review')
+  @ApiOperation({ summary: 'Operator human review for suggested boat dispatch (ACCEPT or REJECT, no auto-dispatch)' })
+  async reviewBoatRecommendation(
+    @Param('id') incidentId: string,
+    @Body() body: { decision: 'ACCEPT' | 'REJECT'; reason?: string },
+  ) {
+    return this.incidentsService.reviewBoatSuggestion(
+      incidentId,
+      body.decision,
+      body.reason || 'Responder review on boat recommendation',
+    );
+  }
 }
 

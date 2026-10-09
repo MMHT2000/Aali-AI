@@ -331,3 +331,91 @@ Antigravity must append an entry after each completed phase. Do not pre-fill com
   - Remote LLM calls are simulated locally via deterministic local providers to ensure privacy and offline autonomy.
 - **Open issues:** None for Phase 7.
 - **Next phase:** Phase 8 — Recovery and aid ledger.
+
+---
+
+### 2026-10-09 — Phase 8: Recovery and Aid Ledger
+- **Baseline:** Phase 7 complete with AI language parsing, deterministic fallback, and benchmark reporting.
+- **Files changed:**
+  - `apps/api/src/domain/recovery/recovery-scoring.ts` (pure deterministic village need scoring [0-100], damage factor, contaminated tube-wells, road impassability, relief coverage ratios, and non-eligibility disclaimer)
+  - `apps/api/src/domain/recovery/recovery-scoring.spec.ts` (unit tests covering scoring, urgency levels, coverage degradation, and disclaimer presence)
+  - `apps/api/src/modules/recovery/entities/recovery.entity.ts` (TypeORM entities for `recovery_reports` and `aid_deliveries` with `idempotency_key` unique constraints)
+  - `apps/api/src/modules/recovery/recovery.service.ts` (damage report creation, idempotent aid delivery receipts with deduplication check, and unmet-needs summary aggregation)
+  - `apps/api/src/modules/recovery/recovery.controller.ts` & `recovery.module.ts` (`POST /api/v1/recovery/reports`, `GET /api/v1/recovery/reports`, `POST /api/v1/recovery/deliveries`, `GET /api/v1/recovery/deliveries`, `GET /api/v1/recovery/summary`)
+  - `apps/api/src/app.module.ts` (registered `RecoveryModule`)
+  - `apps/web/src/components/RecoveryLedger.tsx` (unmet-needs coordination ranking, urgency badges, relief coverage percentages, reasons/evidence lists, idempotent delivery submission form, duplicate detection feedback, and non-eligibility disclaimer)
+  - `apps/web/src/components/RecoveryLedger.spec.tsx` (tests for disclaimer rendering, village unmet-needs ranking, receipt recording, and duplicate submission handling)
+  - `apps/web/src/App.tsx` (mounted `RecoveryLedger`)
+  - `IMPLEMENTATION_PLAN.md` (checked Phase 8 in checklist)
+- **Behavior delivered:**
+  - Pure Deterministic Recovery Coordination Scoring:
+    - Calculates village unmet-needs priority score ($0-100$) based on house damage (Destroyed: 35, Severe: 25, Moderate: 15), tube-well water contamination (+25), road cut-off (+20 for Impassable, +15 for Boat only), and health/food needs.
+    - Decreases unmet urgency dynamically as verified deliveries are recorded.
+  - Strict Decision-Support & Non-Eligibility Distinction:
+    - All API responses and UI cards explicitly display the banner: *"Rankings support logistical coordination and relief transparency, not beneficiary eligibility. Aali AI never algorithmically decides who deserves aid."*
+  - Idempotent Aid Delivery Receipts:
+    - Enforces idempotency via `idempotency_key`. Resubmissions return `{ isDuplicateIgnored: true }` and alert the operator without double-counting quantities.
+  - Village Coverage Tracking:
+    - Computes water and food coverage ratios to highlight neglected or isolated communities.
+- **Commands run:**
+  - `npm.cmd test` (exited 0: 51 API unit tests across 12 test suites, 22 Web tests across 7 test suites)
+  - `npm.cmd run typecheck` (exited 0 across all workspaces)
+  - `npm.cmd run lint` (exited 0: 0 errors, 0 warnings)
+  - `npm.cmd run build` (exited 0: clean NestJS and Vite builds)
+- **Acceptance criteria:**
+  - Recovery ranking derived deterministically from visible damage and infrastructure factors: PASS
+  - Aid delivery receipts enforce idempotency key: PASS
+  - Unmet need diminishes as verified deliveries are recorded: PASS
+  - Clear and visible disclaimer against automated entitlement decisions: PASS
+- **Simulated or unverified integrations:**
+  - Damage reports and aid delivery records use synthetic Feni test seed areas and mock coordinator IDs.
+- **Open issues:** None for Phase 8.
+- **Next phase:** Phase 9 — Security, accessibility, E2E journey and demo freeze.
+
+---
+
+### 2026-10-09 — Phase 9: Security, Accessibility, E2E Journey and Demo Freeze
+- **Baseline:** Phase 8 complete with recovery need ranking, idempotent delivery receipts, and non-eligibility disclaimers.
+- **Files changed:**
+  - `apps/api/src/common/logger/redacting-logger.service.spec.ts` (unit tests verifying redaction of Bangladeshi phone numbers `+8801...`, `017...`, JWT bearer tokens, and secrets in application logs)
+  - `apps/api/src/modules/audit/audit.service.ts` & `audit.controller.ts` & `audit.module.ts` & `audit.service.spec.ts` (immutable audit log tracking for warnings, incident merge/split, boat dispatch proposals, and recovery aid receipts)
+  - `apps/api/src/modules/warnings/alerts.service.ts` & `warnings.module.ts` (recorded audit logs on warning approval and rejection by human Authority)
+  - `apps/api/src/modules/incidents/incidents.service.ts` & `incidents.controller.ts` & `incidents.module.ts` (added `reviewBoatSuggestion` and recorded audit logs for duplicate candidate decisions, incident splitting, and responder boat acceptance/rejection)
+  - `apps/api/src/modules/recovery/recovery.service.ts` & `recovery.module.ts` (recorded audit logs on aid delivery receipt generation)
+  - `apps/api/src/app.module.ts` (registered `AuditModule`)
+  - `apps/web/src/index.css` (accessible focus rings with `:focus-visible` and Bangla font fallbacks for 'Kalpurush', 'SolaimanLipi', 'Vrinda')
+  - `apps/web/src/components/ResponderDashboard.tsx` & `ResponderDashboard.spec.tsx` (human approval controls for suggested boat dispatch with audit feedback and unit tests)
+  - `apps/api/src/e2e/e2e-journey.spec.ts` (comprehensive End-to-End synthetic flood rescue-to-recovery journey testing auth, packet building, gateway deduplication, silent villages, boat human review, gauge blackout escalation, warning authority approval, and aid delivery idempotency)
+  - `IMPLEMENTATION_PLAN.md` (checked Phase 9 in checklist)
+- **Behavior delivered:**
+  - Full End-to-End Synthetic Journey Verification:
+    - 7-step test validates:
+      1. Authentication & JWT authorization of Authority role (`authority_dc`).
+      2. Disaster Packet creation $<60$ chars conforming to single SMS segment limits.
+      3. Gateway simulation deduplication with `isIdempotentDuplicate: true` and `simulation: true`.
+      4. Incident triage, `VERIFY_BY_SAFE_MEANS` silent-village detection, and duplicate merge auditing.
+      5. Responder boat dispatch recommendation review (human approval only; strictly no auto-dispatch).
+      6. Muhuri Parshuram historical flood replay, sensor blackout escalation (`GAUGE_SILENT`), and Authority warning approval.
+      7. Recovery aid delivery receipt logging with duplicate protection and audit records.
+  - Comprehensive Audit Trail:
+    - Centralized `AuditService` records actor, action, timestamp, entity type, reason, and before/after summaries for all sensitive operations.
+  - Accessibility & Bangla Typography:
+    - High-contrast `:focus-visible` outlines for keyboard users.
+    - Added Bengali font stack fallbacks (`Kalpurush`, `SolaimanLipi`, `Vrinda`).
+- **Commands run:**
+  - `npm.cmd test` (exited 0: 63 API tests across 15 test suites including E2E journey; 23 Web tests across 7 test suites; 86 total tests passed)
+  - `npm.cmd run typecheck` (exited 0: strict TypeScript verified across all workspaces)
+  - `npm.cmd run lint` (exited 0: 0 errors, 0 warnings)
+  - `npm.cmd run build` (exited 0: clean NestJS API and Vite web production builds)
+- **Acceptance criteria:**
+  - Full end-to-end synthetic rescue-to-recovery story passes: PASS
+  - Auditing covers warnings, duplicates, splits, asset proposals, and aid delivery: PASS
+  - PII and credentials redacted from logs: PASS
+  - Accessible focus and Bangla font hierarchy: PASS
+  - All must-have acceptance tests verified: PASS
+- **Simulated or unverified integrations:**
+  - Carrier gateway, cell broadcast, satellite SMS, and historical replay remain transparently labelled as simulated.
+- **Open issues:** None. Core prototype is frozen and complete.
+- **Next phase:** Phase 10 — Optional stretch items only if requested by user.
+
+

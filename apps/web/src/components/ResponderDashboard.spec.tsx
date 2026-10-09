@@ -116,4 +116,20 @@ describe('ResponderDashboard Component', () => {
       expect(screen.getByText(/Report sos-demo-1 separated into independent incident/i)).toBeInTheDocument();
     });
   });
+
+  it('allows responder human acceptance of boat recommendation without auto-dispatch', async () => {
+    render(<ResponderDashboard />);
+
+    await waitFor(() => {
+      expect(screen.getByText('✓ গ্রহণ (Accept)')).toBeInTheDocument();
+      expect(screen.getByText(/No auto-dispatch/i)).toBeInTheDocument();
+    });
+
+    const acceptBtn = screen.getByText('✓ গ্রহণ (Accept)');
+    fireEvent.click(acceptBtn);
+
+    await waitFor(() => {
+      expect(screen.getByText(/Boat recommendation ACCEPTED/i)).toBeInTheDocument();
+    });
+  });
 });
