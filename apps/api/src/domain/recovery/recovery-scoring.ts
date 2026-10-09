@@ -10,6 +10,7 @@ export interface VillageNeedInput {
   estimatedFamilies: number;
   reportedWaterLitresNeed: number;
   reportedFoodPacksNeed: number;
+  coordinates?: { lat: number; lng: number };
 }
 
 export interface VillageDeliverySummary {
@@ -33,6 +34,8 @@ export interface VillageNeedScoreOutput {
   waterCoverageRatio: number; // [0, 1]
   foodCoverageRatio: number; // [0, 1]
   overallCoveragePercentage: number;
+  coordinates: { lat: number; lng: number };
+  stagingSuggestionBn: string;
   disclaimer: string;
 }
 
@@ -98,6 +101,14 @@ export function calculateVillageNeedScore(
     reasonsBn.push('জরুরি ওষুধ ও পানি-বাহিত রোগের চিকিৎসা প্রয়োজন');
   }
 
+  // Deterministic pre-positioning recommendation based on road status and urgent needs
+  let stagingSuggestionBn = 'নিকটবর্তী হাইস্কুল বা ইউনিয়ন পরিষদ সেন্টারে ত্রাণ সংরক্ষণ ও বিতরণ উপযুক্ত।';
+  if (input.roadPassability === 'IMPASSABLE' || input.roadPassability === 'BOAT_ONLY') {
+    stagingSuggestionBn = 'নৌকা ছাড়া সড়কপথে ত্রাণ পৌঁছানো অসম্ভব। পরশুরাম বাজার ঘাট পয়েন্টে স্পিডবোট ও ট্রলার রিলে-পয়েন্ট স্থাপন করুন।';
+  } else if (input.tubeWellContaminated) {
+    stagingSuggestionBn = 'সুপেয় পানির মোবাইল ওয়াটার পিউরিফিকেশন ভ্যান ও ওয়াটারব্যাগ উপজেলা পরিষদ পয়েন্টে অগ্রিম মজুদ রাখুন।';
+  }
+
   return {
     villageId: input.villageId,
     villageName: input.villageName,
@@ -113,6 +124,8 @@ export function calculateVillageNeedScore(
     waterCoverageRatio: parseFloat(waterRatio.toFixed(2)),
     foodCoverageRatio: parseFloat(foodRatio.toFixed(2)),
     overallCoveragePercentage: Math.round(averageCoverage * 100),
+    coordinates: input.coordinates || { lat: 23.2100, lng: 91.4300 },
+    stagingSuggestionBn,
     disclaimer: 'Rankings support logistical coordination and relief transparency, not beneficiary eligibility.',
   };
 }

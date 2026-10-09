@@ -2,6 +2,7 @@ import {
   BenchmarkReport,
   CommunicationDraftResult,
   DuplicateExplanationResult,
+  ShiftSummaryResult,
   SosExtractedFields,
   SosUnderstandingResult,
 } from './ai-interfaces';
@@ -161,6 +162,27 @@ export class DeterministicAiProvider {
       sourceRecordIds: recordIds,
       isEditable: true,
       generatedBy: 'deterministic_communication_drafter',
+    };
+  }
+
+  generateShiftSummary(params: {
+    totalSos: number;
+    criticalEvacuations: number;
+    silentVillages: number;
+    deliveriesLogged: number;
+    recordIds: string[];
+  }): ShiftSummaryResult {
+    const summaryBn = `[শিফট সমাপ্তি সংক্ষিপ্তসার / Operations Shift Summary]: বিগত পরিচালনা কার্যক্রমে মোট ${params.totalSos}টি এসওএস রিপোর্ট প্রক্রিয়াকরণ করা হয়েছে। ${params.criticalEvacuations}টি জরুরি উদ্ধার মিশন সম্পন্ন ও অনুমোদিত হয়েছে। ${params.silentVillages}টি নীরব গ্রাম সতর্কতামূলক যাচাইয়ের আওতায় আনা হয়েছে এবং ${params.deliveriesLogged}টি ত্রাণ বিতরণ রসিদ আইডেমপোটেন্ট লেজারে সংরক্ষিত হয়েছে। কোনো উদ্ধার অনুরোধ সরাসরি প্রত্যাখ্যান করা হয়নি।`;
+
+    return {
+      summaryBn,
+      totalSosProcessed: params.totalSos,
+      criticalEvacuationsCount: params.criticalEvacuations,
+      silentVillagesFlaggedCount: params.silentVillages,
+      reliefDeliveriesLoggedCount: params.deliveriesLogged,
+      sourceRecordIds: params.recordIds,
+      isEditable: true,
+      generatedBy: 'deterministic_shift_summarizer',
     };
   }
 

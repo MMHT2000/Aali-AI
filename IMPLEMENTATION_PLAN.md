@@ -276,4 +276,4 @@ The prototype is ready only when a reviewer can, using synthetic data and the wr
 - [x] Phase 7 — AI language layer and fallback
 - [x] Phase 8 — recovery ledger
 - [x] Phase 9 — security, accessibility, E2E and demo freeze
-- [ ] Phase 10 — optional stretch items only if time remains
+- [x] Phase 10 — optional stretch items only if time remains

@@ -132,4 +132,16 @@ describe('RecoveryLedger Component', () => {
       expect(screen.getByText(/ডুপ্লিকেট রসিদ সনাক্ত: এই ট্র্যাকিং কোডটি \(existing-duplicate-key\) ইতিমধ্যে নিবন্ধিত/i)).toBeInTheDocument();
     });
   });
+
+  it('toggles Sentinel-1 SAR flood inundation static visual footprint overlay', async () => {
+    render(<RecoveryLedger />);
+
+    const toggleBtn = screen.getByText(/সেন্টিনেল-১ প্লাবন ওভারলে \(Sentinel-1 Flood Overlay\)/i);
+    expect(screen.queryByText(/সেন্টিনেল-১ কৃত্রিম উপগ্রহ রাডার প্লাবন মানচিত্র/i)).not.toBeInTheDocument();
+
+    fireEvent.click(toggleBtn);
+
+    expect(screen.getByText(/সেন্টিনেল-১ এসএআর প্লাবন মানচিত্র/i)).toBeInTheDocument();
+    expect(screen.getByText(/Static reconstructed backdrop fixture \(No live satellite pipeline\)/i)).toBeInTheDocument();
+  });
 });

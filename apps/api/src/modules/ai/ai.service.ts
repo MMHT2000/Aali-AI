@@ -4,6 +4,7 @@ import {
   BenchmarkReport,
   CommunicationDraftResult,
   DuplicateExplanationResult,
+  ShiftSummaryResult,
   SosUnderstandingResult,
 } from '../../domain/ai/ai-interfaces';
 import { SYNTHETIC_SOS_BENCHMARK } from '../../domain/ai/synthetic-sos-benchmark';
@@ -78,6 +79,22 @@ export class AiService {
 
   runBenchmark(): BenchmarkReport {
     return this.provider.evaluateBenchmark();
+  }
+
+  generateShiftSummary(params: {
+    totalSos?: number;
+    criticalEvacuations?: number;
+    silentVillages?: number;
+    deliveriesLogged?: number;
+    recordIds?: string[];
+  }): ShiftSummaryResult {
+    return this.provider.generateShiftSummary({
+      totalSos: params.totalSos ?? 14,
+      criticalEvacuations: params.criticalEvacuations ?? 3,
+      silentVillages: params.silentVillages ?? 1,
+      deliveriesLogged: params.deliveriesLogged ?? 2,
+      recordIds: params.recordIds ?? ['sos-demo-1', 'sos-demo-2', 'warn-001', 'rec-rep-01'],
+    });
   }
 }
 

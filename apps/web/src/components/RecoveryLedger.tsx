@@ -15,6 +15,8 @@ export interface VillageRankItem {
   waterCoverageRatio: number;
   foodCoverageRatio: number;
   overallCoveragePercentage: number;
+  coordinates?: { lat: number; lng: number };
+  stagingSuggestionBn?: string;
   disclaimer: string;
 }
 
@@ -42,6 +44,7 @@ export function RecoveryLedger() {
   const [quantity, setQuantity] = useState<number>(1000);
   const [unit, setUnit] = useState<string>('LITRES');
   const [idempotencyKey, setIdempotencyKey] = useState<string>(`del-${Date.now()}`);
+  const [showFootprint, setShowFootprint] = useState<boolean>(false);
 
   const fetchData = async () => {
     setLoading(true);
@@ -134,18 +137,61 @@ export function RecoveryLedger() {
 
       {/* Village Unmet-Needs Priority Ranking */}
       <div style={{ background: '#1e293b', border: '1px solid #334155', borderRadius: '6px', padding: '1rem', marginBottom: '1.5rem' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.8rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.8rem', flexWrap: 'wrap', gap: '0.5rem' }}>
           <h3 style={{ fontSize: '1.1rem', color: '#f8fafc', margin: 0 }}>
             🏘️ গ্রাম-ভিত্তিক অপূর্ণ চাহিদার তালিকা / Unmet-Needs Coordination Ranking
           </h3>
-          <button
-            type="button"
-            onClick={fetchData}
-            style={{ background: '#334155', color: '#f8fafc', border: 'none', padding: '0.3rem 0.6rem', borderRadius: '4px', fontSize: '0.8rem', cursor: 'pointer' }}
-          >
-            🔄 রিফ্রেশ (Refresh)
-          </button>
+          <div style={{ display: 'flex', gap: '0.5rem' }}>
+            <button
+              type="button"
+              onClick={() => setShowFootprint(!showFootprint)}
+              style={{ background: showFootprint ? '#0284c7' : '#334155', color: '#f8fafc', border: '1px solid #475569', padding: '0.3rem 0.6rem', borderRadius: '4px', fontSize: '0.8rem', cursor: 'pointer' }}
+            >
+              🛰️ {showFootprint ? 'স্যাটেলাইট ওভারলে লুকান (Hide Overlay)' : 'সেন্টিনেল-১ প্লাবন ওভারলে (Sentinel-1 Flood Overlay)'}
+            </button>
+            <button
+              type="button"
+              onClick={fetchData}
+              style={{ background: '#334155', color: '#f8fafc', border: 'none', padding: '0.3rem 0.6rem', borderRadius: '4px', fontSize: '0.8rem', cursor: 'pointer' }}
+            >
+              🔄 রিফ্রেশ (Refresh)
+            </button>
+          </div>
         </div>
+
+        {/* Sentinel-1 Flood Footprint Static Overlay (Phase 10 Stretch Item) */}
+        {showFootprint && (
+          <div style={{ background: '#091528', border: '1px dashed #38bdf8', borderRadius: '6px', padding: '0.8rem', marginBottom: '1rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
+              <span style={{ fontSize: '0.85rem', color: '#38bdf8', fontWeight: 'bold' }}>
+                🛰️ সেন্টিনেল-১ এসএআর প্লাবন মানচিত্র / Sentinel-1 SAR Flood Inundation Footprint (Static Backdrop)
+              </span>
+              <span style={{ fontSize: '0.72rem', color: '#94a3b8', fontStyle: 'italic' }}>
+                * Static reconstructed backdrop fixture (No live satellite pipeline)
+              </span>
+            </div>
+            <p style={{ fontSize: '0.78rem', color: '#94a3b8', margin: '0 0 0.5rem 0' }}>
+              Reference SAR observation: 21 August 2024 Feni Parshuram-Fulgazi flood crest. Blue highlighted regions indicate standing inundation extent.
+            </p>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.6rem' }}>
+              <div style={{ background: 'rgba(56, 189, 248, 0.1)', border: '1px solid #0284c7', borderRadius: '4px', padding: '0.5rem', textAlign: 'center' }}>
+                <span style={{ fontSize: '0.75rem', color: '#38bdf8' }}>চিথলিয়া ইউনিয়ন (Chitholia)</span>
+                <div style={{ fontSize: '0.85rem', fontWeight: 'bold', color: '#fca5a5' }}>৮২% প্লাবিত (82% Inundated)</div>
+                <span style={{ fontSize: '0.7rem', color: '#cbd5e1' }}>Lat: 23.235, Lng: 91.415</span>
+              </div>
+              <div style={{ background: 'rgba(56, 189, 248, 0.1)', border: '1px solid #0284c7', borderRadius: '4px', padding: '0.5rem', textAlign: 'center' }}>
+                <span style={{ fontSize: '0.75rem', color: '#38bdf8' }}>মির্জানগর ইউনিয়ন (Mirzanagar)</span>
+                <div style={{ fontSize: '0.85rem', fontWeight: 'bold', color: '#fef08a' }}>৬৪% প্লাবিত (64% Inundated)</div>
+                <span style={{ fontSize: '0.7rem', color: '#cbd5e1' }}>Lat: 23.218, Lng: 91.432</span>
+              </div>
+              <div style={{ background: 'rgba(56, 189, 248, 0.1)', border: '1px solid #0284c7', borderRadius: '4px', padding: '0.5rem', textAlign: 'center' }}>
+                <span style={{ fontSize: '0.75rem', color: '#38bdf8' }}>ফুলগাজী সদর (Fulgazi)</span>
+                <div style={{ fontSize: '0.85rem', fontWeight: 'bold', color: '#fef08a' }}>৪৯% প্লাবিত (49% Inundated)</div>
+                <span style={{ fontSize: '0.7rem', color: '#cbd5e1' }}>Lat: 23.165, Lng: 91.410</span>
+              </div>
+            </div>
+          </div>
+        )}
 
         {loading ? (
           <p style={{ color: '#94a3b8' }}>লোড হচ্ছে...</p>
@@ -199,6 +245,14 @@ export function RecoveryLedger() {
                       ))}
                     </ul>
                   </div>
+
+                  {/* Pre-positioning & Staging Point Recommendation */}
+                  {v.stagingSuggestionBn && (
+                    <div style={{ marginTop: '0.5rem', background: '#1e293b', border: '1px solid #0369a1', borderRadius: '4px', padding: '0.4rem 0.6rem', fontSize: '0.78rem', color: '#7dd3fc', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                      <span>📍 <b>ত্রাণ সংরক্ষণ ও রিলে-পয়েন্ট (Staging Point):</b></span>
+                      <span>{v.stagingSuggestionBn}</span>
+                    </div>
+                  )}
                 </div>
               );
             })}

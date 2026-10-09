@@ -59,6 +59,24 @@ describe('AiLanguageAssistant Component', () => {
           }),
         });
       }
+      if (typeof url === 'string' && url.includes('/api/v1/ai/shift-summary')) {
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({
+            shiftTitle: 'রাত্রিকালীন বন্যা অপারেশন শিফট (Night Shift Handover)',
+            generatedAt: new Date().toISOString(),
+            sourceIncidentIds: ['sos-001', 'sos-002'],
+            summaryBn: '📋 শিফট বিবরণী: মোট প্রক্রিয়াকৃত এসওএস: ১৪ | উদ্ধার সম্পন্ন: ৬',
+            disclaimer: 'এই বিবরণীটি নথিবদ্ধ ডেটার উপর ভিত্তি করে তৈরি। অতিরঞ্জিত কোনো তথ্য যুক্ত করা হয়নি।',
+            counts: {
+              totalSosProcessed: 14,
+              evacuationsCompleted: 6,
+              silentVillagesFlagged: 2,
+              reliefDeliveriesLogged: 9,
+            },
+          }),
+        });
+      }
       if (typeof url === 'string' && url.includes('/api/v1/ai/benchmark')) {
         return Promise.resolve({
           ok: true,
@@ -136,6 +154,20 @@ describe('AiLanguageAssistant Component', () => {
 
     await waitFor(() => {
       expect(screen.getByText(/অপারেটর সংশোধন সংরক্ষিত হয়েছে: মানুষের সংখ্যা 5/i)).toBeInTheDocument();
+    });
+  });
+
+  it('generates fact-constrained shift handover summary upon operator request', async () => {
+    render(<AiLanguageAssistant />);
+
+    const genBtn = screen.getByText(/শিফট সারসংক্ষেপ তৈরি করুন \(Generate\)/i);
+    fireEvent.click(genBtn);
+
+    await waitFor(() => {
+      expect(screen.getByText(/রাত্রিকালীন বন্যা অপারেশন শিফট \(Night Shift Handover\)/i)).toBeInTheDocument();
+      expect(screen.getByText(/উৎস আইডি: sos-001, sos-002/i)).toBeInTheDocument();
+      expect(screen.getByText(/📋 শিফট বিবরণী: মোট প্রক্রিয়াকৃত এসওএস: ১৪ | উদ্ধার সম্পন্ন: ৬/i)).toBeInTheDocument();
+      expect(screen.getByText(/অতিরঞ্জিত কোনো তথ্য যুক্ত করা হয়নি/i)).toBeInTheDocument();
     });
   });
 });

@@ -38,6 +38,17 @@ export interface CommunicationDraftResult {
   generatedBy: string;
 }
 
+export interface ShiftSummaryResult {
+  summaryBn: string;
+  totalSosProcessed: number;
+  criticalEvacuationsCount: number;
+  silentVillagesFlaggedCount: number;
+  reliefDeliveriesLoggedCount: number;
+  sourceRecordIds: string[];
+  isEditable: true;
+  generatedBy: string;
+}
+
 export interface SyntheticBenchmarkItem {
   id: string;
   text: string;

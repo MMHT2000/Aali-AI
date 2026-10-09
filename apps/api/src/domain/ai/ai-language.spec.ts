@@ -76,5 +76,25 @@ describe('AI Language Layer & Fallback Provider', () => {
     expect(report.overallAccuracy).toBeGreaterThanOrEqual(85.0);
     expect(report.fallbackSuccessRate).toBe(100.0);
   });
+
+  it('generates fact-constrained shift summaries citing recorded incident and delivery data', () => {
+    const shiftSummary = provider.generateShiftSummary({
+      totalSos: 12,
+      criticalEvacuations: 5,
+      silentVillages: 2,
+      deliveriesLogged: 8,
+      recordIds: ['sos-001', 'sos-002', 'sos-003'],
+    });
+
+    expect(shiftSummary.isEditable).toBe(true);
+    expect(shiftSummary.sourceRecordIds).toEqual(['sos-001', 'sos-002', 'sos-003']);
+    expect(shiftSummary.totalSosProcessed).toBe(12);
+    expect(shiftSummary.criticalEvacuationsCount).toBe(5);
+    expect(shiftSummary.silentVillagesFlaggedCount).toBe(2);
+    expect(shiftSummary.reliefDeliveriesLoggedCount).toBe(8);
+    expect(shiftSummary.summaryBn).toContain('মোট 12টি এসওএস রিপোর্ট প্রক্রিয়াকরণ করা হয়েছে');
+    expect(shiftSummary.summaryBn).toContain('5টি জরুরি উদ্ধার মিশন সম্পন্ন ও অনুমোদিত হয়েছে');
+    expect(shiftSummary.summaryBn).toContain('2টি নীরব গ্রাম');
+  });
 });
 

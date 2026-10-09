@@ -36,6 +36,20 @@ export interface BenchmarkReportResponse {
   evaluatedAt: string;
 }
 
+export interface ShiftSummaryData {
+  shiftTitle: string;
+  generatedAt: string;
+  sourceIncidentIds: string[];
+  summaryBn: string;
+  disclaimer: string;
+  counts: {
+    totalSosProcessed: number;
+    evacuationsCompleted: number;
+    silentVillagesFlagged: number;
+    reliefDeliveriesLogged: number;
+  };
+}
+
 export interface BenchmarkSample {
   id: string;
   text: string;
@@ -52,6 +66,8 @@ export function AiLanguageAssistant() {
   const [isOutageSimulated, setIsOutageSimulated] = useState<boolean>(false);
   const [benchmarkReport, setBenchmarkReport] = useState<BenchmarkReportResponse | null>(null);
   const [samples, setSamples] = useState<BenchmarkSample[]>([]);
+  const [shiftSummary, setShiftSummary] = useState<ShiftSummaryData | null>(null);
+  const [shiftLoading, setShiftLoading] = useState<boolean>(false);
   const [operatorEdits, setOperatorEdits] = useState<{ peopleCount: number | ''; notes: string }>({
     peopleCount: '',
     notes: '',
@@ -122,6 +138,31 @@ export function AiLanguageAssistant() {
     setSaveFeedback(
       `অপারেটর সংশোধন সংরক্ষিত হয়েছে: মানুষের সংখ্যা ${operatorEdits.peopleCount || 'অপরিবর্তিত'} (Operator Verified).`,
     );
+  };
+
+  const handleGenerateShiftSummary = async () => {
+    setShiftLoading(true);
+    try {
+      const res = await fetch('/api/v1/ai/shift-summary', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          shiftTitle: 'রাত্রিকালীন বন্যা অপারেশন শিফট (Night Shift Handover)',
+          totalSosProcessed: 14,
+          evacuationsCompleted: 6,
+          silentVillagesFlagged: 2,
+          reliefDeliveriesLogged: 9,
+          sourceIncidentIds: ['sos-001', 'sos-002', 'sos-003', 'sos-004'],
+        }),
+      });
+      if (res.ok) {
+        setShiftSummary(await res.json());
+      }
+    } catch {
+      // offline / mock fallback
+    } finally {
+      setShiftLoading(false);
+    }
   };
 
   return (
@@ -323,6 +364,43 @@ export function AiLanguageAssistant() {
                 <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>ফলব্যাক কার্যকারিতা:</span>
                 <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#a78bfa' }}>{benchmarkReport.fallbackSuccessRate}%</div>
               </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Fact-Constrained Shift Operations Summary Section */}
+      <div style={{ background: '#1e293b', border: '1px solid #334155', borderRadius: '6px', padding: '1rem', marginTop: '1rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
+          <div>
+            <h3 style={{ fontSize: '1rem', color: '#f8fafc', margin: 0 }}>
+              📝 শিফট হ্যান্ডওভার বিবরণী / Fact-Constrained Shift Operations Summary
+            </h3>
+            <p style={{ fontSize: '0.8rem', color: '#94a3b8', margin: '0.2rem 0 0' }}>
+              শুধুমাত্র নথিবদ্ধ উদ্ধার, এসওএস ও ত্রাণ বিতরণের তথ্যের উপর ভিত্তি করে তৈরি বাস্তবভিত্তিক সারসংক্ষেপ
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={handleGenerateShiftSummary}
+            disabled={shiftLoading}
+            style={{ background: '#059669', color: 'white', border: 'none', padding: '0.35rem 0.8rem', borderRadius: '4px', fontSize: '0.8rem', cursor: 'pointer' }}
+          >
+            {shiftLoading ? 'তৈরি হচ্ছে...' : 'শিফট সারসংক্ষেপ তৈরি করুন (Generate)'}
+          </button>
+        </div>
+
+        {shiftSummary && (
+          <div style={{ marginTop: '1rem', background: '#0f172a', padding: '1rem', borderRadius: '4px', border: '1px solid #059669' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', borderBottom: '1px solid #334155', paddingBottom: '0.5rem', marginBottom: '0.8rem' }}>
+              <span style={{ fontWeight: 'bold', color: '#34d399', fontSize: '0.95rem' }}>{shiftSummary.shiftTitle}</span>
+              <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>উৎস আইডি: {shiftSummary.sourceIncidentIds.join(', ')}</span>
+            </div>
+            <pre style={{ margin: 0, whiteSpace: 'pre-wrap', fontFamily: 'inherit', fontSize: '0.85rem', color: '#e2e8f0', lineHeight: '1.6' }}>
+              {shiftSummary.summaryBn}
+            </pre>
+            <div style={{ marginTop: '0.8rem', fontSize: '0.75rem', color: '#fbbf24', background: '#451a03', padding: '0.4rem 0.6rem', borderRadius: '4px' }}>
+              ⚠️ {shiftSummary.disclaimer}
             </div>
           </div>
         )}

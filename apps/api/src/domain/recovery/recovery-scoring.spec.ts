@@ -85,5 +85,34 @@ describe('Recovery Needs Scoring & Coverage', () => {
     expect(result.urgencyLevel).toBe('LOW');
     expect(result.priorityScore).toBeLessThan(20);
   });
+
+  it('generates pre-positioning and staging suggestion when road is cut off and water is contaminated', () => {
+    const result = calculateVillageNeedScore(
+      {
+        villageId: 'vil-chitholia',
+        villageName: 'Chitholia',
+        damageLevel: 'DESTROYED',
+        tubeWellContaminated: true,
+        roadPassability: 'BOAT_ONLY',
+        needWater: true,
+        needMedicine: true,
+        needFood: true,
+        estimatedFamilies: 250,
+        reportedWaterLitresNeed: 5000,
+        reportedFoodPacksNeed: 250,
+        coordinates: { lat: 23.235, lng: 91.415 },
+      },
+      {
+        deliveredWaterLitres: 500,
+        deliveredFoodPacks: 50,
+        lastDeliveryTime: null,
+      },
+    );
+
+    expect(result.coordinates).toEqual({ lat: 23.235, lng: 91.415 });
+    expect(result.stagingSuggestionBn).toBeDefined();
+    expect(result.stagingSuggestionBn).toContain('নৌকা ছাড়া সড়কপথে ত্রাণ পৌঁছানো অসম্ভব');
+    expect(result.stagingSuggestionBn).toContain('রিলে-পয়েন্ট');
+  });
 });
 

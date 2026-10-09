@@ -53,5 +53,20 @@ export class AiController {
   runBenchmark() {
     return this.aiService.runBenchmark();
   }
+
+  @ApiOperation({ summary: 'Generate fact-constrained operations shift summary (Phase 10 stretch)' })
+  @Post('shift-summary')
+  generateShiftSummary(
+    @Body()
+    body: {
+      totalSos?: number;
+      criticalEvacuations?: number;
+      silentVillages?: number;
+      deliveriesLogged?: number;
+      recordIds?: string[];
+    },
+  ) {
+    return this.aiService.generateShiftSummary(body || {});
+  }
 }
 

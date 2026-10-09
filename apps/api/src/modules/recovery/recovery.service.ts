@@ -195,6 +195,12 @@ export class RecoveryService {
       '22222222-2222-2222-2222-222222222203': 'ফুলগাজী (Fulgazi)',
     };
 
+    const villageCoords: Record<string, { lat: number; lng: number }> = {
+      '22222222-2222-2222-2222-222222222205': { lat: 23.235, lng: 91.415 }, // Chitholia
+      '22222222-2222-2222-2222-222222222204': { lat: 23.218, lng: 91.432 }, // Mirzanagar
+      '22222222-2222-2222-2222-222222222203': { lat: 23.165, lng: 91.410 }, // Fulgazi
+    };
+
     // Aggregate by area
     const areaIds = Array.from(new Set(this.reports.map((r) => r.area_id)));
 
@@ -226,6 +232,7 @@ export class RecoveryService {
         estimatedFamilies: needsData?.families ?? 100,
         reportedWaterLitresNeed: waterNeed,
         reportedFoodPacksNeed: foodNeed,
+        coordinates: villageCoords[areaId] || { lat: 23.210, lng: 91.430 },
       };
 
       return calculateVillageNeedScore(villageInput, {
