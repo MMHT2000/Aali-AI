@@ -1,0 +1,37 @@
+{
+  "name": "aali-ai",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Aali AI — Feni flash-flood warning, rescue coordination and recovery prototype",
+  "workspaces": [
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspaces",
+    "dev:api": "npm run dev --workspace=apps/api",
+    "dev:web": "npm run dev --workspace=apps/web",
+    "build": "npm run build --workspaces",
+    "build:api": "npm run build --workspace=apps/api",
+    "build:web": "npm run build --workspace=apps/web",
+    "typecheck": "npm run typecheck --workspaces",
+    "typecheck:api": "npm run typecheck --workspace=apps/api",
+    "typecheck:web": "npm run typecheck --workspace=apps/web",
+    "lint": "eslint apps/api/src apps/web/src",
+    "test": "npm run test --workspaces",
+    "test:api": "npm run test --workspace=apps/api",
+    "test:web": "npm run test --workspace=apps/web"
+  },
+  "keywords": [
+    "feni",
+    "flood-resilience",
+    "sos",
+    "decision-support"
+  ],
+  "author": "Aali AI Team",
+  "license": "UNLICENSED",
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.12.0",
+    "typescript-eslint": "^8.71.1"
+  }
+}
