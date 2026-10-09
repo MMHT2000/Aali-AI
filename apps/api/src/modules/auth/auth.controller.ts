@@ -42,4 +42,20 @@ export class AuthController {
   async getMe(@Request() req: { user: unknown }) {
     return req.user;
   }
+
+  @Post('resident-register')
+  @ApiOperation({ summary: 'Register resident with demo mock NID format & uniqueness check' })
+  @ApiResponse({ status: 201, description: 'Resident registration successful' })
+  @ApiResponse({ status: 400, description: 'Invalid mock NID format or length' })
+  @ApiResponse({ status: 409, description: 'Mock NID already registered' })
+  async registerResident(
+    @Body()
+    body: {
+      fullName: string;
+      phoneNumber: string;
+      mockNid: string;
+    },
+  ) {
+    return this.authService.registerResident(body);
+  }
 }

@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import App from './App';
 import * as apiClient from './lib/api-client';
@@ -31,14 +31,13 @@ describe('App Shell', () => {
     render(<App />);
 
     expect(
-      screen.getByRole('heading', { name: /আলি এআই \/ Aali AI/i }),
+      screen.getByText(/আলি এআই কন্ট্রোল রুম লগইন/i),
     ).toBeInTheDocument();
     expect(
       screen.getByText(/Aali AI is a decision-support prototype/i),
     ).toBeInTheDocument();
-
-    await waitFor(() => {
-      expect(screen.getByText('API Version:')).toBeInTheDocument();
-    });
+    expect(
+      screen.getByText(/লগইন করুন \(Enter Operations\)/i),
+    ).toBeInTheDocument();
   });
 });

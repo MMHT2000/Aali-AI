@@ -456,4 +456,45 @@ Antigravity must append an entry after each completed phase. Do not pre-fill com
 - **Open issues:** None. All planned phases (0 to 10) are 100% complete.
 - **Next phase:** None — Roadmap complete. Prototype ready for demonstration and review.
 
+---
+
+### 2026-10-09 — Product Modification Track: Central Control Room, Simulator, Mock NID, and Flutter Client
+- **Baseline:** Phases 0–10 complete with all 90 tests passing.
+- **Files changed:**
+  - `apps/api/src/modules/auth/nid-validation.ts` & `nid-validation.spec.ts` (10 or 17 ASCII digit validation, rejects repetitive identical digits, SHA-256 keyed hashing without storing/logging raw NID)
+  - `apps/api/src/modules/auth/auth.service.ts` & `auth.controller.ts` & `auth.service.spec.ts` (added `POST /api/v1/auth/resident-register` with uniqueness enforcement in session and phone number redaction)
+  - `apps/api/src/config/env.validation.ts` & `.env.example` (configurable primary and backup LLM provider variables `AI_PRIMARY_PROVIDER`, `AI_BACKUP_PROVIDER`, and `AI_TIMEOUT_MS`)
+  - `apps/api/src/modules/ai/ai.service.ts` (updated provider status to expose active provider, primary ready state, standby backup, and failover policy without leaking secrets)
+  - `apps/web/src/components/Login.tsx` (operations entry with instant role fast-switcher buttons for AUTHORITY, RESPONDER, VOLUNTEER, RECOVERY_COORDINATOR, VIEWER)
+  - `apps/web/src/components/ControlRoom.tsx` (central control room layout with persistent sidebar navigation across Overview, Triage, Alerts, Replay, Recovery, AI Assistant, Audit Logs, Settings, and Resident Simulator)
+  - `apps/web/src/components/ResidentSimulator.tsx` & `ResidentSimulator.spec.tsx` (interactive dashboard resident simulator demonstrating mock NID check, 3-tap SOS generation, online API submission, offline queueing, and simulated SMS gateway handoff)
+  - `apps/web/src/components/SettingsPanel.tsx` (system configuration and LLM primary/backup failover status view)
+  - `apps/web/src/components/AuditViewer.tsx` (audit log viewer component)
+  - `apps/web/src/App.tsx` & `App.spec.tsx` (mounted authenticated ControlRoom shell with session persistence and prototype disclaimer banner)
+  - `apps/mobile/pubspec.yaml`, `apps/mobile/lib/nid_validator.dart`, `apps/mobile/lib/packet_encoder.dart`, `apps/mobile/lib/main.dart`, `apps/mobile/README.md` (independent Flutter resident client codebase with onboarding, mock NID validation, 3-tap SOS, local outbox, and explicit Android SMS composer handoff)
+  - `IMPLEMENTATION_PLAN.md` (appended Modification Track checklist)
+- **Behavior delivered:**
+  - Unified Central Control Room: Replaced the single stacked landing page with a multi-tab operations center. Responders and authorities log in and receive focused workspaces for triage, alerts, replay, recovery, and audit.
+  - Interactive Resident Simulator: Allows hackathon judges to simulate the resident journey inside the web dashboard (NID validation, 3-tap SOS, connectivity toggle, and gateway handoff).
+  - Mock NID Validation: Pure 10 or 17 digit validation with repetition checks, server uniqueness enforcement, and SHA-256 minimization. Explicit disclaimer: *"Demo NID format check — not identity verification."*
+  - Primary & Backup LLM Seam: Configurable failover seam between primary and backup providers, retaining local deterministic fallback. Zero PII transmission.
+  - Flutter Mobile Application: Complete independent Flutter mobile codebase under `apps/mobile` with setup runbook.
+- **Commands run:**
+  - `npm.cmd test` (exited 0: 74 API tests across 16 test suites passed; 28 Web tests across 8 test suites passed; 102 total tests passed)
+  - `npm.cmd run typecheck` (exited 0: zero errors across all workspaces)
+  - `npm.cmd run lint` (exited 0: 0 errors, 0 warnings)
+  - `npm.cmd run build` (exited 0: clean NestJS API and Vite Web production builds)
+- **Acceptance criteria:**
+  - Central Control Room and role-aware navigation: PASS
+  - Resident Client Simulator with online/offline queue and gateway handoff: PASS
+  - Mock NID 10/17 digit acceptance, invalid length rejection, repeated digit rejection, duplicate check: PASS
+  - Flutter application source and runbook in `apps/mobile`: PASS
+  - Configurable LLM failover seam without PII leakage: PASS
+  - All test suites, typechecks, linter, and builds passing: PASS
+- **Simulated or unverified integrations:**
+  - Carrier SMS gateway and satellite links are explicitly labeled as simulations.
+  - Host OS does not have local Flutter SDK in PATH (`flutter` command not found); Flutter client is provided as full clean Dart source with comprehensive run instructions in `apps/mobile/README.md`.
+- **Open issues:** None. Modification track fully satisfied.
+
+
 

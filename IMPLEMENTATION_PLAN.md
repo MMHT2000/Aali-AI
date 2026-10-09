@@ -277,3 +277,11 @@ The prototype is ready only when a reviewer can, using synthetic data and the wr
 - [x] Phase 8 — recovery ledger
 - [x] Phase 9 — security, accessibility, E2E and demo freeze
 - [x] Phase 10 — optional stretch items only if time remains
+
+## 8. Modification Track (Hackathon Product Evolution)
+- [x] Mod 1: Mock NID format (10/17 digits) & resident registration API with SHA-256 minimization
+- [x] Mod 2: Central Control Room layout & dedicated role-aware operations tabs
+- [x] Mod 3: Interactive Resident Client Simulator with online/offline queue and gateway handoff
+- [x] Mod 4: Configurable primary/backup LLM failover seam with strict PII protections
+- [x] Mod 5: Independent Flutter resident mobile app (`apps/mobile`) with setup instructions
+

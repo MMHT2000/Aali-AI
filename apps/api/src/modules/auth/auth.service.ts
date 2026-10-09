@@ -1,13 +1,26 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { ConflictException, Injectable, UnauthorizedException, BadRequestException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { SYNTHETIC_FENI_SEEDS } from '../../database/seeds/feni-synthetic.seeds';
 import { UserRole } from '../users/entities/user-role.enum';
 import { LoginDto, LoginResponseDto } from './dto/login.dto';
+import { validateMockNidFormat, hashNid, ResidentRegistrationResult } from './nid-validation';
+
+interface RegisteredResidentRecord {
+  id: string;
+  fullName: string;
+  phoneNumberRedacted: string;
+  nidHash: string;
+  nidLast4: string;
+  registeredAt: string;
+}
 
 @Injectable()
 export class AuthService {
+  // In-memory registry of residents registered during demo session
+  private readonly registeredResidents = new Map<string, RegisteredResidentRecord>();
+
   constructor(
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
@@ -55,5 +68,51 @@ export class AuthService {
       },
     };
   }
+
+  async registerResident(dto: {
+    fullName: string;
+    phoneNumber: string;
+    mockNid: string;
+  }): Promise<ResidentRegistrationResult> {
+    const formatCheck = validateMockNidFormat(dto.mockNid);
+    if (!formatCheck.isValid) {
+      throw new BadRequestException(formatCheck.error);
+    }
+
+    const cleanNid = dto.mockNid.trim();
+    const nidHash = hashNid(cleanNid);
+
+    // Enforce uniqueness against already-registered residents in demo session
+    if (this.registeredResidents.has(nidHash)) {
+      throw new ConflictException('This demo NID has already been registered in the system.');
+    }
+
+    const residentId = `res-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
+    const rawPhone = (dto.phoneNumber || '').trim();
+    const redactedPhone = rawPhone.length >= 7
+      ? `${rawPhone.slice(0, 3)}****${rawPhone.slice(-3)}`
+      : '***-***';
+
+    const record: RegisteredResidentRecord = {
+      id: residentId,
+      fullName: dto.fullName || 'Anonymous Resident',
+      phoneNumberRedacted: redactedPhone,
+      nidHash,
+      nidLast4: cleanNid.slice(-4),
+      registeredAt: new Date().toISOString(),
+    };
+
+    this.registeredResidents.set(nidHash, record);
+
+    return {
+      residentId: record.id,
+      nidHash: record.nidHash,
+      nidLast4: record.nidLast4,
+      phoneNumberRedacted: record.phoneNumberRedacted,
+      registeredAt: record.registeredAt,
+      disclaimer: 'Demo NID format check — not identity verification.',
+    };
+  }
 }
+
 

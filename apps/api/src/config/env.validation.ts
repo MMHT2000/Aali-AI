@@ -85,6 +85,18 @@ export class EnvironmentVariables {
 
   @IsString()
   @IsOptional()
+  AI_PRIMARY_PROVIDER: string = 'deterministic_mock';
+
+  @IsString()
+  @IsOptional()
+  AI_BACKUP_PROVIDER: string = 'deterministic_fallback';
+
+  @IsNumber()
+  @IsOptional()
+  AI_TIMEOUT_MS: number = 3000;
+
+  @IsString()
+  @IsOptional()
   SMS_GATEWAY_MODE: string = 'simulated';
 
   @IsString()
