@@ -34,4 +34,70 @@ describe('API authorization boundary', () => {
     await request(app.getHttpServer()).post('/api/v1/warnings/warn-001/approve')
       .set('Authorization', `Bearer ${authorityToken}`).send({ note: 'test' }).expect(201);
   });
+
+  it('forbids VIEWER from mutate operations but allows read snapshot', async () => {
+    const viewerToken = jwt.sign({ sub: 'viewer-id', username: 'viewer_guest', role: UserRole.VIEWER, displayName: 'Viewer' });
+
+    await request(app.getHttpServer()).post('/api/v1/warnings/warn-001/approve')
+      .set('Authorization', `Bearer ${viewerToken}`).send({ note: 'test' }).expect(403);
+    await request(app.getHttpServer()).post('/api/v1/field-readings')
+      .set('Authorization', `Bearer ${viewerToken}`).send({ areaId: '22222222-2222-2222-2222-222222222204', levelM: 5.2 }).expect(403);
+    await request(app.getHttpServer()).post('/api/v1/recovery/reports')
+      .set('Authorization', `Bearer ${viewerToken}`).send({ areaId: '22222222-2222-2222-2222-222222222204', damageLevel: 'MODERATE' }).expect(403);
+
+    // Reading snapshot is allowed for viewer
+    await request(app.getHttpServer()).get('/api/v1/operations/snapshot')
+      .set('Authorization', `Bearer ${viewerToken}`).expect(200);
+  });
+
+  it('forbids VOLUNTEER from warning approval and boat review, allows field-readings', async () => {
+    const volunteerToken = jwt.sign({ sub: 'volunteer-id', username: 'volunteer_parshuram', role: UserRole.VOLUNTEER, displayName: 'Volunteer' });
+
+    await request(app.getHttpServer()).post('/api/v1/warnings/warn-001/approve')
+      .set('Authorization', `Bearer ${volunteerToken}`).send({ note: 'test' }).expect(403);
+    await request(app.getHttpServer()).post('/api/v1/incidents/inc-feni-001/boat-recommendation/review')
+      .set('Authorization', `Bearer ${volunteerToken}`).send({ decision: 'ACCEPT' }).expect(403);
+
+    // Volunteer is authorized for field readings
+    await request(app.getHttpServer()).post('/api/v1/field-readings')
+      .set('Authorization', `Bearer ${volunteerToken}`)
+      .send({ areaId: '22222222-2222-2222-2222-222222222204', levelM: 4.85, note: 'Water mark check' })
+      .expect(201);
+  });
+
+  it('forbids RECOVERY_COORDINATOR from warning approval and simulation control, allows recovery delivery', async () => {
+    const recoveryToken = jwt.sign({ sub: 'recovery-id', username: 'recovery_coord', role: UserRole.RECOVERY_COORDINATOR, displayName: 'Recovery Officer' });
+
+    await request(app.getHttpServer()).post('/api/v1/warnings/warn-001/approve')
+      .set('Authorization', `Bearer ${recoveryToken}`).send({ note: 'test' }).expect(403);
+    await request(app.getHttpServer()).post('/api/v1/simulation/start')
+      .set('Authorization', `Bearer ${recoveryToken}`).expect(403);
+
+    // Authorized to record delivery
+    await request(app.getHttpServer()).post('/api/v1/recovery/deliveries')
+      .set('Authorization', `Bearer ${recoveryToken}`)
+      .send({
+        areaId: '22222222-2222-2222-2222-222222222204',
+        organizationLabel: 'BDRCS Field Unit',
+        itemCode: 'CLEAN_WATER',
+        quantity: 500,
+        unit: 'LITRES',
+        idempotencyKey: `test-del-${Date.now()}`,
+      })
+      .expect(201);
+  });
+
+  it('allows RESPONDER to review duplicate candidates and boat recommendations', async () => {
+    const responderToken = jwt.sign({ sub: 'responder-id', username: 'responder_feni', role: UserRole.RESPONDER, displayName: 'Responder' });
+
+    await request(app.getHttpServer()).post('/api/v1/incidents/inc-feni-001/duplicate-candidates/dup-cand-001/review')
+      .set('Authorization', `Bearer ${responderToken}`)
+      .send({ decision: 'ACCEPT', reason: 'Same roof location confirmed by phone' })
+      .expect(201);
+
+    await request(app.getHttpServer()).post('/api/v1/incidents/inc-feni-001/boat-recommendation/review')
+      .set('Authorization', `Bearer ${responderToken}`)
+      .send({ decision: 'ACCEPT', reason: 'Engine boat dispatched by volunteer unit' })
+      .expect(201);
+  });
 });

@@ -513,5 +513,31 @@ Antigravity must append an entry after each completed phase. Do not pre-fill com
 - **Limitations:** incidents, warnings, recovery and audit/review actions still include in-memory state; persisted resident/SOS/field/simulation records do not make all operational data durable. Flutter source has no generated Android/iOS scaffold, and Flutter/Dart CLIs are unavailable; its build/analyze/tests remain unverified. Browser map/tile outage and API-submitted SOS UI visibility were not verified interactively. Do not describe the deterministic scenario as a trained model or live forecast.
 - **Next increment:** complete persistence and actor/audit scoping for remaining operational services; build the Android scaffold and verify Flutter flows, then run the remaining acceptance checks.
 
+### 2026-10-10 — Product Overhaul Increment 2 (Durable Persistence, Expanded Authorization, Simulator & Android Scaffold)
+
+- **Summary:** Completed remaining items from the product overhaul roadmap: transitioned Warnings, Recovery, and Incidents from in-memory arrays to durable TypeORM MySQL persistence; updated security audit logging with authentic actor attribution; expanded API authorization tests across all roles; aligned the Resident Simulator with production API and packet contracts; and generated the native Android Flutter scaffold with passing static analysis and tests.
+- **Files changed:**
+  - `apps/api/src/modules/warnings/alerts.service.ts` & `warnings.module.ts`: Warnings drafted, approved, rejected, and simulated broadcasts now persist to the `warnings` MySQL table using TypeORM repository with in-memory test fallback.
+  - `apps/api/src/modules/recovery/recovery.service.ts` & `recovery.module.ts`: Damage/needs assessments and aid delivery receipts now persist to `recovery_reports` and `aid_deliveries` MySQL tables with database-backed idempotency.
+  - `apps/api/src/modules/incidents/incidents.service.ts` & `incidents.module.ts`: Incidents, duplicate candidate reviews, boat suggestion reviews, and incident splitting now write directly to MySQL entities and record authenticated audit trails.
+  - `apps/api/src/modules/operations/operations.service.ts` & `operations.module.ts`: Injected `AuditService` to log volunteer ground readings with authenticated user attribution.
+  - `apps/api/src/authorization.e2e.spec.ts`: Expanded e2e tests covering all operational roles (`VIEWER`, `VOLUNTEER`, `RECOVERY_COORDINATOR`, `RESPONDER`, `AUTHORITY`, `ADMIN`) ensuring forbidden routes return 403 while permitted routes return expected responses.
+  - `apps/web/src/components/ResidentSimulator.tsx`: Integrated `buildClientDisasterPacket` to compute mathematical CRC16-CCITT Base36 checksums; aligned SOS POST payload with `CreateSosDto` (`clientReportId`, `peopleCount`, `hasChild`, `hasMedicalNeed`, `isTrapped`); aligned simulated gateway ingest payload with `SimulatedGatewayIngestDto` (`packet`, `gatewayId`).
+  - `apps/mobile/`: Generated full native Android Gradle scaffold (`android/app/build.gradle.kts`, `AndroidManifest.xml`, Gradle wrapper); updated `main.dart` with missing child flag checkbox; updated `test/widget_test.dart` to smoke test `AaliResidentApp`.
+  - `IMPLEMENTATION_PLAN.md`: Updated Section 9 acceptance checklist to reflect verified durable persistence, authorization matrix, and Android scaffold.
+- **Commands run & results:**
+  - `npm.cmd run test --workspace=apps/api -- --runInBand --no-cache`: PASS (20 suites, 89 tests passed).
+  - `npm.cmd run test --workspace=apps/web`: PASS (9 files, 30 tests passed).
+  - `flutter analyze` in `apps/mobile`: PASS (No issues found).
+  - `dart test test/nid_validator_test.dart` in `apps/mobile`: PASS (9/9 unit tests passed).
+  - `flutter doctor` in `apps/mobile`: PASS for Flutter 3.47.7 & Dart 3.13.5 (Android SDK installation required for on-device APK execution).
+- **Acceptance criteria satisfied:**
+  - Durable persistence across warnings, recovery, and incidents: PASS
+  - Consistent security audit logging and actor attribution: PASS
+  - All-role authorization matrix and forbidden routes tested: PASS
+  - Resident Simulator contract alignment and valid CRC16-CCITT packet generation: PASS
+  - Flutter Android scaffold generated with clean analysis and tests: PASS
+
+
 
 

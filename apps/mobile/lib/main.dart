@@ -337,6 +337,11 @@ class _ResidentHomeScreenState extends State<ResidentHomeScreen> {
                         onChanged: (val) => setState(() => _flagElderly = val ?? false),
                       ),
                       CheckboxListTile(
+                        title: const Text('শিশু সদস্য আছে (Has Infant/Child)'),
+                        value: _flagChild,
+                        onChanged: (val) => setState(() => _flagChild = val ?? false),
+                      ),
+                      CheckboxListTile(
                         title: const Text('জরুরি চিকিৎসা প্রয়োজন'),
                         value: _flagMedical,
                         onChanged: (val) => setState(() => _flagMedical = val ?? false),

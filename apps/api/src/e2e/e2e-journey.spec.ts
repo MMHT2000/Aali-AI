@@ -166,7 +166,7 @@ describe('Aali AI — End-to-End Synthetic Flood Journey (Phase 9 Acceptance)', 
     expect(stepped.currentEvaluation.reasonCodes).toContain('GAUGE_SILENT');
 
     // Authority warning approval
-    const warnings = alertsService.getWarnings();
+    const warnings = await alertsService.getWarnings();
     const draft = warnings[0];
     const approvedWarning = await alertsService.approveWarning(
       draft.id,
@@ -183,7 +183,7 @@ describe('Aali AI — End-to-End Synthetic Flood Journey (Phase 9 Acceptance)', 
   });
 
   it('Step 7: Records post-disaster recovery aid delivery with idempotency and audit record', async () => {
-    const initialSummary = recoveryService.getSummary();
+    const initialSummary = await recoveryService.getSummary();
     expect(initialSummary.villagesRanking.length).toBeGreaterThan(0);
     const topVillage = initialSummary.villagesRanking[0];
 

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { apiFetch as fetch } from '../lib/authenticated-fetch';
+import { buildClientDisasterPacket } from '../lib/packet';
 
 export interface ResidentRegistrationResponse {
   residentId: string;
@@ -66,20 +67,13 @@ export function ResidentSimulator() {
   };
 
   const generateCompactPacket = () => {
-    // A1|S|<geohash7>|<people2>|E<0|1>C<0|1>M<0|1>T<0|1>|<YYMMDD-HHMM>|<shortId>|<crc>
-    const now = new Date();
-    const yy = String(now.getFullYear()).slice(-2);
-    const mm = String(now.getMonth() + 1).padStart(2, '0');
-    const dd = String(now.getDate()).padStart(2, '0');
-    const hh = String(now.getHours()).padStart(2, '0');
-    const min = String(now.getMinutes()).padStart(2, '0');
-    const timeStr = `${yy}${mm}${dd}-${hh}${min}`;
-    const pStr = String(peopleCount).padStart(2, '0');
-    const fStr = `E${flags.elderly ? 1 : 0}C${flags.child ? 1 : 0}M${flags.medical ? 1 : 0}T${flags.trapped ? 1 : 0}`;
-    const shortId = 'SIM1';
-    
-    // Canonical packet format for testing
-    return `A1|S|${geohash}|${pStr}|${fStr}|${timeStr}|${shortId}|CRC1`;
+    const { rawPacket } = buildClientDisasterPacket({
+      geohash7: geohash,
+      peopleCount,
+      flags,
+      shortId: 'SIM1',
+    });
+    return rawPacket;
   };
 
   const handleSubmitSos = async () => {
@@ -96,19 +90,20 @@ export function ResidentSimulator() {
     setStatusMessage('অনলাইন সার্ভারে এসওএস পাঠানো হচ্ছে...');
 
     try {
+      const clientReportId = `sim-rep-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
       const res = await fetch('/api/v1/sos', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          senderPhone: phoneNumber,
+          clientReportId,
           peopleCount,
           elderlyCount: flags.elderly ? 1 : 0,
-          childrenCount: flags.child ? 1 : 0,
-          medicalEmergency: flags.medical,
+          hasChild: flags.child,
+          hasMedicalNeed: flags.medical,
           isTrapped: flags.trapped,
-          villageName: selectedVillage,
-          locationDescription: `${selectedVillage} - সিমুলেটেড রেসিডেন্ট ক্লায়েন্ট রিপোর্ট`,
-          rawText: `${selectedVillage} এলাকায় আমরা ${peopleCount} জন পানিবন্দী।`,
+          messageOriginal: `${selectedVillage} এলাকায় আমরা ${peopleCount} জন পানিবন্দী।`,
+          messageLanguage: 'bn',
+          transportKind: 'APP_DIRECT',
         }),
       });
 
@@ -135,10 +130,8 @@ export function ResidentSimulator() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          rawPacket: outboxPacket,
-          senderPhone: phoneNumber,
-          channel: 'CELLULAR_SMS',
-          providerName: 'Simulated Grameenphone / Teletalk Gateway',
+          packet: outboxPacket,
+          gatewayId: 'SIMULATOR-FENI-GW-01',
         }),
       });
 

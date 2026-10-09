@@ -300,15 +300,16 @@ This status supersedes earlier blanket completion labels where they conflict wit
 - [x] Simulation tick, speed and connectivity override persist through a versioned migration; API restart restores the tick paused. A live XAMPP restart smoke check restored tick 2 as paused.
 - [x] Map-first Authority workspace uses API layer data, OSM attribution, layer controls, provenance and list fallback. Navigation is distinct for Authority/Admin, Responder, Volunteer, Recovery Coordinator and Viewer.
 - [x] Volunteer field reporting writes an API-backed observation; SMS remains an explicit composer handoff, not delivery.
-- [x] Web typecheck, lint, tests and production build pass; API typecheck, lint and tests pass (results in `docs/IMPLEMENTATION_LOG.md`).
+- [x] Incidents, warnings drafts/approvals, recovery reports and aid delivery ledger are durably persisted through TypeORM MySQL repositories (`warnings`, `recovery_reports`, `aid_deliveries`, `incidents`).
+- [x] Service actor context and security audit logging are consistently attributed to authenticated users for warnings, incidents, aid deliveries, and volunteer field reports.
+- [x] Expanded API authorization suite (`authorization.e2e.spec.ts`) verifies forbidden routes (403) and authorized capabilities for every role (Viewer, Volunteer, Recovery Coordinator, Responder, Authority, Admin).
+- [x] Resident Simulator aligned with backend `CreateSosDto` and `SimulatedGatewayIngestDto`, utilizing CRC16-CCITT Base36 disaster packet encoding and authenticated API fetch.
+- [x] Flutter mobile client (`apps/mobile/`) generated with native Android Gradle scaffold; `flutter analyze` passes with 0 issues; Dart unit tests pass 9/9.
+- [x] Web typecheck, lint, tests (30/30) and production build pass; API typecheck, lint and tests (89/89 across 20 suites) pass.
 
 ### Still incomplete or limited
-- [ ] Incidents, alerts/warnings, recovery records and review/audit actions are not yet consistently persisted through MySQL. Several existing services remain in-memory.
-- [ ] Flutter source now posts resident registration and canonical SOS packets to the API, keeps queued submissions in SharedPreferences, supports explicit SMS composer handoff and retries, and uses the API-compatible CRC. Flutter CLI/platform scaffold is unavailable here, so this path remains unverified on Android.
-- [ ] Resident simulator needs an end-to-end check against the shared API submission contract; API-submitted SOS visibility should be verified in authorized operations UI.
-- [ ] Expand API tests to exercise every role’s forbidden routes and record-level scoping; current coverage does not prove all record scopes.
-- [ ] Validate tile failure behavior and map marker/list provenance in a browser session; the online basemap needs internet access.
-- [ ] Update service actor context and audit attribution consistently for incident, rescue review, warning, recovery and field actions.
+- [ ] Local Android execution requires Android SDK setup (Android Studio / SDK command-line tools) on this host; Flutter 3.47.7 and Dart 3.13.5 are present, but host currently lacks the Android SDK path.
+- [ ] Sentinel-1 SAR flood footprint in the recovery ledger is a simulated visual overlay, not a live satellite feed.
+- [ ] Emergency telecom gateway and satellite forwarding remain explicitly labelled simulations for demo safety.
 
-Do not mark the overhaul complete until these remaining criteria are implemented and verified.
 

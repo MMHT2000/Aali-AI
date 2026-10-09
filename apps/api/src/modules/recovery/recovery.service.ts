@@ -1,4 +1,6 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit, Optional } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import {
   calculateVillageNeedScore,
   VillageNeedInput,
@@ -37,13 +39,44 @@ export interface RecordDeliveryDto {
 import { AuditService } from '../audit/audit.service';
 
 @Injectable()
-export class RecoveryService {
+export class RecoveryService implements OnModuleInit {
   private readonly logger = new Logger(RecoveryService.name);
   private reports: RecoveryReport[] = [];
   private deliveries: AidDelivery[] = [];
 
-  constructor(private readonly auditService?: AuditService) {
+  constructor(
+    @Optional()
+    @InjectRepository(RecoveryReport)
+    private readonly reportRepository?: Repository<RecoveryReport>,
+    @Optional()
+    @InjectRepository(AidDelivery)
+    private readonly deliveryRepository?: Repository<AidDelivery>,
+    private readonly auditService?: AuditService,
+  ) {
     this.seedInitialRecoveryData();
+  }
+
+  async onModuleInit() {
+    if (this.reportRepository) {
+      try {
+        const count = await this.reportRepository.count();
+        if (count === 0 && this.reports.length > 0) {
+          await this.reportRepository.save(this.reports);
+        }
+      } catch {
+        // fallback
+      }
+    }
+    if (this.deliveryRepository) {
+      try {
+        const count = await this.deliveryRepository.count();
+        if (count === 0 && this.deliveries.length > 0) {
+          await this.deliveryRepository.save(this.deliveries);
+        }
+      } catch {
+        // fallback
+      }
+    }
   }
 
   private seedInitialRecoveryData() {
@@ -104,7 +137,7 @@ export class RecoveryService {
     this.deliveries.push(d1);
   }
 
-  createReport(dto: CreateReportDto): RecoveryReport {
+  async createReport(dto: CreateReportDto): Promise<RecoveryReport> {
     const rep = new RecoveryReport();
     rep.id = `rec-rep-${Date.now()}`;
     rep.event_id = dto.eventId || '11111111-1111-1111-1111-111111111103';
@@ -127,20 +160,62 @@ export class RecoveryService {
     rep.status = 'SUBMITTED';
 
     this.reports.unshift(rep);
+    if (this.reportRepository) {
+      try {
+        await this.reportRepository.save(rep);
+      } catch {
+        // fallback
+      }
+    }
+
+    await this.auditService?.record({
+      actorUserId: dto.reportedBy,
+      action: 'CREATE_RECOVERY_REPORT',
+      entityType: 'RECOVERY_REPORT',
+      entityId: rep.id,
+      reason: `Damage assessment submitted for area ${dto.areaId}`,
+      afterSummary: {
+        areaId: dto.areaId,
+        damageLevel: dto.damageLevel,
+        needWater: dto.needWater,
+        needFood: dto.needFood,
+      },
+    });
+
     this.logger.log(`Created recovery need report ${rep.id} for area ${dto.areaId}`);
     return rep;
   }
 
-  getReports(): RecoveryReport[] {
+  async getReports(): Promise<RecoveryReport[]> {
+    if (this.reportRepository) {
+      try {
+        const persisted = await this.reportRepository.find({ order: { reported_at: 'DESC' } });
+        if (persisted && persisted.length > 0) {
+          return persisted;
+        }
+      } catch {
+        // fallback
+      }
+    }
     return this.reports;
   }
 
   async recordDelivery(dto: RecordDeliveryDto): Promise<{ delivery: AidDelivery; isDuplicateIgnored: boolean }> {
-    // Idempotency check: Guard against duplicate deliveries
-    const existing = this.deliveries.find((d) => d.idempotency_key === dto.idempotencyKey);
-    if (existing) {
+    if (this.deliveryRepository) {
+      try {
+        const existing = await this.deliveryRepository.findOne({ where: { idempotency_key: dto.idempotencyKey } });
+        if (existing) {
+          this.logger.warn(`Duplicate delivery submission rejected with idempotency key: ${dto.idempotencyKey}`);
+          return { delivery: existing, isDuplicateIgnored: true };
+        }
+      } catch {
+        // fallback
+      }
+    }
+    const memExisting = this.deliveries.find((d) => d.idempotency_key === dto.idempotencyKey);
+    if (memExisting) {
       this.logger.warn(`Duplicate delivery submission rejected with idempotency key: ${dto.idempotencyKey}`);
-      return { delivery: existing, isDuplicateIgnored: true };
+      return { delivery: memExisting, isDuplicateIgnored: true };
     }
 
     const del = new AidDelivery();
@@ -157,6 +232,14 @@ export class RecoveryService {
     del.receipt_note = dto.receiptNote || null;
     del.idempotency_key = dto.idempotencyKey;
     del.created_at = new Date();
+
+    if (this.deliveryRepository) {
+      try {
+        await this.deliveryRepository.save(del);
+      } catch {
+        // fallback
+      }
+    }
 
     await this.auditService?.record({
       actorUserId: dto.recordedBy,
@@ -179,16 +262,28 @@ export class RecoveryService {
     return { delivery: del, isDuplicateIgnored: false };
   }
 
-  getDeliveries(): AidDelivery[] {
+  async getDeliveries(): Promise<AidDelivery[]> {
+    if (this.deliveryRepository) {
+      try {
+        const persisted = await this.deliveryRepository.find({ order: { delivered_at: 'DESC' } });
+        if (persisted && persisted.length > 0) {
+          return persisted;
+        }
+      } catch {
+        // fallback
+      }
+    }
     return this.deliveries;
   }
 
-  getSummary(): {
+  async getSummary(): Promise<{
     villagesRanking: VillageNeedScoreOutput[];
     totalReports: number;
     totalDeliveries: number;
     disclaimer: string;
-  } {
+  }> {
+    const allReports = await this.getReports();
+    const allDeliveries = await this.getDeliveries();
     const villageNames: Record<string, string> = {
       '22222222-2222-2222-2222-222222222205': 'চিথলিয়া (Chitholia)',
       '22222222-2222-2222-2222-222222222204': 'মির্জানগর (Mirzanagar)',
@@ -202,13 +297,13 @@ export class RecoveryService {
     };
 
     // Aggregate by area
-    const areaIds = Array.from(new Set(this.reports.map((r) => r.area_id)));
+    const areaIds = Array.from(new Set(allReports.map((r) => r.area_id)));
 
     const rankings: VillageNeedScoreOutput[] = areaIds.map((areaId) => {
-      const areaReports = this.reports.filter((r) => r.area_id === areaId);
+      const areaReports = allReports.filter((r) => r.area_id === areaId);
       const latest = areaReports[0];
 
-      const areaDeliveries = this.deliveries.filter((d) => d.area_id === areaId);
+      const areaDeliveries = allDeliveries.filter((d) => d.area_id === areaId);
       const deliveredWater = areaDeliveries
         .filter((d) => d.item_code === 'CLEAN_WATER')
         .reduce((sum, d) => sum + Number(d.quantity), 0);
@@ -247,8 +342,8 @@ export class RecoveryService {
 
     return {
       villagesRanking: rankings,
-      totalReports: this.reports.length,
-      totalDeliveries: this.deliveries.length,
+      totalReports: allReports.length,
+      totalDeliveries: allDeliveries.length,
       disclaimer: 'Rankings support logistical coordination and relief transparency, not beneficiary eligibility.',
     };
   }

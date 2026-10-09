@@ -7,9 +7,10 @@ import { SimulationService } from './simulation.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { VolunteerReading } from '../gauges/entities/observation.entity';
 import { SimulationRunState } from './entities/simulation-run-state.entity';
+import { AuditModule } from '../audit/audit.module';
 
 @Module({
-  imports: [IncidentsModule, SosModule, TypeOrmModule.forFeature([VolunteerReading, SimulationRunState])],
+  imports: [IncidentsModule, SosModule, AuditModule, TypeOrmModule.forFeature([VolunteerReading, SimulationRunState])],
   controllers: [OperationsController],
   providers: [OperationsService, SimulationService],
   exports: [OperationsService, SimulationService],

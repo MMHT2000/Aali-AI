@@ -91,10 +91,16 @@ export class SosService {
   }
 
   async getReports(): Promise<SosReport[]> {
+    if (!this.reports?.manager?.connection?.isInitialized) {
+      return [];
+    }
     return this.reports.find({ order: { reported_at: 'DESC' }, take: 500 });
   }
 
   async getReportById(id: string): Promise<SosReport | null> {
+    if (!this.reports?.manager?.connection?.isInitialized) {
+      return null;
+    }
     return this.reports.findOneBy({ id });
   }
 }

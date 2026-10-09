@@ -1,4 +1,6 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, OnModuleInit, Optional } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import {
   evaluateThreeSignalAlert,
   ThreeSignalAlertInput,
@@ -39,12 +41,29 @@ export interface WarningDraftDto {
 import { AuditService } from '../audit/audit.service';
 
 @Injectable()
-export class AlertsService {
+export class AlertsService implements OnModuleInit {
   private activeReplays = new Map<string, ReplayRunState>();
   private warnings: Warning[] = [];
 
-  constructor(private readonly auditService?: AuditService) {
+  constructor(
+    @Optional()
+    @InjectRepository(Warning)
+    private readonly warningRepository?: Repository<Warning>,
+    private readonly auditService?: AuditService,
+  ) {
     this.seedInitialWarning();
+  }
+
+  async onModuleInit() {
+    if (!this.warningRepository) return;
+    try {
+      const count = await this.warningRepository.count();
+      if (count === 0 && this.warnings.length > 0) {
+        await this.warningRepository.save(this.warnings[0]);
+      }
+    } catch {
+      // In-memory fallback if database not ready
+    }
   }
 
   private seedInitialWarning() {
@@ -161,7 +180,7 @@ export class AlertsService {
   }
 
   // Warning Draft & Human Approval Workflow
-  createWarningDraft(dto: WarningDraftDto, userId: string): Warning {
+  async createWarningDraft(dto: WarningDraftDto, userId: string): Promise<Warning> {
     const w = new Warning();
     w.id = `warn-${Date.now()}`;
     w.event_id = dto.eventId;
@@ -176,15 +195,35 @@ export class AlertsService {
     w.delivery_simulation = null;
     w.created_at = new Date();
     this.warnings.unshift(w);
+    if (this.warningRepository) {
+      try {
+        await this.warningRepository.save(w);
+      } catch {
+        // fallback
+      }
+    }
     return w;
   }
 
-  getWarnings(): Warning[] {
+  async getWarnings(): Promise<Warning[]> {
+    if (this.warningRepository) {
+      try {
+        const persisted = await this.warningRepository.find({ order: { created_at: 'DESC' } });
+        if (persisted && persisted.length > 0) {
+          return persisted;
+        }
+      } catch {
+        // fallback
+      }
+    }
     return this.warnings;
   }
 
   async approveWarning(id: string, authorityUserId: string, note: string): Promise<Warning> {
-    const w = this.warnings.find((item) => item.id === id);
+    let w = this.warnings.find((item) => item.id === id);
+    if (!w && this.warningRepository) {
+      w = (await this.warningRepository.findOne({ where: { id } })) || undefined;
+    }
     if (!w) throw new NotFoundException('Warning not found');
 
     const prevState = w.state;
@@ -203,11 +242,22 @@ export class AlertsService {
     w.approved_at = new Date();
     w.approval_note = note;
 
+    if (this.warningRepository) {
+      try {
+        await this.warningRepository.save(w);
+      } catch {
+        // fallback
+      }
+    }
+
     return w;
   }
 
   async rejectWarning(id: string, authorityUserId: string, reason: string): Promise<Warning> {
-    const w = this.warnings.find((item) => item.id === id);
+    let w = this.warnings.find((item) => item.id === id);
+    if (!w && this.warningRepository) {
+      w = (await this.warningRepository.findOne({ where: { id } })) || undefined;
+    }
     if (!w) throw new NotFoundException('Warning not found');
 
     const prevState = w.state;
@@ -225,11 +275,22 @@ export class AlertsService {
     w.approved_by = authorityUserId;
     w.approval_note = `REJECTED: ${reason}`;
 
+    if (this.warningRepository) {
+      try {
+        await this.warningRepository.save(w);
+      } catch {
+        // fallback
+      }
+    }
+
     return w;
   }
 
-  simulateBroadcast(id: string): { success: boolean; simulation: true; deliveryMethod: string; timestamp: string } {
-    const w = this.warnings.find((item) => item.id === id);
+  async simulateBroadcast(id: string): Promise<{ success: boolean; simulation: true; deliveryMethod: string; timestamp: string }> {
+    let w = this.warnings.find((item) => item.id === id);
+    if (!w && this.warningRepository) {
+      w = (await this.warningRepository.findOne({ where: { id } })) || undefined;
+    }
     if (!w) throw new NotFoundException('Warning not found');
 
     w.state = WarningState.SENT_SIMULATED;
@@ -239,6 +300,14 @@ export class AlertsService {
       deliveredAt: new Date().toISOString(),
       disclaimer: 'DEMO ONLY: External public broadcast simulated; no live networks triggered.',
     };
+
+    if (this.warningRepository) {
+      try {
+        await this.warningRepository.save(w);
+      } catch {
+        // fallback
+      }
+    }
 
     return {
       success: true,

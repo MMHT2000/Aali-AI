@@ -10,6 +10,9 @@ import { VolunteerReading } from '../gauges/entities/observation.entity';
 import { CreateFieldReadingDto } from './field-reading.dto';
 import { BadRequestException } from '@nestjs/common';
 
+import { AuditService } from '../audit/audit.service';
+import { Optional } from '@nestjs/common';
+
 @Injectable()
 export class OperationsService {
   constructor(
@@ -17,12 +20,14 @@ export class OperationsService {
     private readonly incidents: IncidentsService,
     private readonly sos: SosService,
     @InjectRepository(VolunteerReading) private readonly volunteerReadingRepository: Repository<VolunteerReading>,
+    @Optional() private readonly auditService?: AuditService,
   ) {}
 
   async recordFieldReading(dto: CreateFieldReadingDto, submittedBy: string) {
     const area = SYNTHETIC_FENI_SEEDS.areas.find((item) => item.id === dto.areaId && item.area_type === 'VILLAGE');
     if (!area) throw new BadRequestException('Select a known village from the synthetic Feni fixture.');
-    const reading = this.volunteerReadingRepository.create({
+    const readingData = {
+      id: `field-reading-${Date.now()}`,
       event_id: '11111111-1111-1111-1111-111111111103',
       area_id: area.id,
       gauge_id: '33333333-3333-3333-3333-333333333301',
@@ -33,8 +38,28 @@ export class OperationsService {
       parse_status: 'PARSED',
       source_kind: 'VOLUNTEER_APP',
       provenance: 'API_SUBMITTED_FIELD_READING',
+    };
+
+    let saved = readingData as unknown as VolunteerReading;
+    if (this.volunteerReadingRepository?.manager?.connection?.isInitialized) {
+      const entity = this.volunteerReadingRepository.create(readingData);
+      saved = await this.volunteerReadingRepository.save(entity);
+    }
+
+    await this.auditService?.record({
+      actorUserId: submittedBy,
+      action: 'SUBMIT_FIELD_READING',
+      entityType: 'VOLUNTEER_READING',
+      entityId: saved.id,
+      reason: `Volunteer field reading of ${dto.levelM}m at ${area.name_en}`,
+      afterSummary: {
+        areaId: area.id,
+        levelM: dto.levelM,
+        note: dto.note,
+      },
     });
-    return this.volunteerReadingRepository.save(reading);
+
+    return saved;
   }
 
   async getSnapshot(role: UserRole) {

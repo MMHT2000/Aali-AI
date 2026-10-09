@@ -1,4 +1,6 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit, Optional } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { calculateBoatPriority } from '../../domain/boat-priority/boat-priority';
 import { calculateConfidenceScore } from '../../domain/confidence/confidence';
 import { evaluateDuplicateCandidate } from '../../domain/duplicate/duplicate';
@@ -6,6 +8,8 @@ import { evaluateSilentVillage } from '../../domain/silent-village/silent-villag
 import { SYNTHETIC_FENI_SEEDS } from '../../database/seeds/feni-synthetic.seeds';
 import { SosSourceType } from '../sos/entities/sos-report.entity';
 import { SosService } from '../sos/sos.service';
+import { Incident, DuplicateCandidate, IncidentStatus } from './entities/incident.entity';
+import { DispatchSuggestion } from '../assets/entities/asset.entity';
 
 export interface IncidentSummary {
   id: string;
@@ -43,15 +47,49 @@ export interface IncidentSummary {
 import { AuditService } from '../audit/audit.service';
 
 @Injectable()
-export class IncidentsService {
+export class IncidentsService implements OnModuleInit {
   private readonly logger = new Logger(IncidentsService.name);
   private incidents: IncidentSummary[] = [];
 
   constructor(
     private readonly sosService: SosService,
+    @Optional()
+    @InjectRepository(Incident)
+    private readonly incidentRepository?: Repository<Incident>,
+    @Optional()
+    @InjectRepository(DuplicateCandidate)
+    private readonly duplicateRepository?: Repository<DuplicateCandidate>,
+    @Optional()
+    @InjectRepository(DispatchSuggestion)
+    private readonly dispatchRepository?: Repository<DispatchSuggestion>,
     private readonly auditService?: AuditService,
   ) {
     this.initDemoIncidents();
+  }
+
+  async onModuleInit() {
+    if (this.incidentRepository) {
+      try {
+        const count = await this.incidentRepository.count();
+        if (count === 0 && this.incidents.length > 0) {
+          for (const inc of this.incidents) {
+            const statusEnum = IncidentStatus[inc.status as keyof typeof IncidentStatus] ?? IncidentStatus.OPEN;
+            const entity = this.incidentRepository.create({
+              id: inc.id,
+              status: statusEnum,
+              priority: inc.priorityScore,
+              confidence_score: inc.confidence,
+              confidence_breakdown: { reasons: inc.confidenceReasons },
+              summary: inc.summary,
+              opened_at: new Date(),
+            });
+            await this.incidentRepository.save(entity);
+          }
+        }
+      } catch {
+        // fallback
+      }
+    }
   }
 
   private initDemoIncidents() {
@@ -164,6 +202,17 @@ export class IncidentsService {
 
     inc.duplicateCandidate.status = nextStatus;
 
+    if (this.duplicateRepository) {
+      try {
+        await this.duplicateRepository.update(
+          { id: candidateId },
+          { status: nextStatus, reviewed_by: operatorUserId, reviewed_at: new Date() },
+        );
+      } catch {
+        // fallback
+      }
+    }
+
     return { status: 'success', incident: inc };
   }
 
@@ -201,6 +250,22 @@ export class IncidentsService {
     });
 
     inc.suggestedBoat.status = nextStatus;
+
+    if (this.dispatchRepository) {
+      try {
+        await this.dispatchRepository.update(
+          { incident_id: incidentId, asset_id: inc.suggestedBoat.assetId },
+          {
+            status: nextStatus === 'ACCEPTED' ? 'ACCEPTED' : 'REJECTED',
+            reviewed_by: operatorUserId,
+            reviewed_at: new Date(),
+            review_reason: reason,
+          },
+        );
+      } catch {
+        // fallback
+      }
+    }
 
     return { status: 'success', incident: inc };
   }
@@ -248,6 +313,24 @@ export class IncidentsService {
     inc.linkedReportIds = inc.linkedReportIds.filter((id) => id !== reportIdToSeparate);
     inc.reportsCount = inc.linkedReportIds.length;
     this.incidents.push(newInc);
+
+    if (this.incidentRepository) {
+      try {
+        const statusEnum = IncidentStatus[newInc.status as keyof typeof IncidentStatus] ?? IncidentStatus.OPEN;
+        const entity = this.incidentRepository.create({
+          id: newInc.id,
+          status: statusEnum,
+          priority: newInc.priorityScore,
+          confidence_score: newInc.confidence,
+          confidence_breakdown: { reasons: newInc.confidenceReasons },
+          summary: newInc.summary,
+          opened_at: new Date(),
+        });
+        await this.incidentRepository.save(entity);
+      } catch {
+        // fallback
+      }
+    }
     this.logger.log(`Incident ${incidentId} split. Separated report ${reportIdToSeparate} into ${newInc.id}.`);
 
     return { originalIncident: inc, newIncident: newInc };
