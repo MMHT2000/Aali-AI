@@ -484,16 +484,18 @@ Antigravity must append an entry after each completed phase. Do not pre-fill com
   - `npm.cmd run typecheck` (exited 0: zero errors across all workspaces)
   - `npm.cmd run lint` (exited 0: 0 errors, 0 warnings)
   - `npm.cmd run build` (exited 0: clean NestJS API and Vite Web production builds)
+  - `flutter analyze` in `apps/mobile` (exited 0: No issues found across all mobile Dart files)
+  - `dart test test/nid_validator_test.dart` in `apps/mobile` (exited 0: 9 unit tests passed covering mock NID format, repetitive digits rejection, SHA-256 hashing, and compact packet encoding)
 - **Acceptance criteria:**
   - Central Control Room and role-aware navigation: PASS
   - Resident Client Simulator with online/offline queue and gateway handoff: PASS
   - Mock NID 10/17 digit acceptance, invalid length rejection, repeated digit rejection, duplicate check: PASS
   - Flutter application source and runbook in `apps/mobile`: PASS
+  - Flutter static analysis and Dart unit tests: PASS
   - Configurable LLM failover seam without PII leakage: PASS
   - All test suites, typechecks, linter, and builds passing: PASS
 - **Simulated or unverified integrations:**
   - Carrier SMS gateway and satellite links are explicitly labeled as simulations.
-  - Host OS does not have local Flutter SDK in PATH (`flutter` command not found); Flutter client is provided as full clean Dart source with comprehensive run instructions in `apps/mobile/README.md`.
 - **Open issues:** None. Modification track fully satisfied.
 
 

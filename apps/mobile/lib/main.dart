@@ -233,7 +233,7 @@ class _ResidentHomeScreenState extends State<ResidentHomeScreen> {
                       ),
                       const SizedBox(height: 8),
                       DropdownButtonFormField<String>(
-                        value: _selectedVillage,
+                        initialValue: _selectedVillage,
                         items: const [
                           DropdownMenuItem(value: 'চিথলিয়া (Chitholia)', child: Text('চিথলিয়া (Chitholia)')),
                           DropdownMenuItem(value: 'মির্জানগর (Mirzanagar)', child: Text('মির্জানগর (Mirzanagar)')),
