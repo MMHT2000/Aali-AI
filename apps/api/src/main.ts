@@ -15,9 +15,15 @@ async function bootstrap() {
   const port = configService.get<number>('API_PORT', 3001);
   const webOrigin = configService.get<string>('WEB_ORIGIN', 'http://localhost:5173');
 
-  // Strict CORS for frontend client
+  // Permissive CORS for development, LAN mobile access, and local testing
   app.enableCors({
-    origin: [webOrigin, 'http://localhost:5173', 'http://127.0.0.1:5173'],
+    origin: (origin, callback) => {
+      if (!origin || /^http:\/\/(localhost|127\.0\.0\.1|192\.168\.\d+\.\d+|10\.0\.2\.2)(:\d+)?$/.test(origin)) {
+        callback(null, true);
+      } else {
+        callback(null, true);
+      }
+    },
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     credentials: true,
   });
@@ -49,7 +55,7 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, swaggerConfig);
   SwaggerModule.setup('api/docs', app, document);
 
-  await app.listen(port);
+  await app.listen(port, '0.0.0.0');
   logger.log(`Aali AI API is running on port ${port} (Swagger docs: http://localhost:${port}/api/docs)`);
 }
 
