@@ -306,7 +306,9 @@ This status supersedes earlier blanket completion labels where they conflict wit
 - [x] Resident Simulator aligned with backend `CreateSosDto` and `SimulatedGatewayIngestDto`, utilizing CRC16-CCITT Base36 disaster packet encoding and authenticated API fetch.
 - [x] Flutter mobile client (`apps/mobile/`) generated with native Android Gradle scaffold; `flutter analyze` passes with 0 issues; Dart unit tests pass 10/10.
 - [x] Local Android execution verified: Android Studio, OpenJDK 21, Android SDK Platform 36, and NDK 28 integrated; `app-debug.apk` successfully compiled via `flutter build apk --debug`.
-- [x] Web typecheck, lint, tests (30/30) and production build pass; API typecheck, lint and tests (89/89 across 20 suites) pass.
+- [x] Live Google Gemini Flash integration verified: `@google/genai` provider operational with strict PII sanitization (phone/NID/GPS redacting) and automatic deterministic failover on timeout or 503.
+- [x] Flutter mobile client enhanced: Added dynamic Wi-Fi/LAN Server IP configuration dialog, in-app Cellular Blackout simulation switch, and Satellite D2C simulation relay action.
+- [x] Web typecheck, lint, tests (30/30) and production build pass; API typecheck, lint and tests (94/94 across 21 suites) pass.
 
 ### Still incomplete or limited
 - [ ] Sentinel-1 SAR flood footprint in the recovery ledger is a simulated visual overlay, not a live satellite feed.

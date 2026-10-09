@@ -28,30 +28,49 @@ export interface DraftCommunicationDto {
 }
 
 import { ConfigService } from '@nestjs/config';
+import { GeminiAiProvider } from '../../domain/ai/gemini-ai-provider';
 
 @Injectable()
 export class AiService {
   private readonly logger = new Logger(AiService.name);
-  private readonly provider = new DeterministicAiProvider();
+  private readonly fallbackProvider = new DeterministicAiProvider();
+  private readonly geminiProvider: GeminiAiProvider;
   private isSimulatedOutage = false;
   private primaryProviderName: string;
   private backupProviderName: string;
   private timeoutMs: number;
+  private isRemoteEnabled: boolean;
 
   constructor(private readonly configService: ConfigService) {
-    this.primaryProviderName = this.configService.get<string>('AI_PRIMARY_PROVIDER', 'deterministic_mock');
+    this.primaryProviderName = this.configService.get<string>('AI_PRIMARY_PROVIDER', 'gemini_flash');
     this.backupProviderName = this.configService.get<string>('AI_BACKUP_PROVIDER', 'deterministic_fallback');
-    this.timeoutMs = this.configService.get<number>('AI_TIMEOUT_MS', 3000);
+    this.timeoutMs = this.configService.get<number>('AI_TIMEOUT_MS', 25000);
+    const apiKey = (
+      this.configService.get<string>('AI_API_KEY') ||
+      this.configService.get<string>('GEMINI_API_KEY') ||
+      ''
+    ).trim();
+
+    this.geminiProvider = new GeminiAiProvider(apiKey, this.timeoutMs);
+    this.isRemoteEnabled = this.geminiProvider.isAvailable();
+    this.logger.log(
+      `AI Service initialized. Primary: ${this.primaryProviderName} (Gemini Available: ${this.isRemoteEnabled}), Backup: ${this.backupProviderName}`,
+    );
   }
 
   getProviderStatus() {
+    const isGeminiActive = this.isRemoteEnabled && !this.isSimulatedOutage;
     return {
       status: this.isSimulatedOutage ? 'outage_fallback_only' : 'operational',
-      activeProvider: this.isSimulatedOutage ? this.backupProviderName : this.primaryProviderName,
+      activeProvider: isGeminiActive ? 'gemini-flash-latest' : this.backupProviderName,
       primaryProvider: {
         name: this.primaryProviderName,
-        status: this.isSimulatedOutage ? 'OUTAGE_SIMULATED' : 'READY',
-        type: 'local_deterministic',
+        status: this.isSimulatedOutage
+          ? 'OUTAGE_SIMULATED'
+          : this.isRemoteEnabled
+          ? 'READY'
+          : 'NO_API_KEY_LOCAL_FALLBACK',
+        type: this.isRemoteEnabled ? 'google_gemini_remote' : 'local_deterministic',
       },
       backupProvider: {
         name: this.backupProviderName,
@@ -65,7 +84,8 @@ export class AiService {
       },
       isSimulatedOutage: this.isSimulatedOutage,
       supportedLanguages: ['bn', 'banglish', 'en'],
-      disclaimer: 'Deterministic local NLP prototype. AI produces suggestions only; decision values remain strictly rule-based.',
+      disclaimer:
+        'AI produces language extraction and communication suggestions only. Flood alert levels, boat priorities, and warning approvals remain strictly deterministic and human-approved.',
     };
   }
 
@@ -74,24 +94,43 @@ export class AiService {
     return this.getProviderStatus();
   }
 
-  understandSos(dto: UnderstandSosDto): SosUnderstandingResult {
-    // Redact text from server log to protect potential sensitive words
-    this.logger.log(`Processing SOS text understanding (${dto.text.length} chars). Outage state: ${this.isSimulatedOutage}`);
+  async understandSos(dto: UnderstandSosDto): Promise<SosUnderstandingResult> {
+    this.logger.log(
+      `Processing SOS text understanding (${dto.text.length} chars). Simulated Outage: ${this.isSimulatedOutage}, Force Fallback: ${!!dto.forceFallback}`,
+    );
 
-    const useFallback = dto.forceFallback || this.isSimulatedOutage;
-    return this.provider.understandSos(dto.text, useFallback);
+    const useFallback = Boolean(dto.forceFallback || this.isSimulatedOutage || !this.isRemoteEnabled);
+    if (!useFallback) {
+      return this.geminiProvider.understandSos(dto.text, false);
+    }
+    return this.fallbackProvider.understandSos(dto.text, true);
   }
 
-  explainDuplicateSimilarity(dto: DuplicateSimilarityDto): DuplicateExplanationResult {
-    return this.provider.explainDuplicate(
+  async explainDuplicateSimilarity(dto: DuplicateSimilarityDto): Promise<DuplicateExplanationResult> {
+    if (!this.isSimulatedOutage && this.isRemoteEnabled) {
+      return this.geminiProvider.explainDuplicate(
+        dto.leftReportText,
+        dto.rightReportText,
+        dto.spatialMatch ?? true,
+      );
+    }
+    return this.fallbackProvider.explainDuplicate(
       dto.leftReportText,
       dto.rightReportText,
       dto.spatialMatch ?? true,
     );
   }
 
-  draftCommunication(dto: DraftCommunicationDto): CommunicationDraftResult {
-    return this.provider.draftCommunication(
+  async draftCommunication(dto: DraftCommunicationDto): Promise<CommunicationDraftResult> {
+    if (!this.isSimulatedOutage && this.isRemoteEnabled) {
+      return this.geminiProvider.draftCommunication(
+        dto.alertLevel,
+        dto.areaName,
+        dto.shelterName,
+        dto.sourceRecordIds || [],
+      );
+    }
+    return this.fallbackProvider.draftCommunication(
       dto.alertLevel,
       dto.areaName,
       dto.shelterName,
@@ -104,7 +143,7 @@ export class AiService {
   }
 
   runBenchmark(): BenchmarkReport {
-    return this.provider.evaluateBenchmark();
+    return this.fallbackProvider.evaluateBenchmark();
   }
 
   generateShiftSummary(params: {
@@ -114,7 +153,7 @@ export class AiService {
     deliveriesLogged?: number;
     recordIds?: string[];
   }): ShiftSummaryResult {
-    return this.provider.generateShiftSummary({
+    return this.fallbackProvider.generateShiftSummary({
       totalSos: params.totalSos ?? 14,
       criticalEvacuations: params.criticalEvacuations ?? 3,
       silentVillages: params.silentVillages ?? 1,

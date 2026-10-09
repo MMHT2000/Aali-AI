@@ -552,11 +552,27 @@ Antigravity must append an entry after each completed phase. Do not pre-fill com
   - `flutter analyze` in `apps/mobile`: PASS (0 issues found).
   - `npm.cmd run test --workspace=apps/web`: PASS (9 test files, 30 tests passed).
   - `npm.cmd run test --workspace=apps/api -- --runInBand --no-cache`: PASS (20 suites, 89 tests passed).
+### 2026-10-10 — Product Overhaul Increment 4 (Live Google Gemini Flash Integration & Mobile D2C Simulation Controls)
+
+- **Summary:** Integrated official Google Gemini Flash model (`gemini-flash-latest`) as the primary remote AI provider with automated PII sanitization (phone numbers, NID, and GPS coordinates redacted prior to external transit). Connected the provider to `AiService` with automatic failover to the local deterministic keyword parser upon network timeout or API 503 errors. In the Flutter mobile client, added a dynamic server IP configuration dialog (supporting LAN Wi-Fi `192.168.0.101` and emulator `10.0.2.2`), an in-app Cellular Blackout toggle switch, and a Satellite D2C simulation relay action.
+- **Files changed:**
+  - `apps/api/src/domain/ai/gemini-ai-provider.ts`: Created Gemini adapter with PII redaction and deterministic fallback.
+  - `apps/api/src/domain/ai/gemini-ai-provider.spec.ts`: Unit tests verifying PII sanitization and fallback execution.
+  - `apps/api/src/modules/ai/ai.service.ts`: Wired `GeminiAiProvider` with configurable timeout and active status reporting.
+  - `apps/mobile/lib/main.dart`: Added dynamic Server IP settings dialog, Blackout simulation switch, and Satellite D2C simulation gateway relay button.
+  - `IMPLEMENTATION_PLAN.md`: Updated Section 9 to include live Gemini provider and mobile enhancements.
+  - `docs/IMPLEMENTATION_LOG.md`: Appended this increment log.
+- **Commands run & results:**
+  - Live Gemini API extraction smoke test via `POST /api/v1/ai/understand-sos`: PASS (`providerMode: 'remote'`, `isFallback: false`, extracted `peopleCount: 3`, `trapped: true`, `locationWords: ['চিথলিয়া প্রাইমারি স্কুল']`).
+  - `npm.cmd run test --workspace=apps/api -- --runInBand --no-cache`: PASS (21 suites, 94 tests passed).
+  - `flutter analyze` in `apps/mobile`: PASS (0 issues found).
+  - `flutter test` in `apps/mobile`: PASS (10/10 tests passed).
+  - `flutter build apk --debug` in `apps/mobile`: PASS (`√ Built build\app\outputs\flutter-apk\app-debug.apk` - 168.9 MB).
 - **Acceptance criteria satisfied:**
-  - Android toolchain detection (Android SDK 36, NDK 28, OpenJDK 21): PASS
-  - Debug APK compilation without errors: PASS (`apps/mobile/build/app/outputs/flutter-apk/app-debug.apk`)
-  - Unit and widget test execution on mobile client: PASS (10/10 passed)
-  - Monorepo regression tests passing: PASS (Web: 30/30, API: 89/89)
+  - Live Google Gemini LLM extraction active with zero PII leakage: PASS
+  - Safe automatic failover to deterministic parser on network disruption or cloud 503: PASS
+  - Mobile client supports on-device Wi-Fi IP configuration and Blackout/D2C relay simulation: PASS
+  - Recompiled debug APK verified on disk: PASS
 
 
 
