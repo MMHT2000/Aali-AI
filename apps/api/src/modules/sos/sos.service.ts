@@ -8,6 +8,7 @@ import {
 } from '../../common/packet/disaster-packet';
 import { CreateSosDto, DecodePacketDto } from './dto/sos.dto';
 import { SosReport, SosSourceType } from './entities/sos-report.entity';
+import { SYNTHETIC_FENI_SEEDS } from '../../database/seeds/feni-synthetic.seeds';
 
 @Injectable()
 export class SosService {
@@ -58,8 +59,18 @@ export class SosService {
     report.has_child = dto.hasChild;
     report.has_medical_need = dto.hasMedicalNeed;
     report.is_trapped = dto.isTrapped;
-    report.location_lat = dto.locationLat || null;
-    report.location_lng = dto.locationLng || null;
+    let lat = dto.locationLat || null;
+    let lng = dto.locationLng || null;
+    if ((!lat || !lng) && dto.areaId) {
+      const area = SYNTHETIC_FENI_SEEDS.areas.find((item) => item.id === dto.areaId);
+      if (area) {
+        lat = area.latitude ?? null;
+        lng = area.longitude ?? null;
+      }
+    }
+
+    report.location_lat = lat;
+    report.location_lng = lng;
     report.geohash7 = packetData?.geohash7 ?? '0000000';
     report.message_original = dto.messageOriginal || null;
     report.packet_version = 'A1';
@@ -70,7 +81,7 @@ export class SosService {
     report.transport_kind = trustedSource === SosSourceType.GATEWAY ? 'GATEWAY_SIMULATED' : 'APP_DIRECT';
     report.transport_status = 'DELIVERED';
     report.parse_status = 'VALID';
-    report.review_status = 'TRIAGED';
+    report.review_status = 'NEEDS_REVIEW';
     report.created_at = now;
     report.updated_at = now;
 

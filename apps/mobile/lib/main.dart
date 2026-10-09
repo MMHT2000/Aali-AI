@@ -133,6 +133,10 @@ class _ResidentHomeScreenState extends State<ResidentHomeScreen> {
               spacing: 8,
               children: [
                 ActionChip(
+                  label: const Text('এই পিসি / USB (localhost:3001)', style: TextStyle(fontSize: 11)),
+                  onPressed: () => controller.text = 'http://localhost:3001/api/v1',
+                ),
+                ActionChip(
                   label: const Text('Wi-Fi LAN (192.168.0.101)', style: TextStyle(fontSize: 11)),
                   onPressed: () => controller.text = 'http://192.168.0.101:3001/api/v1',
                 ),
@@ -235,6 +239,8 @@ class _ResidentHomeScreenState extends State<ResidentHomeScreen> {
       'clientReportId': clientReportId,
       'eventId': '11111111-1111-1111-1111-111111111103',
       'areaId': isChitholia ? '22222222-2222-2222-2222-222222222205' : '22222222-2222-2222-2222-222222222204',
+      'locationLat': isChitholia ? 23.218 : 23.245,
+      'locationLng': isChitholia ? 91.428 : 91.442,
       'peopleCount': _peopleCount,
       'elderlyCount': _flagElderly ? 1 : 0,
       'hasChild': _flagChild,

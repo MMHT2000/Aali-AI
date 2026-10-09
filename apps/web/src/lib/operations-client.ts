@@ -10,6 +10,13 @@ export interface OperationMapPoint {
   provenance: string;
   peopleCount?: number;
   valueM?: number;
+  shortId?: string;
+  hasChild?: boolean;
+  hasMedicalNeed?: boolean;
+  isTrapped?: boolean;
+  elderlyCount?: number | null;
+  geohash7?: string;
+  receivedAt?: string;
 }
 
 export interface OperationsSnapshot {

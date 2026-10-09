@@ -98,14 +98,27 @@ export class OperationsService {
         const area = areaFor(incident.areaName);
         return { id: incident.id, label: incident.summary, latitude: area?.latitude, longitude: area?.longitude, status: incident.status, peopleCount: incident.peopleCount, provenance: 'SYNTHETIC_FIXTURE' };
       }) : [],
-      sos: canViewRescueOperations ? reports.map((report) => ({
-        id: report.id,
-        latitude: report.location_lat,
-        longitude: report.location_lng,
-        status: report.review_status,
-        peopleCount: report.people_count,
-        provenance: 'API_SUBMITTED_REPORT',
-      })) : [],
+      sos: canViewRescueOperations ? reports.map((report) => {
+        const area = SYNTHETIC_FENI_SEEDS.areas.find((item) => item.id === report.area_id);
+        const areaLabel = area ? (area.name_bn || area.name_en) : 'অজানা এলাকা';
+        return {
+          id: report.id,
+          shortId: report.packet_short_id,
+          name: area ? `${area.name_en} (${report.packet_short_id})` : `SOS ${report.packet_short_id ?? report.id.slice(0, 8)}`,
+          label: `${areaLabel} · ${report.people_count} জন বিপদাপন্ন`,
+          latitude: report.location_lat ?? area?.latitude,
+          longitude: report.location_lng ?? area?.longitude,
+          status: report.review_status,
+          peopleCount: report.people_count,
+          hasChild: report.has_child,
+          hasMedicalNeed: report.has_medical_need,
+          isTrapped: report.is_trapped,
+          elderlyCount: report.elderly_count,
+          geohash7: report.geohash7,
+          receivedAt: report.received_at,
+          provenance: report.transport_kind === 'GATEWAY_SIMULATED' ? 'D2C_GATEWAY_RELAY' : 'MOBILE_DIRECT_SOS',
+        };
+      }) : [],
     };
 
     const simulationForRole = canViewRescueOperations ? simulation : {

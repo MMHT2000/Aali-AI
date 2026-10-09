@@ -23,13 +23,28 @@ function marker(point: OperationMapPoint, layer: string, index: number) {
   const lat = Number(point.latitude);
   const lng = Number(point.longitude);
   if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
-  const label = point.name ?? point.label ?? point.id;
+  const label = point.label ?? point.name ?? point.id;
+  const isSos = layer === 'sos';
   return (
-    <CircleMarker key={`${layer}-${point.id}-${index}`} center={[lat, lng] as LatLngExpression} radius={layer === 'incident' || layer === 'sos' ? 9 : 6} pathOptions={{ color: '#07111f', weight: 2, fillColor: color[layer], fillOpacity: 0.95 }}>
-      <Tooltip direction="top" offset={[0, -6]}>
-        <strong>{label}</strong><br />
-        {point.status && <>{point.status}<br /></>}
-        {point.peopleCount !== undefined && <>{point.peopleCount} people · </>}{point.provenance}
+    <CircleMarker
+      key={`${layer}-${point.id}-${index}`}
+      center={[lat, lng] as LatLngExpression}
+      radius={isSos ? 11 : layer === 'incident' ? 9 : 6}
+      pathOptions={{
+        color: isSos ? '#ffffff' : '#07111f',
+        weight: isSos ? 3 : 2,
+        fillColor: color[layer],
+        fillOpacity: 0.95,
+      }}
+    >
+      <Tooltip direction="top" offset={[0, -8]} permanent={isSos}>
+        <div style={{ fontSize: '0.8rem', lineHeight: '1.2' }}>
+          <strong style={{ color: isSos ? '#c2410c' : '#0f172a' }}>
+            {isSos ? '🚨 ' : ''}{label}
+          </strong><br />
+          {point.peopleCount !== undefined && <span>{point.peopleCount} জন পানিবন্দি · </span>}
+          <small>{point.provenance}</small>
+        </div>
       </Tooltip>
     </CircleMarker>
   );
