@@ -22,6 +22,20 @@ function AppContent() {
     } catch {
       // ignore storage access errors in test
     }
+
+    const handleExpired = () => {
+      try {
+        if (typeof window !== 'undefined' && window.localStorage) {
+          window.localStorage.removeItem('aali_session');
+        }
+      } catch {
+        // ignore
+      }
+      setSession(null);
+    };
+
+    window.addEventListener('aali_session_expired', handleExpired);
+    return () => window.removeEventListener('aali_session_expired', handleExpired);
   }, []);
 
   const handleLoginSuccess = (newSession: UserSession) => {

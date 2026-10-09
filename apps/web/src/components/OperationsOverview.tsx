@@ -32,7 +32,34 @@ export function OperationsOverview() {
     }
   };
 
-  if (error && !snapshot) return <section className="ops-state-card"><h2>Operations API unavailable</h2><p>{error}</p><button onClick={() => void refresh()}>Retry connection</button></section>;
+  if (error && !snapshot) {
+    const isAuthError = error.includes('401');
+    return (
+      <section className="ops-state-card" role="alert">
+        <h2>{isAuthError ? 'লগইন সেশনের মেয়াদ শেষ (Session Expired)' : 'Operations API unavailable'}</h2>
+        <p>{isAuthError ? 'আপনার অথরাইজেশন সেশনের মেয়াদ শেষ হয়েছে। অনুগ্রহ করে পুনরায় সাইন ইন করুন।' : error}</p>
+        <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1rem', justifyContent: 'center' }}>
+          {isAuthError ? (
+            <button
+              onClick={() => {
+                try {
+                  window.localStorage?.removeItem('aali_session');
+                } catch {
+                  // ignore
+                }
+                window.dispatchEvent(new CustomEvent('aali_session_expired'));
+              }}
+              style={{ background: '#0284c7', color: 'white', padding: '0.5rem 1rem', borderRadius: '4px', border: 'none', cursor: 'pointer', fontWeight: 'bold' }}
+            >
+              পুনরায় সাইন ইন করুন (Sign in again)
+            </button>
+          ) : (
+            <button onClick={() => void refresh()}>Retry connection</button>
+          )}
+        </div>
+      </section>
+    );
+  }
   if (!snapshot) return <section className="ops-state-card" aria-live="polite">Loading API-backed operation state…</section>;
 
   const simulation = snapshot.simulation;
