@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { ApiHealthResponse, ApiReadinessResponse, checkApiHealth, checkApiReadiness } from './lib/api-client';
 import { GatewaySimulator } from './components/GatewaySimulator';
 import { ThreeTapSos } from './components/ThreeTapSos';
+import { AiLanguageAssistant } from './components/AiLanguageAssistant';
 import { FloodReplayWarning } from './components/FloodReplayWarning';
 import { ResponderDashboard } from './components/ResponderDashboard';
 import './App.css';
@@ -46,6 +47,11 @@ export function App() {
           <p className="tagline">"When the towers die, the SOS doesn't."</p>
         </div>
       </header>
+
+      {/* AI-Assisted Language Features & Fallback (Phase 7) */}
+      <section style={{ margin: '1rem 0' }}>
+        <AiLanguageAssistant />
+      </section>
 
       {/* Flood Alert Rules, Historical Replay & Warning Approval (Phase 6) */}
       <section style={{ margin: '1rem 0' }}>

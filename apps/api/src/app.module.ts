@@ -9,6 +9,7 @@ import { ReferenceModule } from './modules/reference/reference.module';
 import { SosModule } from './modules/sos/sos.module';
 import { UsersModule } from './modules/users/users.module';
 import { WarningsModule } from './modules/warnings/warnings.module';
+import { AiModule } from './modules/ai/ai.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { WarningsModule } from './modules/warnings/warnings.module';
     GatewayModule,
     IncidentsModule,
     WarningsModule,
+    AiModule,
   ],
 })
 export class AppModule {}

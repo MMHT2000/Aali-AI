@@ -128,7 +128,7 @@ Each phase is a separate agent task. The agent must inspect the current code fir
 
 **Exit gate:** replay can be run from seed; changing/blanking gauge affects rules as expected; each alert shows why; warning is impossible to approve without Authority role; no claim of generalized ML forecast. (PASSED)
 
-### Phase 7 — AI-assisted language features with fallback
+### Phase 7 — AI-assisted language features with fallback [COMPLETED]
 **Tasks**
 - Define provider interfaces and a deterministic mock provider first, with optional locally hosted model adapter behind environment configuration.
 - Implement SOS understanding from Bangla/Banglish text and optional supplied voice transcript into strict validated JSON: people count, elderly, child, medical, trapped, location words, water trend and confidence per field. Preserve original text and let an operator correct values.
@@ -138,7 +138,7 @@ Each phase is a separate agent task. The agent must inspect the current code fir
 - Fallback chain: configured local model -> deterministic keyword parser/forms -> manual form. Expose provider status and demonstrate AI-unavailable mode.
 - Include 30 synthetic messages with expected fields and report field accuracy and operator correction rate. Do not send personal data to remote inference.
 
-**Exit gate:** contract tests validate AI JSON; malformed output falls back safely; all score/alert decisions remain rule-based; operator can inspect original content and edit extracted fields; benchmark report generated on synthetic set.
+**Exit gate:** contract tests validate AI JSON; malformed output falls back safely; all score/alert decisions remain rule-based; operator can inspect original content and edit extracted fields; benchmark report generated on synthetic set. (PASSED)
 
 ### Phase 8 — Recovery and aid ledger
 **Tasks**
@@ -273,7 +273,7 @@ The prototype is ready only when a reviewer can, using synthetic data and the wr
 - [x] Phase 4 — transport simulation
 - [x] Phase 5 — responder dashboard and deterministic rules
 - [x] Phase 6 — flood replay and warning approval
-- [ ] Phase 7 — AI language layer and fallback
+- [x] Phase 7 — AI language layer and fallback
 - [ ] Phase 8 — recovery ledger
 - [ ] Phase 9 — security, accessibility, E2E and demo freeze
 - [ ] Phase 10 — optional stretch items only if time remains

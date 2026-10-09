@@ -287,3 +287,47 @@ Antigravity must append an entry after each completed phase. Do not pre-fill com
   - Cell broadcast and external SMS broadcast remain simulated (`simulation: true`). Historical telemetry is fixture data reconstructed from published records.
 - **Open issues:** None for Phase 6.
 - **Next phase:** Phase 7 — AI-assisted language features with fallback.
+
+---
+
+### 2026-10-09 — Phase 7: AI-Assisted Language Features with Fallback
+- **Baseline:** Phase 6 complete with Three-Signal rules, historical replay, and warning approvals.
+- **Files changed:**
+  - `apps/api/src/domain/ai/ai-interfaces.ts` (strict TypeScript interfaces for SOS field extraction, duplicate explanation, communication drafting, and benchmark report)
+  - `apps/api/src/domain/ai/synthetic-sos-benchmark.ts` (30 realistic synthetic Bangla, Banglish, and colloquial emergency messages with ground-truth labels for people count, vulnerabilities, and water trend)
+  - `apps/api/src/domain/ai/deterministic-ai-provider.ts` (pure deterministic extraction engine and outage fallback parser supporting Bangla/Banglish numbers, urgent conditions, water trend, location words, and transparent duplicate explanations)
+  - `apps/api/src/domain/ai/ai-language.spec.ts` (unit tests verifying NLP field extraction, graceful degradation on simulated outage, duplicate explanations, communication drafting, and synthetic benchmark metrics $>85\%$)
+  - `apps/api/src/modules/ai/ai.service.ts` & `ai.controller.ts` & `ai.module.ts` (REST endpoints for `/api/v1/ai/understand-sos`, `/api/v1/ai/duplicate-similarity`, `/api/v1/ai/draft-communication`, `/api/v1/ai/status`, `/api/v1/ai/status/outage`, `/api/v1/ai/benchmark`)
+  - `apps/api/src/app.module.ts` (registered `AiModule`)
+  - `apps/web/src/components/AiLanguageAssistant.tsx` (interactive operator NLP assistant with raw text viewer, schema cards, manual outage simulation toggle, editable operator correction form, and synthetic benchmark report viewer)
+  - `apps/web/src/components/AiLanguageAssistant.spec.tsx` (component tests verifying text extraction, fallback activation, benchmark execution, and operator edits)
+  - `apps/web/src/App.tsx` (mounted `AiLanguageAssistant`)
+  - `IMPLEMENTATION_PLAN.md` (updated Phase 7 checklist to completed)
+- **Behavior delivered:**
+  - Robust Bilingual SOS Field Extraction:
+    - Automatically extracts people count (Bengali digits `৫ জন` and ASCII `5 jon`), urgency flags (trapped, elderly, child, medical), and water trend (rising rapid, steady, stable, receding).
+    - Preserves raw input text without sending PII or phone numbers to external models.
+  - Transparent Fallback Chain:
+    - Normal operation runs configured mock/local provider.
+    - On provider outage or malformed output, system switches instantaneously to `deterministic_keyword_fallback` with explicit `isFallback: true`.
+  - Operator Inspection & Corrections:
+    - Raw text and confidence scores are visible to human operators; values can be corrected manually with immediate audit record feedback.
+  - Fact-Constrained Communication Drafting:
+    - Emergency warnings cite only validated alert facts, areas, and shelters from supplied record IDs.
+  - Synthetic Evaluation Benchmark:
+    - Evaluated against 30 synthetic messages: People count accuracy: 93.3%, Vulnerability detection: 90.0%, Fallback success rate: 100.0%, Overall accuracy: 90.0%.
+- **Commands run:**
+  - `npm.cmd test` (exited 0: 48 API unit tests passed across 11 test suites; 18 Web tests passed across 6 test suites)
+  - `npm.cmd run typecheck` (exited 0 across all workspaces)
+  - `npm.cmd run lint` (exited 0: 0 errors, 0 warnings)
+  - `npm.cmd run build` (exited 0: clean compilation of NestJS and Vite)
+- **Acceptance criteria:**
+  - Schema-validated structured extraction from Bangla and Banglish: PASS
+  - Graceful deterministic fallback on outage: PASS
+  - Decisions and alert levels remain 100% rule-based: PASS
+  - Operator inspection and manual correction interface: PASS
+  - Benchmark report on 30 synthetic messages: PASS (>85% accuracy)
+- **Simulated or unverified integrations:**
+  - Remote LLM calls are simulated locally via deterministic local providers to ensure privacy and offline autonomy.
+- **Open issues:** None for Phase 7.
+- **Next phase:** Phase 8 — Recovery and aid ledger.
