@@ -115,7 +115,7 @@ Each phase is a separate agent task. The agent must inspect the current code fir
 
 **Exit gate:** unit tests cover score formula boundaries; dashboard updates from API; duplicate can be accepted/rejected/split; one high-risk silent village is flagged in fixtures; assets rank reproducibly; no auto-dispatch exists. (PASSED)
 
-### Phase 6 — Flood alert rules, historical replay and warning approval
+### Phase 6 — Flood alert rules, historical replay and warning approval [COMPLETED]
 **Tasks**
 - Create replay scenarios for 19–24 Aug 2024 and 20–22 Jul 2025 using only sourced/published readings entered as fixture data. Every record contains provenance, known gap and `reconstructed=true` metadata when applicable.
 - Add playback controls, time slider/tick stepping, scenario title, event date and a visible “RECONSTRUCTED / NOT LIVE” banner.
@@ -126,7 +126,7 @@ Each phase is a separate agent task. The agent must inspect the current code fir
 - Add a gauge-blanking switch in the replay. Demonstrate escalation only when the documented conditions are met.
 - Calculate alert lead-time against the danger threshold during replay and show the actual computed number, even when negative/zero/unavailable; do not hard-code impressive values.
 
-**Exit gate:** replay can be run from seed; changing/blanking gauge affects rules as expected; each alert shows why; warning is impossible to approve without Authority role; no claim of generalized ML forecast.
+**Exit gate:** replay can be run from seed; changing/blanking gauge affects rules as expected; each alert shows why; warning is impossible to approve without Authority role; no claim of generalized ML forecast. (PASSED)
 
 ### Phase 7 — AI-assisted language features with fallback
 **Tasks**
@@ -271,7 +271,7 @@ The prototype is ready only when a reviewer can, using synthetic data and the wr
 - [x] Phase 2 — schema, migrations, auth and seeds
 - [x] Phase 3 — packet and offline SOS
 - [x] Phase 4 — transport simulation
-- [ ] Phase 5 — responder dashboard and deterministic rules
+- [x] Phase 5 — responder dashboard and deterministic rules
 - [ ] Phase 6 — flood replay and warning approval
 - [ ] Phase 7 — AI language layer and fallback
 - [ ] Phase 8 — recovery ledger

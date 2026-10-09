@@ -247,3 +247,43 @@ Antigravity must append an entry after each completed phase. Do not pre-fill com
   - Asset dispatch and carrier/satellite transmissions remain decision-support suggestions and simulations for the demo.
 - **Open issues:** None for Phase 5.
 - **Next phase:** Phase 6 — Flood alert rules, historical replay and warning approval.
+
+---
+
+### 2026-10-09 — Phase 6: Flood Alert Rules, Historical Replay and Warning Approval
+- **Baseline:** Phase 5 complete with Responder dashboard, confidence, incident triage and asset ranking.
+- **Files changed:**
+  - `apps/api/src/domain/flood-alert/three-signal-alert.ts` & `three-signal-alert.spec.ts` (pure deterministic 3-signal rule for Muhuri at Parshuram: Signal A gauge rate of rise / warning level, Signal B satellite rainfall, Signal C volunteer staff gauge; breach override; silent gauge escalation `GAUGE_SILENT`; deterministic lead-time calculation)
+  - `apps/api/src/domain/flood-alert/replay-scenarios.ts` (historical replay fixture data for August 19–24, 2024 and July 20–22, 2025 sensor blackout demo with source provenance and `isReconstructed: true`)
+  - `apps/api/src/modules/warnings/alerts.service.ts` & `alerts.controller.ts` & `warnings.module.ts` (REST endpoints for evaluation, scenarios, step navigation, gauge telemetry blanking, warning draft creation, authority approval/rejection, and simulated broadcast)
+  - `apps/api/src/app.module.ts` (registered `WarningsModule`)
+  - `apps/web/src/components/FloodReplayWarning.tsx` (interactive replay view with `RECONSTRUCTED / NOT LIVE` disclosure, tick slider/controls, three-signal breakdown cards, gauge blanking toggle, deterministic lead-time indicator, warning drafting, and role-guarded authority approval)
+  - `apps/web/src/components/FloodReplayWarning.spec.tsx` (unit/component tests verifying reconstructed disclosure, lead-time display, silent-gauge escalation, and authority role approval)
+  - `apps/web/src/App.tsx` (mounted `FloodReplayWarning`)
+  - `IMPLEMENTATION_PLAN.md` (updated Phase 6 checklist to completed)
+- **Behavior delivered:**
+  - Three-Signal Decision Rule:
+    - Watch: Any 1 signal.
+    - Warning: Any 2 signals.
+    - Act: All 3 signals or reported embankment breach.
+    - Silent Gauge Escalation: When the river gauge is blanked/missing for $\ge 60$ minutes while rain or volunteer reports are active, the alert level escalates by 1 step with auditable reason `GAUGE_SILENT` (clamped at `ACT`).
+  - Historical Replay: Step-by-step playback of the August 2024 flood and July 2025 sensor blackout scenarios with transparent disclosure that readings are reconstructed from published BWDB/BMD reports.
+  - Deterministic Lead-Time: Calculated against the 13.0m danger level based on the rate of rise, avoiding fabricated ML forecasting claims.
+  - Human Authority Warning Approvals: Warnings cite supporting signals and nearest shelter; require explicit `AUTHORITY` role approval. External cell broadcast is strictly simulated with `simulation: true`.
+- **Commands run:**
+  - `npm.cmd test` (exited 0: 42 API unit tests passed across 10 test suites; 13 Web tests passed across 5 test suites)
+  - `npm.cmd run typecheck` (exited 0 across all workspaces)
+  - `npm.cmd run lint` (exited 0: 0 errors, 0 warnings)
+  - `npm.cmd run build` (exited 0: clean production compilation of NestJS and Vite)
+- **Acceptance criteria:**
+  - Pure three-signal deterministic rule tested with boundary cases: PASS
+  - Breach immediately triggers ACT: PASS
+  - Silent gauge escalation with `GAUGE_SILENT`: PASS
+  - Historical replay runs from fixtures with `RECONSTRUCTED / NOT LIVE` banner: PASS
+  - Gauge blanking toggle triggers real-time escalation: PASS
+  - Warning approval requires `AUTHORITY` role: PASS
+  - External broadcast clearly labeled as simulation: PASS
+- **Simulated or unverified integrations:**
+  - Cell broadcast and external SMS broadcast remain simulated (`simulation: true`). Historical telemetry is fixture data reconstructed from published records.
+- **Open issues:** None for Phase 6.
+- **Next phase:** Phase 7 — AI-assisted language features with fallback.

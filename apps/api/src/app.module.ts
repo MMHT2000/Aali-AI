@@ -8,6 +8,7 @@ import { IncidentsModule } from './modules/incidents/incidents.module';
 import { ReferenceModule } from './modules/reference/reference.module';
 import { SosModule } from './modules/sos/sos.module';
 import { UsersModule } from './modules/users/users.module';
+import { WarningsModule } from './modules/warnings/warnings.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { UsersModule } from './modules/users/users.module';
     SosModule,
     GatewayModule,
     IncidentsModule,
+    WarningsModule,
   ],
 })
 export class AppModule {}
