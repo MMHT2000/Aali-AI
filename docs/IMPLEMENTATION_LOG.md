@@ -204,3 +204,46 @@ Antigravity must append an entry after each completed phase. Do not pre-fill com
   - Carrier SMS gateway and satellite relays are explicitly labelled and run as deterministic simulations. No carrier contracts or satellite hardware are claimed.
 - **Open issues:** None for Phase 4.
 - **Next phase:** Phase 5 — Responder dashboard, confidence, incidents and asset ranking.
+
+---
+
+### 2026-10-09 — Phase 5: Responder Dashboard, Confidence, Incidents and Asset Ranking
+- **Baseline:** Phase 4 complete with simulated carrier gateway ingestion and blackout mode.
+- **Files changed:**
+  - `apps/api/src/domain/confidence/confidence.ts` & `confidence.spec.ts` (deterministic SOS confidence score function with base score, corroboration cap, environmental corroboration, freshness decay, and unit tests)
+  - `apps/api/src/domain/boat-priority/boat-priority.ts` & `boat-priority.spec.ts` (boat/asset dispatch priority formula: `0.30*people + 0.25*vuln + 0.20*conf + 0.15*trend + 0.10*time`, asset suitability filtering, factor breakdown, and unit tests)
+  - `apps/api/src/domain/silent-village/silent-village.ts` & `silent-village.spec.ts` (deterministic silent-village detector flagging `VERIFY_BY_SAFE_MEANS`, never assuming safety from lack of calls)
+  - `apps/api/src/domain/duplicate/duplicate.ts` & `duplicate.spec.ts` (duplicate candidate detector with geohash cell, time window, count matching, and AI text similarity suggestion)
+  - `apps/api/src/modules/incidents/incidents.service.ts` (incident triage, duplicate review approval/rejection, report splitting/unmerging, and silent village evaluation)
+  - `apps/api/src/modules/incidents/incidents.controller.ts` & `incidents.module.ts` (REST endpoints for incidents, reviews, splits, and silent areas)
+  - `apps/api/src/app.module.ts` (registered `IncidentsModule`)
+  - `apps/web/src/components/ResponderDashboard.tsx` (accessible React dashboard with KPI cards, triage list, urgency badges, confidence/priority breakdowns, boat suggestions, silent village warning banners, duplicate review buttons, and report split buttons)
+  - `apps/web/src/components/ResponderDashboard.spec.tsx` (component tests for dashboard rendering, KPIs, silent area warnings, duplicate review, and unmerge actions)
+  - `apps/web/src/App.tsx` (mounted ResponderDashboard)
+  - `IMPLEMENTATION_PLAN.md` (updated Phase 5 status)
+- **Behavior delivered:**
+  - Pure deterministic domain functions strictly decoupled from remote AI inference:
+    - Confidence scoring produces reproducible values `[0, 1]` with auditable reason codes.
+    - Boat priority formula ranks assets deterministically based on people count, vulnerable demographics, confidence, water trend, and waiting time.
+    - Silent village detection evaluates unmonitored high-hazard zones (e.g. Chitholia Union) and flags `VERIFY_BY_SAFE_MEANS` without inferring safety from missing reports.
+  - Operator-in-the-loop controls:
+    - Boat suggestions display suitability reasons and require explicit responder approval (no auto-dispatch).
+    - Duplicate candidates require human acceptance/rejection.
+    - Linked SOS reports can be split/unmerged with audit trace preservation.
+  - Accessible web dashboard displays real-time triage cards, Bangla labels, color-independent urgency indicators, and product honesty notices.
+- **Commands run:**
+  - `npm.cmd test` (exited 0: 34 API unit tests across 9 test suites; 9 Web tests across 4 test suites passed)
+  - `npm.cmd run typecheck` (exited 0 across all workspaces)
+  - `npm.cmd run lint` (exited 0: 0 errors, 0 warnings)
+  - `npm.cmd run build` (exited 0: clean compilation of API and Web)
+- **Acceptance criteria:**
+  - Pure deterministic domain functions for confidence, boat priority, duplicates, and silent villages: PASS
+  - Unit tests covering formula boundaries and edge cases: PASS
+  - Responder dashboard with KPIs and triage incident list: PASS
+  - Operator approval required for duplicates and boat dispatch (no auto-dispatch): PASS
+  - Report unmerge/split correction path: PASS
+  - High-risk silent village flagged with VERIFY_BY_SAFE_MEANS: PASS
+- **Simulated or unverified integrations:**
+  - Asset dispatch and carrier/satellite transmissions remain decision-support suggestions and simulations for the demo.
+- **Open issues:** None for Phase 5.
+- **Next phase:** Phase 6 — Flood alert rules, historical replay and warning approval.

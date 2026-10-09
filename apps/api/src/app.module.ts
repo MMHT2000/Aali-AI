@@ -4,6 +4,7 @@ import { validateEnvironment } from './config/env.validation';
 import { AuthModule } from './modules/auth/auth.module';
 import { GatewayModule } from './modules/gateway/gateway.module';
 import { HealthModule } from './modules/health/health.module';
+import { IncidentsModule } from './modules/incidents/incidents.module';
 import { ReferenceModule } from './modules/reference/reference.module';
 import { SosModule } from './modules/sos/sos.module';
 import { UsersModule } from './modules/users/users.module';
@@ -20,6 +21,7 @@ import { UsersModule } from './modules/users/users.module';
     ReferenceModule,
     SosModule,
     GatewayModule,
+    IncidentsModule,
   ],
 })
 export class AppModule {}

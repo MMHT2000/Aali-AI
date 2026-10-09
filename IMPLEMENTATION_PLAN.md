@@ -104,7 +104,7 @@ Each phase is a separate agent task. The agent must inspect the current code fir
 
 **Exit gate:** with internet submission disabled, a user can create the packet, use the labeled simulated fallback, and later see exactly one report in the dashboard. The demo labels all simulated stages.
 
-### Phase 5 — Responder dashboard, confidence, incidents and asset ranking
+### Phase 5 — Responder dashboard, confidence, incidents and asset ranking [COMPLETED]
 **Tasks**
 - Build routes/views: Dashboard, SOS Inbox, Incident Detail, Asset Register, Shelters/Areas, Alert Center, Replay, Recovery, Audit and Admin/Health.
 - Provide KPI cards, map/list toggle, filters by event/area/status/urgency/confidence, source badges, status updates and a detail drawer/panel.
@@ -113,7 +113,7 @@ Each phase is a separate agent task. The agent must inspect the current code fir
 - Implement silent-village detector using configured high hazard, high exposure, no reports for about 20 minutes while neighbor cells report; output `VERIFY_BY_SAFE_MEANS` with reasoning, not “safe”.
 - Implement asset/boat priority formula and rank only suitable, available assets; operator approves/rejects recommendation; log all decisions and reason codes.
 
-**Exit gate:** unit tests cover score formula boundaries; dashboard updates from API; duplicate can be accepted/rejected/split; one high-risk silent village is flagged in fixtures; assets rank reproducibly; no auto-dispatch exists.
+**Exit gate:** unit tests cover score formula boundaries; dashboard updates from API; duplicate can be accepted/rejected/split; one high-risk silent village is flagged in fixtures; assets rank reproducibly; no auto-dispatch exists. (PASSED)
 
 ### Phase 6 — Flood alert rules, historical replay and warning approval
 **Tasks**
