@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { apiFetch as fetch } from '../lib/authenticated-fetch';
+import { OperationsMode } from '../lib/operations-client';
 
 export interface VillageRankItem {
   villageId: string;
@@ -32,7 +33,7 @@ export interface AidDeliveryItem {
   idempotency_key: string;
 }
 
-export function RecoveryLedger() {
+export function RecoveryLedger({ mode = 'EXERCISE', eventId }: { mode?: OperationsMode; eventId?: string }) {
   const [rankings, setRankings] = useState<VillageRankItem[]>([]);
   const [deliveries, setDeliveries] = useState<AidDeliveryItem[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -46,13 +47,23 @@ export function RecoveryLedger() {
   const [unit, setUnit] = useState<string>('LITRES');
   const [idempotencyKey, setIdempotencyKey] = useState<string>(`del-${Date.now()}`);
   const [showFootprint, setShowFootprint] = useState<boolean>(false);
+  const [scopeNotice, setScopeNotice] = useState<string | null>(null);
 
   const fetchData = async () => {
     setLoading(true);
+    if (mode === 'LIVE') {
+      setRankings([]);
+      setDeliveries([]);
+      setScopeNotice('Recovery records have no active Live event context yet. No exercise data is substituted.');
+      setLoading(false);
+      return;
+    }
+    const selectedEventId = eventId ?? '11111111-1111-1111-1111-111111111103';
+    setScopeNotice(mode === 'HISTORICAL' ? 'No recovery records are linked to this reconstructed event.' : null);
     try {
       const [sumRes, delRes] = await Promise.all([
-        fetch('/api/v1/recovery/summary'),
-        fetch('/api/v1/recovery/deliveries'),
+        fetch(`/api/v1/recovery/summary?eventId=${encodeURIComponent(selectedEventId)}`),
+        fetch(`/api/v1/recovery/deliveries?eventId=${encodeURIComponent(selectedEventId)}`),
       ]);
       if (sumRes.ok) {
         const sumData = await sumRes.json();
@@ -69,17 +80,22 @@ export function RecoveryLedger() {
   };
 
   useEffect(() => {
-    fetchData();
-  }, []);
+    void fetchData();
+  }, [eventId, mode]);
 
   const handleRecordDelivery = async (e: React.FormEvent) => {
     e.preventDefault();
     setFeedback(null);
+    if (mode !== 'EXERCISE') {
+      setFeedback('Recording deliveries is enabled for the synthetic exercise only.');
+      return;
+    }
     try {
       const res = await fetch('/api/v1/recovery/deliveries', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          eventId: eventId ?? '11111111-1111-1111-1111-111111111103',
           areaId: selectedVillageId,
           organizationLabel: orgLabel,
           itemCode,
@@ -129,6 +145,9 @@ export function RecoveryLedger() {
           * Rankings support logistical coordination and relief transparency, not beneficiary eligibility. Aali AI never algorithmically decides who deserves aid.
         </p>
       </div>
+
+      <p role="status" style={{ color: '#cbd5e1', fontSize: '0.78rem' }}>{mode} · event {eventId ?? (mode === 'EXERCISE' ? 'Active Demo Exercise 2026' : 'none selected')}</p>
+      {scopeNotice && <p role="status" style={{ color: '#f0cd85', fontSize: '0.78rem' }}>{scopeNotice}</p>}
 
       {feedback && (
         <div style={{ background: feedback.startsWith('✓') ? '#064e3b' : '#7f1d1d', border: '1px solid #10b981', color: '#f8fafc', padding: '0.5rem 0.8rem', borderRadius: '4px', marginBottom: '1rem', fontSize: '0.85rem' }}>
@@ -330,6 +349,7 @@ export function RecoveryLedger() {
           <div>
             <button
               type="submit"
+              disabled={mode !== 'EXERCISE'}
               style={{ width: '100%', background: '#0284c7', color: 'white', border: 'none', padding: '0.45rem', borderRadius: '4px', fontWeight: 'bold', fontSize: '0.85rem', cursor: 'pointer' }}
             >
               ত্রাণ জমা দিন (Submit Receipt)

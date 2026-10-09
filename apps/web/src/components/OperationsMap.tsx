@@ -5,6 +5,8 @@ import { OperationMapPoint } from '../lib/operations-client';
 import 'leaflet/dist/leaflet.css';
 
 interface OperationsMapProps {
+  selectedPointId?: string;
+  onSelectPoint?: (point: OperationMapPoint) => void;
   layers: {
     areas: OperationMapPoint[];
     gauges: OperationMapPoint[];
@@ -16,53 +18,43 @@ interface OperationsMapProps {
 }
 
 const color: Record<string, string> = {
-  area: '#38bdf8', gauge: '#facc15', shelter: '#22c55e', asset: '#a78bfa', incident: '#fb7185', sos: '#f97316',
+  area: '#4aa6c8', gauge: '#e2b45a', shelter: '#56b995', asset: '#a78bfa', incident: '#ed7c83', sos: '#e36850',
 };
 
-function marker(point: OperationMapPoint, layer: string, index: number) {
+function marker(point: OperationMapPoint, layer: string, index: number, selectedPointId?: string, onSelectPoint?: (point: OperationMapPoint) => void) {
   const lat = Number(point.latitude);
   const lng = Number(point.longitude);
   if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
   const label = point.label ?? point.name ?? point.id;
-  const isSos = layer === 'sos';
+  const selected = point.id === selectedPointId;
   return (
     <CircleMarker
       key={`${layer}-${point.id}-${index}`}
       center={[lat, lng] as LatLngExpression}
-      radius={isSos ? 11 : layer === 'incident' ? 9 : 6}
-      pathOptions={{
-        color: isSos ? '#ffffff' : '#07111f',
-        weight: isSos ? 3 : 2,
-        fillColor: color[layer],
-        fillOpacity: 0.95,
-      }}
+      radius={selected ? 10 : layer === 'sos' || layer === 'incident' ? 8 : 6}
+      pathOptions={{ color: selected ? '#f8fafc' : '#101820', weight: selected ? 3 : 2, fillColor: color[layer], fillOpacity: selected ? 1 : 0.88 }}
+      eventHandlers={onSelectPoint ? { click: () => onSelectPoint(point) } : undefined}
     >
-      <Tooltip direction="top" offset={[0, -8]} permanent={isSos}>
-        <div style={{ fontSize: '0.8rem', lineHeight: '1.2' }}>
-          <strong style={{ color: isSos ? '#c2410c' : '#0f172a' }}>
-            {isSos ? '🚨 ' : ''}{label}
-          </strong><br />
-          {point.peopleCount !== undefined && <span>{point.peopleCount} জন পানিবন্দি · </span>}
-          <small>{point.provenance}</small>
-        </div>
+      <Tooltip direction="top" offset={[0, -8]}>
+        <span>{label} - {point.status ?? point.provenance}</span>
       </Tooltip>
     </CircleMarker>
   );
 }
 
-export function OperationsMap({ layers }: OperationsMapProps) {
+export function OperationsMap({ layers, selectedPointId, onSelectPoint }: OperationsMapProps) {
   const [tilesUnavailable, setTilesUnavailable] = useState(false);
   const [enabled, setEnabled] = useState<Record<string, boolean>>({ area: true, gauge: true, shelter: true, asset: true, incident: true, sos: true });
   const layerItems: Array<[string, string, OperationMapPoint[]]> = [
     ['area', 'Areas', layers.areas], ['gauge', 'Gauges', layers.gauges], ['shelter', 'Shelters', layers.shelters],
-    ['asset', 'Response assets', layers.assets], ['incident', 'Incidents', layers.incidents], ['sos', 'API SOS', layers.sos],
+    ['asset', 'Assets', layers.assets], ['incident', 'Incidents', layers.incidents], ['sos', 'SOS', layers.sos],
   ];
 
   return (
-    <section className="ops-map-panel" aria-label="Feni operations map">
+    <section className="ops-map-panel situation-map" aria-label="Feni operations map">
       <div className="ops-map-heading">
-        <div><span className="eyebrow">GEOGRAPHIC OPERATIONS</span><h2>Feni district</h2></div>
-        <span className="source-chip source-chip--synthetic">Synthetic exercise layers</span>
+        <div><span className="eyebrow">SHARED OPERATING PICTURE</span><h2>Feni district</h2></div>
+        <span className="source-chip source-chip--synthetic">Synthetic layers</span>
       </div>
       <div className="ops-layer-toggle" aria-label="Map layers">
         {layerItems.map(([key, title]) => (
@@ -76,7 +68,7 @@ export function OperationsMap({ layers }: OperationsMapProps) {
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             eventHandlers={{ tileerror: () => setTilesUnavailable(true), tileload: () => setTilesUnavailable(false) }}
           />
-          {layerItems.filter(([key]) => enabled[key]).flatMap(([key, , points]) => points.map((point, index) => marker(point, key, index)))}
+          {layerItems.filter(([key]) => enabled[key]).flatMap(([key, , points]) => points.map((point, index) => marker(point, key, index, selectedPointId, onSelectPoint)))}
         </MapContainer>
       </div>
       {tilesUnavailable && <p className="map-warning" role="status">Basemap tiles are unavailable. The operations lists remain available below.</p>}
@@ -84,11 +76,18 @@ export function OperationsMap({ layers }: OperationsMapProps) {
         {layerItems.map(([key, label]) => <span key={key}><i style={{ backgroundColor: color[key] }} />{label}</span>)}
       </div>
       <div className="ops-map-records">
+        <p className="map-list-heading">Map records - select a record to inspect</p>
         {layerItems.filter(([key]) => enabled[key]).map(([key, label, points]) => (
           <details key={key} open={key === 'incident' || key === 'sos'}>
             <summary>{label} <span>{points.length}</span></summary>
             {points.length === 0 ? <p className="muted">No {label.toLowerCase()} available in this snapshot.</p> : (
-              <ul>{points.map((point) => <li key={point.id}><span>{point.name ?? point.label ?? point.id}</span><small>{point.status ?? point.provenance}</small></li>)}</ul>
+              <ul>{points.map((point) => (
+                <li key={point.id}>
+                  <button type="button" className="map-record-button" aria-pressed={point.id === selectedPointId} onClick={() => onSelectPoint?.(point)}>
+                    <span>{point.name ?? point.label ?? point.id}</span><small>{point.status ?? point.provenance}{point.latitude == null || point.longitude == null ? ' - unmapped' : ''}</small>
+                  </button>
+                </li>
+              ))}</ul>
             )}
           </details>
         ))}

@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Request } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query, Request } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import {
   CreateReportDto,
@@ -7,6 +7,7 @@ import {
 } from './recovery.service';
 import { Roles } from '../../common/auth/roles.decorator';
 import { UserRole } from '../users/entities/user-role.enum';
+import { OperationsSnapshotQueryDto } from '../operations/operations-snapshot-query.dto';
 
 @ApiTags('Recovery & Aid Delivery Ledger')
 @Controller('api/v1/recovery')
@@ -23,8 +24,8 @@ export class RecoveryController {
   @ApiOperation({ summary: 'List all submitted damage/needs reports' })
   @Get('reports')
   @Roles(UserRole.RECOVERY_COORDINATOR, UserRole.AUTHORITY, UserRole.ADMIN)
-  getReports() {
-    return this.recoveryService.getReports();
+  getReports(@Query() query: OperationsSnapshotQueryDto) {
+    return this.recoveryService.getReports(query.eventId);
   }
 
   @ApiOperation({ summary: 'Record aid delivery receipt with idempotency guard' })
@@ -37,15 +38,15 @@ export class RecoveryController {
   @ApiOperation({ summary: 'List all recorded aid delivery receipts' })
   @Get('deliveries')
   @Roles(UserRole.RECOVERY_COORDINATOR, UserRole.AUTHORITY, UserRole.ADMIN)
-  getDeliveries() {
-    return this.recoveryService.getDeliveries();
+  getDeliveries(@Query() query: OperationsSnapshotQueryDto) {
+    return this.recoveryService.getDeliveries(query.eventId);
   }
 
   @ApiOperation({ summary: 'Get village unmet-needs ranking and relief coverage summary' })
   @Get('summary')
   @Roles(UserRole.RECOVERY_COORDINATOR, UserRole.AUTHORITY, UserRole.ADMIN, UserRole.VIEWER)
-  getSummary() {
-    return this.recoveryService.getSummary();
+  getSummary(@Query() query: OperationsSnapshotQueryDto) {
+    return this.recoveryService.getSummary(query.eventId);
   }
 }
 

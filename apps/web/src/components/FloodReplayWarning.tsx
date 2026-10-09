@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { apiFetch as fetch } from '../lib/authenticated-fetch';
+import { OperationsMode } from '../lib/operations-client';
+import { UserSession } from './Login';
 
 export interface ReplayTickView {
   tickIndex: number;
@@ -54,6 +56,8 @@ export interface ReplayEvaluationView {
 
 export interface WarningView {
   id: string;
+  event_id: string;
+
   state: 'DRAFT' | 'PENDING_APPROVAL' | 'APPROVED' | 'REJECTED' | 'SENT_SIMULATED';
   body_bn: string;
   body_en?: string;
@@ -63,39 +67,48 @@ export interface WarningView {
   approval_note?: string | null;
 }
 
-export function FloodReplayWarning() {
+export function FloodReplayWarning({ mode, eventId, session }: { mode: OperationsMode; eventId?: string; session: UserSession }) {
   const [scenarios, setScenarios] = useState<ReplayScenarioView[]>([]);
   const [selectedScenarioId, setSelectedScenarioId] = useState<string>('');
   const [currentTickIndex, setCurrentTickIndex] = useState<number>(0);
   const [isGaugeBlanked, setIsGaugeBlanked] = useState<boolean>(false);
   const [evaluation, setEvaluation] = useState<ReplayEvaluationView | null>(null);
   const [warnings, setWarnings] = useState<WarningView[]>([]);
-  const [userRole, setUserRole] = useState<'AUTHORITY' | 'RESPONDER' | 'VIEWER'>('AUTHORITY');
   const [actionFeedback, setActionFeedback] = useState<string | null>(null);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
 
-  // Fetch scenarios and initial warning list
+  const canApprove = session.role === 'AUTHORITY' || session.role === 'ADMIN';
+  const replayEnabled = mode === 'HISTORICAL';
+
+  // Replay fixtures and warning drafts follow the shared event selection.
   useEffect(() => {
+    setScenarios([]);
+    setWarnings([]);
+    setSelectedScenarioId('');
+    setCurrentTickIndex(0);
+    setEvaluation(null);
+    setIsPlaying(false);
+    if (!replayEnabled || !eventId) return;
+
     fetch('/api/v1/replay/scenarios')
       .then((res) => (res.ok ? res.json() : []))
       .then((data: ReplayScenarioView[]) => {
-        setScenarios(data);
-        if (data.length > 0) {
-          setSelectedScenarioId(data[0].id);
-        }
+        const selected = data.filter((scenario) => scenario.id === eventId);
+        setScenarios(selected);
+        if (selected.length > 0) setSelectedScenarioId(selected[0].id);
       })
       .catch(() => {});
 
-    fetch('/api/v1/warnings')
+    if (canApprove) fetch('/api/v1/warnings')
       .then((res) => (res.ok ? res.json() : []))
-      .then((data: WarningView[]) => setWarnings(data))
+      .then((data: WarningView[]) => setWarnings(data.filter((warning) => warning.event_id === eventId)))
       .catch(() => {});
-  }, []);
+  }, [canApprove, eventId, replayEnabled]);
 
   // Update evaluation when tick, scenario, or gauge blanking changes
   useEffect(() => {
     const sc = scenarios.find((s) => s.id === selectedScenarioId);
-    if (!sc || !sc.ticks[currentTickIndex]) return;
+    if (!replayEnabled || !canApprove || !sc || !sc.ticks[currentTickIndex]) return;
 
     const tick = sc.ticks[currentTickIndex];
 
@@ -119,7 +132,7 @@ export function FloodReplayWarning() {
         if (data) setEvaluation(data);
       })
       .catch(() => {});
-  }, [selectedScenarioId, currentTickIndex, isGaugeBlanked, scenarios]);
+  }, [canApprove, replayEnabled, selectedScenarioId, currentTickIndex, isGaugeBlanked, scenarios]);
 
   // Handle auto-step play timer
   useEffect(() => {
@@ -143,14 +156,14 @@ export function FloodReplayWarning() {
   const activeTick = activeScenario?.ticks[currentTickIndex];
 
   const handleCreateDraftFromAlert = async () => {
-    if (!evaluation || !activeTick) return;
+    if (!canApprove || !replayEnabled || !eventId || !evaluation || !activeTick) return;
 
     try {
       const res = await fetch('/api/v1/warnings/drafts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          eventId: selectedScenarioId,
+          eventId,
           areaId: '22222222-2222-2222-2222-222222222202',
           areaName: 'Parshuram',
           alertLevel: evaluation.computedLevel,
@@ -170,7 +183,7 @@ export function FloodReplayWarning() {
   };
 
   const handleApproveWarning = async (id: string) => {
-    if (userRole !== 'AUTHORITY') {
+    if (!canApprove) {
       setActionFeedback('অননুমোদিত: সতর্কতা অনুমোদনের জন্য AUTHORITY ভূমিকা প্রয়োজন (Authority role required).');
       return;
     }
@@ -222,14 +235,14 @@ export function FloodReplayWarning() {
   return (
     <div style={{ background: '#0f172a', border: '1px solid #334155', borderRadius: '8px', padding: '1.25rem', marginTop: '1.5rem', color: '#f8fafc' }}>
       {/* Reconstructed data disclosure banner */}
-      <div style={{ background: 'rgba(234, 88, 12, 0.15)', border: '1px solid #ea580c', padding: '0.75rem 1rem', borderRadius: '6px', marginBottom: '1.25rem' }}>
+      {replayEnabled && <div style={{ background: 'rgba(234, 88, 12, 0.15)', border: '1px solid #ea580c', padding: '0.75rem 1rem', borderRadius: '6px', marginBottom: '1.25rem' }}>
         <strong style={{ color: '#fb923c', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
           ⚠️ RECONSTRUCTED / NOT LIVE — ঐতিহাসিক পুনঃনির্মাণ ডেমো
         </strong>
         <p style={{ fontSize: '0.82rem', color: '#fed7aa', margin: '0.25rem 0 0' }}>
-          This replay uses historical BWDB Parshuram river gauge records and GSMaP satellite rainfall fixtures. Lead times are calculated deterministically. External broadcasts are simulated for decision-support testing.
+          This is a reconstructed fixture with source citations not yet independently audited. Lead times are calculated by deterministic rules. External broadcasts are simulated for decision-support testing.
         </p>
-      </div>
+      </div>}
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', marginBottom: '1rem' }}>
         <div>
@@ -241,19 +254,7 @@ export function FloodReplayWarning() {
           </span>
         </div>
 
-        {/* Role switcher for testing security guards */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem' }}>
-          <span>সক্রিয় ভূমিকা (Role):</span>
-          <select
-            value={userRole}
-            onChange={(e) => setUserRole(e.target.value as 'AUTHORITY' | 'RESPONDER' | 'VIEWER')}
-            style={{ background: '#1e293b', color: '#f8fafc', border: '1px solid #475569', borderRadius: '4px', padding: '0.2rem 0.5rem' }}
-          >
-            <option value="AUTHORITY">AUTHORITY (উপজেলা/জেলা কর্মকর্তা)</option>
-            <option value="RESPONDER">RESPONDER (উদ্ধারকারী)</option>
-            <option value="VIEWER">VIEWER (পর্যবেক্ষক)</option>
-          </select>
-        </div>
+        <span role="status">{mode === 'LIVE' ? 'Live source mode: replay controls are unavailable.' : mode === 'EXERCISE' ? 'Exercise mode: select Historical to inspect reconstructed replay fixtures.' : !eventId ? 'Select a historical event to load its replay.' : !canApprove ? `${session.role} has read-only replay access; rule evaluation and warning actions are restricted.` : `Historical event: ${eventId}`}</span>
       </div>
 
       {actionFeedback && (
@@ -263,7 +264,7 @@ export function FloodReplayWarning() {
       )}
 
       {/* Replay Scenario Controls */}
-      <div style={{ background: '#1e293b', border: '1px solid #334155', borderRadius: '6px', padding: '1rem', marginBottom: '1.5rem' }}>
+      {replayEnabled && activeScenario && <div style={{ background: '#1e293b', border: '1px solid #334155', borderRadius: '6px', padding: '1rem', marginBottom: '1.5rem' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', marginBottom: '0.8rem' }}>
           <div>
             <label style={{ fontSize: '0.85rem', color: '#94a3b8', display: 'block', marginBottom: '0.3rem' }}>দৃশ্যপট নির্বাচন (Scenario):</label>
@@ -335,10 +336,10 @@ export function FloodReplayWarning() {
             </p>
           </div>
         )}
-      </div>
+      </div>}
 
       {/* Live Three-Signal Evaluation Card */}
-      {evaluation && (
+      {evaluation && canApprove && replayEnabled && (
         <div style={{ background: '#1e293b', border: '1px solid #334155', borderRadius: '6px', padding: '1.25rem', marginBottom: '1.5rem' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '1rem' }}>
             <div>
@@ -454,7 +455,7 @@ export function FloodReplayWarning() {
       )}
 
       {/* Warnings & Approvals Register */}
-      <div style={{ background: '#1e293b', border: '1px solid #334155', borderRadius: '6px', padding: '1.25rem' }}>
+      {canApprove && replayEnabled && <div style={{ background: '#1e293b', border: '1px solid #334155', borderRadius: '6px', padding: '1.25rem' }}>
         <h3 style={{ fontSize: '1.1rem', color: '#f8fafc', marginBottom: '0.75rem' }}>
           📢 অফিসিয়াল সতর্কতা অনুমোদন তালিকা / Official Warnings Approval Register
         </h3>
@@ -540,7 +541,7 @@ export function FloodReplayWarning() {
             ))}
           </div>
         )}
-      </div>
+      </div>}
     </div>
   );
 }

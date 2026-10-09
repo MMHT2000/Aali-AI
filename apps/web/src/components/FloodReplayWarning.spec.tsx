@@ -4,7 +4,7 @@ import { FloodReplayWarning, ReplayScenarioView, WarningView } from './FloodRepl
 
 const mockScenarios: ReplayScenarioView[] = [
   {
-    id: 'sc-2024',
+    id: '11111111-1111-1111-1111-111111111101',
     name: 'Feni Flash Flood August 2024 Replay',
     nameBn: 'ফেনী আকস্মিক বন্যা আগস্ট ২০২৪ ঐতিহাসিক পুনঃনির্মাণ',
     description: 'Historical reconstruction of August 2024 Feni flood.',
@@ -39,6 +39,8 @@ const mockScenarios: ReplayScenarioView[] = [
 const mockWarnings: WarningView[] = [
   {
     id: 'warn-101',
+    event_id: '11111111-1111-1111-1111-111111111101',
+
     state: 'PENDING_APPROVAL',
     body_bn: 'জরুরি সতর্কতা: পরশুরাম এলাকায় নদীর পানির উচ্চতা বৃদ্ধি পেয়েছে। পরশুরাম সরকারি মডেল উচ্চ বিদ্যালয় আশ্রয়কেন্দ্রে যান।',
     created_at: '2024-08-19T16:00:00Z',
@@ -107,14 +109,14 @@ describe('FloodReplayWarning Component', () => {
   });
 
   it('renders historical reconstructed disclaimer and title', async () => {
-    render(<FloodReplayWarning />);
+    render(<FloodReplayWarning mode="HISTORICAL" eventId="11111111-1111-1111-1111-111111111101" session={{ id: 'u1', username: 'authority', displayName: 'Authority', role: 'AUTHORITY', accessToken: 'token' }} />);
 
     expect(screen.getByText(/RECONSTRUCTED \/ NOT LIVE — ঐতিহাসিক পুনঃনির্মাণ ডেমো/i)).toBeInTheDocument();
     expect(screen.getByText(/বন্যা সংকেত ও ঐতিহাসিক রিপ্লে \/ Three-Signal Flood Alert & Replay/i)).toBeInTheDocument();
   });
 
   it('renders three signal elements with calculated lead-time', async () => {
-    render(<FloodReplayWarning />);
+    render(<FloodReplayWarning mode="HISTORICAL" eventId="11111111-1111-1111-1111-111111111101" session={{ id: 'u1', username: 'authority', displayName: 'Authority', role: 'AUTHORITY', accessToken: 'token' }} />);
 
     await waitFor(() => {
       expect(screen.getByText(/সংকেত ক: নদীর গেজ \(Signal A\)/i)).toBeInTheDocument();
@@ -125,7 +127,7 @@ describe('FloodReplayWarning Component', () => {
   });
 
   it('demonstrates gauge blanking sensor blackout escalation', async () => {
-    render(<FloodReplayWarning />);
+    render(<FloodReplayWarning mode="HISTORICAL" eventId="11111111-1111-1111-1111-111111111101" session={{ id: 'u1', username: 'authority', displayName: 'Authority', role: 'AUTHORITY', accessToken: 'token' }} />);
 
     await waitFor(() => {
       expect(screen.getByLabelText(/গেজ ব্ল্যাকআউট সিমুলেশন \(Simulate Gauge Blanked\)/i)).toBeInTheDocument();
@@ -140,7 +142,7 @@ describe('FloodReplayWarning Component', () => {
   });
 
   it('requires authority role for warning approval', async () => {
-    render(<FloodReplayWarning />);
+    render(<FloodReplayWarning mode="HISTORICAL" eventId="11111111-1111-1111-1111-111111111101" session={{ id: 'u1', username: 'authority', displayName: 'Authority', role: 'AUTHORITY', accessToken: 'token' }} />);
 
     await waitFor(() => {
       expect(screen.getByText('✓ অনুমোদন করুন (Approve as Authority)')).toBeInTheDocument();
@@ -152,6 +154,23 @@ describe('FloodReplayWarning Component', () => {
     await waitFor(() => {
       expect(screen.getByText(/সতর্কতা warn-101 সফলভাবে অনুমোদিত হয়েছে \(Approved\)/i)).toBeInTheDocument();
     });
+  });
+
+  it('does not load reconstructed replay in Live mode', async () => {
+    const request = vi.mocked(globalThis.fetch);
+    render(<FloodReplayWarning mode="LIVE" session={{ id: 'u1', username: 'authority', displayName: 'Authority', role: 'AUTHORITY', accessToken: 'token' }} />);
+
+    expect(screen.getByText(/Live source mode: replay controls are unavailable/)).toBeInTheDocument();
+    await waitFor(() => expect(request).not.toHaveBeenCalledWith('/api/v1/replay/scenarios'));
+    expect(screen.queryByText(/RECONSTRUCTED \/ NOT LIVE/)).not.toBeInTheDocument();
+  });
+
+  it('keeps responder historical replay read-only', async () => {
+    render(<FloodReplayWarning mode="HISTORICAL" eventId="11111111-1111-1111-1111-111111111101" session={{ id: 'r1', username: 'responder', displayName: 'Responder', role: 'RESPONDER', accessToken: 'token' }} />);
+
+    expect(await screen.findByText(/read-only replay access/)).toBeInTheDocument();
+    expect(screen.queryByText(/Approve as Authority/)).not.toBeInTheDocument();
+    expect(vi.mocked(globalThis.fetch)).not.toHaveBeenCalledWith('/api/v1/alerts/evaluate', expect.anything());
   });
 });
 

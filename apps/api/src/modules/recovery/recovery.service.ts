@@ -186,18 +186,23 @@ export class RecoveryService implements OnModuleInit {
     return rep;
   }
 
-  async getReports(): Promise<RecoveryReport[]> {
+  async getReports(eventId?: string): Promise<RecoveryReport[]> {
+    let reports: RecoveryReport[];
     if (this.reportRepository) {
       try {
         const persisted = await this.reportRepository.find({ order: { reported_at: 'DESC' } });
         if (persisted && persisted.length > 0) {
-          return persisted;
+          reports = persisted;
+        } else {
+          reports = this.reports;
         }
       } catch {
-        // fallback
+        reports = this.reports;
       }
+    } else {
+      reports = this.reports;
     }
-    return this.reports;
+    return eventId ? reports.filter((item) => item.event_id === eventId) : reports;
   }
 
   async recordDelivery(dto: RecordDeliveryDto): Promise<{ delivery: AidDelivery; isDuplicateIgnored: boolean }> {
@@ -262,28 +267,33 @@ export class RecoveryService implements OnModuleInit {
     return { delivery: del, isDuplicateIgnored: false };
   }
 
-  async getDeliveries(): Promise<AidDelivery[]> {
+  async getDeliveries(eventId?: string): Promise<AidDelivery[]> {
+    let deliveries: AidDelivery[];
     if (this.deliveryRepository) {
       try {
         const persisted = await this.deliveryRepository.find({ order: { delivered_at: 'DESC' } });
         if (persisted && persisted.length > 0) {
-          return persisted;
+          deliveries = persisted;
+        } else {
+          deliveries = this.deliveries;
         }
       } catch {
-        // fallback
+        deliveries = this.deliveries;
       }
+    } else {
+      deliveries = this.deliveries;
     }
-    return this.deliveries;
+    return eventId ? deliveries.filter((item) => item.event_id === eventId) : deliveries;
   }
 
-  async getSummary(): Promise<{
+  async getSummary(eventId?: string): Promise<{
     villagesRanking: VillageNeedScoreOutput[];
     totalReports: number;
     totalDeliveries: number;
     disclaimer: string;
   }> {
-    const allReports = await this.getReports();
-    const allDeliveries = await this.getDeliveries();
+    const allReports = await this.getReports(eventId);
+    const allDeliveries = await this.getDeliveries(eventId);
     const villageNames: Record<string, string> = {
       '22222222-2222-2222-2222-222222222205': 'চিথলিয়া (Chitholia)',
       '22222222-2222-2222-2222-222222222204': 'মির্জানগর (Mirzanagar)',

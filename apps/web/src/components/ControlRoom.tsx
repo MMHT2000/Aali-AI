@@ -1,6 +1,6 @@
 import { FormEvent, useEffect, useState } from 'react';
-import { Navigate, NavLink, Route, Routes, useLocation } from 'react-router-dom';
-import { Activity, AlertTriangle, ClipboardList, Map, Radio, Settings, ShieldCheck, Truck, Users, Waves } from 'lucide-react';
+import { Link, Navigate, NavLink, Route, Routes, useLocation, useSearchParams } from 'react-router-dom';
+import { Activity, AlertTriangle, ClipboardList, LogOut, Map, Radio, Settings, ShieldCheck, Truck, Users, Waves } from 'lucide-react';
 import { UserSession } from './Login';
 import { ResponderDashboard } from './ResponderDashboard';
 import { FloodReplayWarning } from './FloodReplayWarning';
@@ -12,7 +12,7 @@ import { ResidentSimulator } from './ResidentSimulator';
 import { SettingsPanel } from './SettingsPanel';
 import { AuditViewer } from './AuditViewer';
 import { OperationsOverview } from './OperationsOverview';
-import { getOperationsSnapshot, OperationMapPoint } from '../lib/operations-client';
+import { getOperationsSnapshot, OperationMapPoint, OperationsMode } from '../lib/operations-client';
 import { apiFetch } from '../lib/authenticated-fetch';
 import { canAccessControlRoomRoute } from '../lib/control-room-access';
 import { checkApiHealth, ApiHealthResponse } from '../lib/api-client';
@@ -20,62 +20,146 @@ import './ControlRoom.css';
 
 interface ControlRoomProps { session: UserSession; onLogout: () => void }
 const routes = [
-  { path: '/control-room/map', label: 'Situation map', icon: Map },
-  { path: '/control-room/responder', label: 'Rescue operations', icon: Radio },
-  { path: '/control-room/alerts', label: 'Alerts & approvals', icon: AlertTriangle },
-  { path: '/control-room/replay', label: 'Replay & exercise', icon: Activity },
-  { path: '/control-room/recovery', label: 'Recovery needs', icon: Truck },
-  { path: '/control-room/field', label: 'Field reporting', icon: ClipboardList },
-  { path: '/control-room/simulator', label: 'Resident simulator', icon: Users },
-  { path: '/control-room/language', label: 'Language assistant', icon: Waves },
-  { path: '/control-room/audit', label: 'Audit trail', icon: ShieldCheck },
-  { path: '/control-room/settings', label: 'System settings', icon: Settings },
+  { path: '/control-room/map', label: 'Situation room', group: 'OPERATIONS', icon: Map },
+  { path: '/control-room/responder', label: 'SOS & incidents', group: 'RESPONSE', icon: Radio },
+  { path: '/control-room/field', label: 'Field reports', group: 'RESPONSE', icon: ClipboardList },
+  { path: '/control-room/alerts', label: 'Warnings & approvals', group: 'PREPAREDNESS', icon: AlertTriangle },
+  { path: '/control-room/replay', label: 'Replay & exercise', group: 'PREPAREDNESS', icon: Activity },
+  { path: '/control-room/simulator', label: 'Resident simulator', group: 'DEMO TOOLS', icon: Users },
+  { path: '/control-room/recovery', label: 'Recovery needs', group: 'RECOVERY', icon: Truck },
+  { path: '/control-room/language', label: 'Language support', group: 'OVERSIGHT', icon: Waves },
+  { path: '/control-room/audit', label: 'Audit log', group: 'OVERSIGHT', icon: ShieldCheck },
+  { path: '/control-room/settings', label: 'Configuration', group: 'OVERSIGHT', icon: Settings },
 ];
 
 export function ControlRoom({ session, onLogout }: ControlRoomProps) {
   const [health, setHealth] = useState<ApiHealthResponse | null>(null);
+  const [healthChecked, setHealthChecked] = useState(false);
   const location = useLocation();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const modeValue = searchParams.get('mode');
+  const mode: OperationsMode = modeValue === 'LIVE' || modeValue === 'HISTORICAL' ? modeValue : 'EXERCISE';
+  const eventId = mode === 'HISTORICAL' ? searchParams.get('eventId') ?? undefined : undefined;
+  const setOperatingContext = (nextMode: OperationsMode, nextEventId?: string) => {
+    const nextParams = new URLSearchParams(searchParams);
+    if (nextMode === 'EXERCISE') nextParams.delete('mode'); else nextParams.set('mode', nextMode);
+    if (nextMode === 'HISTORICAL' && nextEventId) nextParams.set('eventId', nextEventId);
+    else nextParams.delete('eventId');
+    setSearchParams(nextParams);
+  };
   const visible = routes.filter((item) => canAccessControlRoomRoute(item.path, session.role));
-  useEffect(() => { checkApiHealth().then(setHealth).catch(() => setHealth(null)); }, []);
+  const visibleGroups = [...new Set(visible.map((item) => item.group))];
+  const activeRoute = visible.find((item) => item.path === location.pathname) ?? visible[0];
+  useEffect(() => {
+    let active = true;
+    const refreshHealth = () => {
+      void checkApiHealth()
+        .then((nextHealth) => {
+          if (active) setHealth(nextHealth);
+        })
+        .catch(() => {
+          if (active) setHealth(null);
+        })
+        .finally(() => {
+          if (active) setHealthChecked(true);
+        });
+    };
+    refreshHealth();
+    const timer = window.setInterval(refreshHealth, 15_000);
+    return () => {
+      active = false;
+      window.clearInterval(timer);
+    };
+  }, []);
   const allowed = (path: string) => canAccessControlRoomRoute(path, session.role);
   const fallback = visible[0]?.path ?? '/login';
+  const apiLabel = health?.status === 'ok' ? 'Connected' : healthChecked ? 'Unavailable' : 'Checking';
 
   return <div className="control-shell">
+    <a className="skip-link" href="#main-content">Skip to workspace</a>
     <header className="control-topbar">
-      <div className="control-brand"><span className="brand-mark">A</span><div><strong>AALI AI <span>OPERATIONS</span></strong><small>Feni district · decision support prototype</small></div></div>
-      <div className="session-strip"><span className={health?.status === 'ok' ? 'api-indicator online' : 'api-indicator'} />API {health?.status === 'ok' ? 'CONNECTED' : 'UNAVAILABLE'}<span className="session-name">{session.displayName} · {session.role}</span><button className="logout-button" onClick={onLogout}>Sign out</button></div>
+      <Link className="control-brand" to={{ pathname: '/control-room/map', search: location.search }} aria-label="Aali AI situation room home">
+        <span className="brand-mark" aria-hidden="true">A</span>
+        <span className="brand-copy"><strong>AALI <span>OPERATIONS</span></strong><small>Feni district coordination</small></span>
+      </Link>
+      <div className="command-context" aria-label="Current workspace and data mode">
+        <span className="context-eyebrow">CURRENT WORKSPACE</span>
+        <strong>{activeRoute?.label ?? 'Operations'}</strong>
+        <label className="mode-select-label">Data mode
+          <select aria-label="Shared data mode" value={mode} onChange={(event) => {
+            const selected = event.target.value;
+            if (selected === 'LIVE' || selected === 'EXERCISE' || selected === 'HISTORICAL') {
+              setOperatingContext(selected, selected === 'HISTORICAL' ? '11111111-1111-1111-1111-111111111101' : undefined);
+            }
+          }}>
+            <option value="LIVE">Live sources</option>
+            <option value="EXERCISE">Exercise</option>
+            <option value="HISTORICAL">Historical</option>
+          </select>
+        </label>
+        {mode === 'HISTORICAL' && <label className="mode-select-label">Event
+          <select aria-label="Historical event" value={eventId ?? '11111111-1111-1111-1111-111111111101'} onChange={(event) => setOperatingContext('HISTORICAL', event.target.value)}>
+            <option value="11111111-1111-1111-1111-111111111101">August 2024 reconstruction</option>
+            <option value="11111111-1111-1111-1111-111111111102">July 2025 reconstruction</option>
+          </select>
+        </label>}
+      </div>
+      <div className="session-strip">
+        <div className={`api-status${health?.status === 'ok' ? ' is-online' : ''}`} role="status" aria-label={`API ${apiLabel.toLowerCase()}`}>
+          <span className="api-indicator" aria-hidden="true" />
+          <span><small>API</small><strong>{apiLabel}</strong></span>
+        </div>
+        <div className="session-identity"><span className="identity-mark" aria-hidden="true">{session.role.slice(0, 1)}</span><span><strong>{session.displayName}</strong><small>{session.role.replaceAll('_', ' ')}</small></span></div>
+        <button className="logout-button" onClick={onLogout} aria-label="Sign out"><LogOut size={16} /><span>Sign out</span></button>
+      </div>
     </header>
-    <div className="prototype-ribbon"><strong>DEMO ENVIRONMENT</strong> Synthetic scenario data and prototype rules. This is not an emergency service. Official warnings and dispatches require authorized human approval.</div>
+    <aside className="prototype-ribbon" role="note" aria-label="Prototype disclosure">
+      <strong>DEMO ENVIRONMENT</strong>
+      <span>Synthetic scenario data</span>
+      <span>Not an emergency service</span>
+      <span>Warnings and dispatch require authorized human approval</span>
+    </aside>
     <div className="control-body">
-      <aside className="control-sidebar"><div className="sidebar-heading">WORKSPACES</div>{visible.map(({ path, label, icon: Icon }) => <NavLink key={path} to={path} className={({ isActive }) => `control-nav-link${isActive || location.pathname === path ? ' active' : ''}`}><Icon size={17} /><span>{label}</span></NavLink>)}<div className="sidebar-foot"><span>LOCAL TIME</span><strong>{new Date().toLocaleTimeString('en-GB', { timeZone: 'Asia/Dhaka', hour: '2-digit', minute: '2-digit' })} BST</strong><small>{health?.modes?.aiProvider ?? 'Deterministic local language fallback'}</small></div></aside>
-      <main className="control-content"><Routes>
-        <Route path="/control-room/map" element={allowed('/control-room/map') ? <OperationsOverview /> : <Navigate to={fallback} replace />} />
-        <Route path="/control-room/responder" element={allowed('/control-room/responder') ? <ResponderDashboard /> : <Navigate to={fallback} replace />} />
-        <Route path="/control-room/alerts" element={allowed('/control-room/alerts') ? <FloodReplayWarning /> : <Navigate to={fallback} replace />} />
-        <Route path="/control-room/replay" element={allowed('/control-room/replay') ? <FloodReplayWarning /> : <Navigate to={fallback} replace />} />
-        <Route path="/control-room/recovery" element={allowed('/control-room/recovery') ? <RecoveryLedger /> : <Navigate to={fallback} replace />} />
-        <Route path="/control-room/field" element={session.role === 'VOLUNTEER' || session.role === 'ADMIN' ? <VolunteerRoute /> : <Navigate to={fallback} replace />} />
-        <Route path="/control-room/simulator" element={allowed('/control-room/simulator') ? <><ResidentSimulator /><ThreeTapSos /><GatewaySimulator /></> : <Navigate to={fallback} replace />} />
-        <Route path="/control-room/language" element={allowed('/control-room/language') ? <AiLanguageAssistant /> : <Navigate to={fallback} replace />} />
-        <Route path="/control-room/audit" element={allowed('/control-room/audit') ? <AuditViewer /> : <Navigate to={fallback} replace />} />
-        <Route path="/control-room/settings" element={allowed('/control-room/settings') ? <SettingsPanel /> : <Navigate to={fallback} replace />} />
-        <Route path="*" element={<Navigate to={fallback} replace />} />
+      <aside className="control-sidebar">
+        <nav className="control-navigation" aria-label="Operations workspaces">
+          {visibleGroups.map((group) => <section className="navigation-group" key={group} aria-label={group}>
+            <h2 className="sidebar-heading">{group}</h2>
+            {visible.filter((item) => item.group === group).map(({ path, label, icon: Icon }) => <NavLink key={path} to={{ pathname: path, search: location.search }} end className={({ isActive }) => `control-nav-link${isActive || location.pathname === path ? ' active' : ''}`}>
+              <Icon size={17} aria-hidden="true" /><span>{label}</span>
+            </NavLink>)}
+          </section>)}
+        </nav>
+        <div className="sidebar-foot"><span>LOCAL TIME · DHAKA</span><strong>{new Date().toLocaleTimeString('en-GB', { timeZone: 'Asia/Dhaka', hour: '2-digit', minute: '2-digit' })} BST</strong><small>Times are shown in Asia/Dhaka</small></div>
+      </aside>
+      <main className="control-content" id="main-content" tabIndex={-1} aria-label={`${activeRoute?.label ?? 'Operations'} workspace`}>
+        <Routes>
+        <Route path="/control-room/map" element={allowed('/control-room/map') ? <OperationsOverview mode={mode} eventId={eventId} /> : <Navigate to={{ pathname: fallback, search: location.search }} replace />} />
+        <Route path="/control-room/responder" element={allowed('/control-room/responder') ? <ResponderDashboard mode={mode} eventId={eventId} /> : <Navigate to={{ pathname: fallback, search: location.search }} replace />} />
+        <Route path="/control-room/alerts" element={allowed('/control-room/alerts') ? <FloodReplayWarning mode={mode} eventId={eventId} session={session} /> : <Navigate to={{ pathname: fallback, search: location.search }} replace />} />
+        <Route path="/control-room/replay" element={allowed('/control-room/replay') ? <FloodReplayWarning mode={mode} eventId={eventId} session={session} /> : <Navigate to={{ pathname: fallback, search: location.search }} replace />} />
+        <Route path="/control-room/recovery" element={allowed('/control-room/recovery') ? <RecoveryLedger mode={mode} eventId={eventId} /> : <Navigate to={{ pathname: fallback, search: location.search }} replace />} />
+        <Route path="/control-room/field" element={session.role === 'VOLUNTEER' || session.role === 'ADMIN' ? <VolunteerRoute mode={mode} eventId={eventId} /> : <Navigate to={{ pathname: fallback, search: location.search }} replace />} />
+        <Route path="/control-room/simulator" element={allowed('/control-room/simulator') ? <><ResidentSimulator /><ThreeTapSos /><GatewaySimulator /></> : <Navigate to={{ pathname: fallback, search: location.search }} replace />} />
+        <Route path="/control-room/language" element={allowed('/control-room/language') ? <AiLanguageAssistant /> : <Navigate to={{ pathname: fallback, search: location.search }} replace />} />
+        <Route path="/control-room/audit" element={allowed('/control-room/audit') ? <AuditViewer /> : <Navigate to={{ pathname: fallback, search: location.search }} replace />} />
+        <Route path="/control-room/settings" element={allowed('/control-room/settings') ? <SettingsPanel /> : <Navigate to={{ pathname: fallback, search: location.search }} replace />} />
+        <Route path="*" element={<Navigate to={{ pathname: fallback, search: location.search }} replace />} />
       </Routes></main>
     </div>
   </div>;
 }
 
-function VolunteerRoute() {
-  return <VolunteerFieldForm />;
+function VolunteerRoute({ mode, eventId }: { mode: OperationsMode; eventId?: string }) {
+  return <VolunteerFieldForm mode={mode} eventId={eventId} />;
 }
 
-function VolunteerFieldForm() {
+function VolunteerFieldForm({ mode, eventId }: { mode: OperationsMode; eventId?: string }) {
   const [areas, setAreas] = useState<OperationMapPoint[]>([]);
   const [areaId, setAreaId] = useState('');
   const [levelM, setLevelM] = useState('');
   const [note, setNote] = useState('');
   const [message, setMessage] = useState('');
-  useEffect(() => { getOperationsSnapshot().then((data) => { setAreas(data.mapLayers.areas); setAreaId(data.mapLayers.areas[0]?.id ?? ''); }).catch(() => setMessage('Could not load village list from API.')); }, []);
+  useEffect(() => { getOperationsSnapshot({ mode, eventId }).then((data) => { setAreas(data.mapLayers.areas); setAreaId(data.mapLayers.areas[0]?.id ?? ''); }).catch(() => setMessage('Could not load village list from API.')); }, [eventId, mode]);
   const submit = async (event: FormEvent) => {
     event.preventDefault(); setMessage('');
     const response = await apiFetch('/api/v1/field-readings', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ areaId, levelM: Number(levelM), note }) });

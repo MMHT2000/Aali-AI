@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'nid_validator.dart';
 import 'packet_encoder.dart';
+import 'staff_workspace.dart';
 
 void main() {
   runApp(const AaliResidentApp());
@@ -17,14 +18,50 @@ class AaliResidentApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'আলি এআই — রেসিডেন্ট এসওএস',
+      title: 'Aali AI | Feni Flood Support',
       theme: ThemeData(
-        brightness: Brightness.dark,
-        scaffoldBackgroundColor: const Color(0xFF0F172A),
-        primaryColor: const Color(0xFF0284C7),
+        brightness: Brightness.light,
+        scaffoldBackgroundColor: const Color(0xFFF3F7F6),
         colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF0284C7),
-          brightness: Brightness.dark,
+          seedColor: const Color(0xFF087F75),
+          brightness: Brightness.light,
+        ),
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Color(0xFFF3F7F6),
+          foregroundColor: Color(0xFF19323A),
+          centerTitle: false,
+          elevation: 0,
+          scrolledUnderElevation: 1,
+        ),
+        cardTheme: CardThemeData(
+          color: Colors.white,
+          elevation: 0,
+          margin: EdgeInsets.zero,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(18),
+            side: const BorderSide(color: Color(0xFFDCE7E4)),
+          ),
+        ),
+        inputDecorationTheme: InputDecorationTheme(
+          filled: true,
+          fillColor: const Color(0xFFF9FBFA),
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: Color(0xFFD6E2DE)),
+          ),
+        ),
+        filledButtonTheme: FilledButtonThemeData(
+          style: FilledButton.styleFrom(
+              minimumSize: const Size(0, 50),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(13))),
+        ),
+        outlinedButtonTheme: OutlinedButtonThemeData(
+          style: OutlinedButton.styleFrom(
+              minimumSize: const Size(0, 46),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(13))),
         ),
         useMaterial3: true,
       ),
@@ -42,16 +79,22 @@ class ResidentHomeScreen extends StatefulWidget {
 
 class _ResidentHomeScreenState extends State<ResidentHomeScreen> {
   // Configurable Server Endpoint (Defaults to PC LAN IP or Emulator loopback)
-  String _apiBase = 'http://192.168.0.101:3001/api/v1';
+  String _apiBase = const String.fromEnvironment('AALI_API_URL',
+      defaultValue: 'http://10.0.2.2:3001/api/v1');
 
   // Demo Simulation Switches
   bool _simulateBlackout = false;
 
   // Onboarding / Identity State
   bool _isOnboarded = false;
-  final TextEditingController _nameController = TextEditingController(text: 'আব্দুল কাদের');
-  final TextEditingController _phoneController = TextEditingController(text: '01712345678');
-  final TextEditingController _nidController = TextEditingController(text: '1984261829');
+  String _accessMode = 'RESIDENT';
+  String _sessionRole = 'RESIDENT';
+  String _displayName = '';
+  final TextEditingController _usernameController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _phoneController = TextEditingController();
+  final TextEditingController _nidController = TextEditingController();
   String? _nidError;
   String? _accessToken;
   String? _pendingPayload;
@@ -68,7 +111,8 @@ class _ResidentHomeScreenState extends State<ResidentHomeScreen> {
 
   // Outbox & Handoff State
   String? _outboxPacket;
-  String _sosState = 'IDLE'; // IDLE, QUEUED_OFFLINE, SENT_ONLINE, HANDED_OFF_SMS, D2C_RELAYED
+  String _sosState =
+      'IDLE'; // IDLE, QUEUED_OFFLINE, SENT_ONLINE, HANDED_OFF_SMS, D2C_RELAYED
 
   @override
   void initState() {
@@ -81,24 +125,226 @@ class _ResidentHomeScreenState extends State<ResidentHomeScreen> {
     if (!mounted) return;
     setState(() {
       _apiBase = prefs.getString('aali_server_url') ?? _apiBase;
-      _accessToken = prefs.getString('aali_resident_access_token');
+      _accessToken = prefs.getString('aali_access_token') ??
+          prefs.getString('aali_resident_access_token');
+      _sessionRole = prefs.getString('aali_session_role') ?? 'RESIDENT';
+      _displayName = prefs.getString('aali_display_name') ?? '';
       _pendingPayload = prefs.getString('aali_pending_sos_payload');
       _outboxPacket = prefs.getString('aali_pending_sos_packet');
-      _isOnboarded = _accessToken != null || prefs.getBool('aali_local_onboarded') == true;
+      _isOnboarded = _accessToken != null ||
+          (_sessionRole == 'RESIDENT' &&
+              prefs.getBool('aali_local_onboarded') == true);
       if (_outboxPacket != null) _sosState = 'QUEUED_OFFLINE';
     });
   }
 
-  Future<Map<String, dynamic>> _postJson(String path, Map<String, dynamic> payload) async {
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _phoneController.dispose();
+    _nidController.dispose();
+    _usernameController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _handleStaffLogin() async {
+    setState(() {
+      _working = true;
+      _operationMessage = null;
+      _nidError = null;
+    });
+    try {
+      final result = await _postJson('/auth/login', {
+        'username': _usernameController.text.trim(),
+        'password': _passwordController.text,
+      });
+      if (result['statusCode'] != 200) {
+        final body = result['body'] as Map<String, dynamic>;
+        setState(() => _nidError = body['message']?.toString() ??
+            'Sign-in failed. Check credentials and API address.');
+        return;
+      }
+      final body = result['body'] as Map<String, dynamic>;
+      final user = body['user'] as Map<String, dynamic>;
+      final role = user['role']?.toString() ?? '';
+      if (role != _accessMode) {
+        setState(() => _nidError =
+            'This account has $role access. Choose the matching workspace.');
+        return;
+      }
+      _accessToken = body['accessToken'] as String?;
+      _sessionRole = role;
+      _displayName =
+          user['displayName']?.toString() ?? _usernameController.text.trim();
+      final prefs = await SharedPreferences.getInstance();
+      if (_accessToken != null) {
+        await prefs.setString('aali_access_token', _accessToken!);
+      }
+      await prefs.setString('aali_session_role', _sessionRole);
+      await prefs.setString('aali_display_name', _displayName);
+      await prefs.setBool('aali_local_onboarded', true);
+      if (mounted) {
+        setState(() {
+          _isOnboarded = true;
+          _operationMessage = null;
+        });
+      }
+    } on SocketException {
+      if (mounted) {
+        setState(() => _nidError =
+            'Cannot reach the API. Staff sign-in requires a connection.');
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() => _nidError =
+            'Sign-in could not be completed. Check the API connection.');
+      }
+    } finally {
+      if (mounted) setState(() => _working = false);
+    }
+  }
+
+  Future<void> _signOut() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('aali_access_token');
+    await prefs.remove('aali_resident_access_token');
+    await prefs.remove('aali_session_role');
+    await prefs.remove('aali_display_name');
+    await prefs.remove('aali_local_onboarded');
+    if (!mounted) return;
+    setState(() {
+      _accessToken = null;
+      _sessionRole = 'RESIDENT';
+      _isOnboarded = false;
+      _accessMode = 'RESIDENT';
+      _operationMessage = null;
+    });
+  }
+
+  Widget _buildAccessModeCard() => Card(
+          child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text('Choose your workspace',
+              style: Theme.of(context)
+                  .textTheme
+                  .titleMedium
+                  ?.copyWith(fontWeight: FontWeight.w700)),
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 8,
+            runSpacing: 6,
+            children: [
+              ChoiceChip(
+                  label: const Text('Resident'),
+                  avatar: const Icon(Icons.home_outlined, size: 18),
+                  selected: _accessMode == 'RESIDENT',
+                  onSelected: (_) => setState(() {
+                        _accessMode = 'RESIDENT';
+                        _nidError = null;
+                      })),
+              ChoiceChip(
+                  label: const Text('Responder'),
+                  avatar: const Icon(Icons.support_agent, size: 18),
+                  selected: _accessMode == 'RESPONDER',
+                  onSelected: (_) => setState(() {
+                        _accessMode = 'RESPONDER';
+                        _nidError = null;
+                      })),
+              ChoiceChip(
+                  label: const Text('Volunteer'),
+                  avatar: const Icon(Icons.water_drop_outlined, size: 18),
+                  selected: _accessMode == 'VOLUNTEER',
+                  onSelected: (_) => setState(() {
+                        _accessMode = 'VOLUNTEER';
+                        _nidError = null;
+                      })),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+              _accessMode == 'RESIDENT'
+                  ? 'Create a resident demo profile to send an SOS.'
+                  : 'Use your assigned operations account. Access is verified by the API. Demo account: ${_accessMode == 'RESPONDER' ? 'responder_feni' : 'volunteer_parshuram'}.',
+              style: Theme.of(context).textTheme.bodySmall),
+        ]),
+      ));
+
+  Widget _buildStaffLoginCard() => Card(
+          child: Padding(
+        padding: const EdgeInsets.all(18),
+        child:
+            Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          Text(
+              _accessMode == 'RESPONDER'
+                  ? 'Responder sign in'
+                  : 'Volunteer sign in',
+              style: Theme.of(context)
+                  .textTheme
+                  .titleLarge
+                  ?.copyWith(fontWeight: FontWeight.w700)),
+          const SizedBox(height: 6),
+          Text(
+              _accessMode == 'RESPONDER'
+                  ? 'Review incidents and human rescue suggestions.'
+                  : 'Submit field water readings against a village.',
+              style: Theme.of(context).textTheme.bodyMedium),
+          const SizedBox(height: 18),
+          TextField(
+              controller: _usernameController,
+              autocorrect: false,
+              textInputAction: TextInputAction.next,
+              decoration: const InputDecoration(
+                  labelText: 'Username',
+                  prefixIcon: Icon(Icons.person_outline))),
+          const SizedBox(height: 12),
+          TextField(
+              controller: _passwordController,
+              obscureText: true,
+              onSubmitted: (_) => _working ? null : _handleStaffLogin(),
+              decoration: const InputDecoration(
+                  labelText: 'Password', prefixIcon: Icon(Icons.lock_outline))),
+          if (_nidError != null) ...[
+            const SizedBox(height: 10),
+            Text(_nidError!,
+                key: const Key('staff-login-error'),
+                style: TextStyle(color: Theme.of(context).colorScheme.error))
+          ],
+          const SizedBox(height: 16),
+          FilledButton.icon(
+              onPressed: _working ? null : _handleStaffLogin,
+              icon: _working
+                  ? const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2))
+                  : const Icon(Icons.login),
+              label: Text(_working ? 'Signing in…' : 'Sign in to workspace')),
+          const SizedBox(height: 10),
+          Text(
+              'Demo role accounts use the universal local demo password. Do not use demo credentials outside this prototype.',
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodySmall),
+        ]),
+      ));
+
+  Future<Map<String, dynamic>> _postJson(
+      String path, Map<String, dynamic> payload) async {
     final client = HttpClient()..connectionTimeout = const Duration(seconds: 6);
     try {
       final request = await client.postUrl(Uri.parse('$_apiBase$path'));
       request.headers.contentType = ContentType.json;
-      if (_accessToken != null) request.headers.set(HttpHeaders.authorizationHeader, 'Bearer $_accessToken');
+      if (_accessToken != null) {
+        request.headers
+            .set(HttpHeaders.authorizationHeader, 'Bearer $_accessToken');
+      }
       request.write(jsonEncode(payload));
       final response = await request.close();
       final body = await response.transform(utf8.decoder).join();
-      final decoded = body.isEmpty ? <String, dynamic>{} : jsonDecode(body) as Map<String, dynamic>;
+      final decoded = body.isEmpty
+          ? <String, dynamic>{}
+          : jsonDecode(body) as Map<String, dynamic>;
       return {'statusCode': response.statusCode, 'body': decoded};
     } finally {
       client.close(force: true);
@@ -110,15 +356,16 @@ class _ResidentHomeScreenState extends State<ResidentHomeScreen> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF1E293B),
-        title: const Text('সার্ভার আইপি কনফিগারেশন', style: TextStyle(color: Color(0xFF38BDF8))),
+        backgroundColor: const Color(0xFFFFFFFF),
+        title: const Text('সার্ভার আইপি কনফিগারেশন',
+            style: TextStyle(color: Color(0xFF087F75))),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
               'আপনার ল্যাপটপের ওয়াইফাই আইপি বা এমুলেটর অ্যাড্রেস লিখুন:',
-              style: TextStyle(fontSize: 12, color: Color(0xFF94A3B8)),
+              style: TextStyle(fontSize: 12, color: Color(0xFF5D727B)),
             ),
             const SizedBox(height: 12),
             TextField(
@@ -133,16 +380,22 @@ class _ResidentHomeScreenState extends State<ResidentHomeScreen> {
               spacing: 8,
               children: [
                 ActionChip(
-                  label: const Text('এই পিসি / USB (localhost:3001)', style: TextStyle(fontSize: 11)),
-                  onPressed: () => controller.text = 'http://localhost:3001/api/v1',
+                  label: const Text('এই পিসি / USB (localhost:3001)',
+                      style: TextStyle(fontSize: 11)),
+                  onPressed: () =>
+                      controller.text = 'http://localhost:3001/api/v1',
                 ),
                 ActionChip(
-                  label: const Text('Wi-Fi LAN (192.168.0.101)', style: TextStyle(fontSize: 11)),
-                  onPressed: () => controller.text = 'http://192.168.0.101:3001/api/v1',
+                  label: const Text('Wi-Fi LAN (192.168.0.101)',
+                      style: TextStyle(fontSize: 11)),
+                  onPressed: () =>
+                      controller.text = 'http://192.168.0.101:3001/api/v1',
                 ),
                 ActionChip(
-                  label: const Text('Emulator (10.0.2.2)', style: TextStyle(fontSize: 11)),
-                  onPressed: () => controller.text = 'http://10.0.2.2:3001/api/v1',
+                  label: const Text('Emulator (10.0.2.2)',
+                      style: TextStyle(fontSize: 11)),
+                  onPressed: () =>
+                      controller.text = 'http://10.0.2.2:3001/api/v1',
                 ),
               ],
             ),
@@ -163,7 +416,8 @@ class _ResidentHomeScreenState extends State<ResidentHomeScreen> {
               }
               if (ctx.mounted) Navigator.pop(ctx);
             },
-            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF0284C7)),
+            style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF087F75)),
             child: const Text('সংরক্ষণ করুন'),
           ),
         ],
@@ -180,10 +434,15 @@ class _ResidentHomeScreenState extends State<ResidentHomeScreen> {
       return;
     }
 
-    setState(() { _working = true; _nidError = null; _operationMessage = null; });
+    setState(() {
+      _working = true;
+      _nidError = null;
+      _operationMessage = null;
+    });
     try {
       if (_simulateBlackout) {
-        throw const SocketException('Simulated Blackout active during onboarding');
+        throw const SocketException(
+            'Simulated Blackout active during onboarding');
       }
 
       final result = await _postJson('/auth/resident-register', {
@@ -193,20 +452,46 @@ class _ResidentHomeScreenState extends State<ResidentHomeScreen> {
       });
       if (result['statusCode'] == 201 || result['statusCode'] == 200) {
         _accessToken = result['body']['accessToken'] as String?;
+        _sessionRole = 'RESIDENT';
+        _displayName = _nameController.text.trim();
         final prefs = await SharedPreferences.getInstance();
-        if (_accessToken != null) await prefs.setString('aali_resident_access_token', _accessToken!);
+        if (_accessToken != null) {
+          await prefs.setString('aali_access_token', _accessToken!);
+        }
+        await prefs.setString('aali_session_role', _sessionRole);
+        await prefs.setString('aali_display_name', _displayName);
         await prefs.setBool('aali_local_onboarded', true);
-        if (mounted) setState(() { _isOnboarded = true; _operationMessage = 'রেজিস্ট্রেশন সার্ভার দ্বারা স্বীকৃত। এটি পরিচয় প্রমাণ নয়।'; });
+        if (mounted) {
+          setState(() {
+            _isOnboarded = true;
+            _operationMessage =
+                'রেজিস্ট্রেশন সার্ভার দ্বারা স্বীকৃত। এটি পরিচয় প্রমাণ নয়।';
+          });
+        }
       } else {
         final body = result['body'] as Map<String, dynamic>;
-        if (mounted) setState(() => _nidError = body['message']?.toString() ?? 'নিবন্ধন প্রত্যাখ্যাত (${result['statusCode']})।');
+        if (mounted) {
+          setState(() => _nidError = body['message']?.toString() ??
+              'নিবন্ধন প্রত্যাখ্যাত (${result['statusCode']})।');
+        }
       }
     } on SocketException {
       final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('aali_session_role', 'RESIDENT');
+      await prefs.setString('aali_display_name', _nameController.text.trim());
       await prefs.setBool('aali_local_onboarded', true);
-      if (mounted) setState(() { _isOnboarded = true; _operationMessage = 'ইন্টারনেট সংযোগ নেই। মক এনআইডি স্থানীয়ভাবে গৃহীত হয়েছে; অফলাইন মোড সক্রিয়।'; });
+      if (mounted) {
+        setState(() {
+          _isOnboarded = true;
+          _operationMessage =
+              'ইন্টারনেট সংযোগ নেই। মক এনআইডি স্থানীয়ভাবে গৃহীত হয়েছে; অফলাইন মোড সক্রিয়।';
+        });
+      }
     } catch (_) {
-      if (mounted) setState(() => _nidError = 'নিবন্ধন সম্পন্ন করা সম্ভব হয়নি। সার্ভার আইপি যাচাই করুন।');
+      if (mounted) {
+        setState(() => _nidError =
+            'নিবন্ধন সম্পন্ন করা সম্ভব হয়নি। সার্ভার আইপি যাচাই করুন।');
+      }
     } finally {
       if (mounted) setState(() => _working = false);
       _nidController.clear();
@@ -221,7 +506,8 @@ class _ResidentHomeScreenState extends State<ResidentHomeScreen> {
     final hh = now.hour.toString().padLeft(2, '0');
     final min = now.minute.toString().padLeft(2, '0');
 
-    final clientReportId = 'mobile-${now.microsecondsSinceEpoch}-${Random.secure().nextInt(0x7fffffff).toRadixString(36)}';
+    final clientReportId =
+        'mobile-${now.microsecondsSinceEpoch}-${Random.secure().nextInt(0x7fffffff).toRadixString(36)}';
     final isChitholia = _selectedVillage.contains('Chitholia');
     final packet = CompactDisasterPacket(
       geohash7: isChitholia ? 'wh0xs4a' : 'wh0xsk0',
@@ -231,14 +517,20 @@ class _ResidentHomeScreenState extends State<ResidentHomeScreen> {
       medical: _flagMedical,
       trapped: _flagTrapped,
       timestamp: '$yy$mm$dd-$hh$min',
-      shortId: Random.secure().nextInt(1679616).toRadixString(36).toUpperCase().padLeft(4, '0'),
+      shortId: Random.secure()
+          .nextInt(1679616)
+          .toRadixString(36)
+          .toUpperCase()
+          .padLeft(4, '0'),
     );
 
     final encoded = packet.encode();
     final payload = <String, dynamic>{
       'clientReportId': clientReportId,
       'eventId': '11111111-1111-1111-1111-111111111103',
-      'areaId': isChitholia ? '22222222-2222-2222-2222-222222222205' : '22222222-2222-2222-2222-222222222204',
+      'areaId': isChitholia
+          ? '22222222-2222-2222-2222-222222222205'
+          : '22222222-2222-2222-2222-222222222204',
       'locationLat': isChitholia ? 23.218 : 23.245,
       'locationLng': isChitholia ? 91.428 : 91.442,
       'peopleCount': _peopleCount,
@@ -264,20 +556,35 @@ class _ResidentHomeScreenState extends State<ResidentHomeScreen> {
   Future<void> _submitPendingSos() async {
     final rawPayload = _pendingPayload;
     if (rawPayload == null) return;
-    setState(() { _working = true; _operationMessage = null; });
+    setState(() {
+      _working = true;
+      _operationMessage = null;
+    });
     try {
       if (_simulateBlackout) {
         throw const SocketException('Simulated cellular blackout');
       }
 
-      final result = await _postJson('/sos', jsonDecode(rawPayload) as Map<String, dynamic>);
+      final result = await _postJson(
+          '/sos', jsonDecode(rawPayload) as Map<String, dynamic>);
       if (result['statusCode'] == 200 || result['statusCode'] == 201) {
         final prefs = await SharedPreferences.getInstance();
         await prefs.remove('aali_pending_sos_payload');
         await prefs.remove('aali_pending_sos_packet');
-        if (mounted) setState(() { _pendingPayload = null; _sosState = 'API_ACKNOWLEDGED'; _operationMessage = 'সার্ভার রিপোর্ট গ্রহণ করেছে (API Acknowledged)। রেসকিউ টিম কন্ট্রোল রুমে দেখতে পাচ্ছে।'; });
+        if (mounted) {
+          setState(() {
+            _pendingPayload = null;
+            _sosState = 'API_ACKNOWLEDGED';
+            _operationMessage =
+                'সার্ভার রিপোর্ট গ্রহণ করেছে (API Acknowledged)। রেসকিউ টিম কন্ট্রোল রুমে দেখতে পাচ্ছে।';
+          });
+        }
       } else if (mounted) {
-        setState(() { _sosState = 'QUEUED_OFFLINE'; _operationMessage = 'সার্ভার একনলেজ করেনি (${result['statusCode']}); এসওএস লোকাল আউটবক্সে জমা আছে।'; });
+        setState(() {
+          _sosState = 'QUEUED_OFFLINE';
+          _operationMessage =
+              'সার্ভার একনলেজ করেনি (${result['statusCode']}); এসওএস লোকাল আউটবক্সে জমা আছে।';
+        });
       }
     } on SocketException {
       if (mounted) {
@@ -289,7 +596,13 @@ class _ResidentHomeScreenState extends State<ResidentHomeScreen> {
         });
       }
     } catch (_) {
-      if (mounted) setState(() { _sosState = 'QUEUED_OFFLINE'; _operationMessage = 'অনলাইনে পাঠানো যায়নি; এসওএস স্থানীয় আউটবক্সে সংরক্ষিত আছে।'; });
+      if (mounted) {
+        setState(() {
+          _sosState = 'QUEUED_OFFLINE';
+          _operationMessage =
+              'অনলাইনে পাঠানো যায়নি; এসওএস স্থানীয় আউটবক্সে সংরক্ষিত আছে।';
+        });
+      }
     } finally {
       if (mounted) setState(() => _working = false);
     }
@@ -297,7 +610,10 @@ class _ResidentHomeScreenState extends State<ResidentHomeScreen> {
 
   Future<void> _simulateSatelliteD2cRelay() async {
     if (_outboxPacket == null) return;
-    setState(() { _working = true; _operationMessage = null; });
+    setState(() {
+      _working = true;
+      _operationMessage = null;
+    });
     try {
       // Simulate D2C carrier/satellite forwarding to the gateway ingest endpoint
       final result = await _postJson('/gateway/simulated/ingest', {
@@ -311,14 +627,21 @@ class _ResidentHomeScreenState extends State<ResidentHomeScreen> {
         if (mounted) {
           setState(() {
             _sosState = 'SATELLITE_D2C_INGESTED';
-            _operationMessage = '📡 স্যাটেলাইট D2C গেটওয়ে সিমুলেশন দ্বারা গৃহীত হয়েছে (CRC16 যাচাই সম্পন্ন)। কন্ট্রোল সেন্টারে রিপোর্ট প্রদর্শিত হচ্ছে।';
+            _operationMessage =
+                '📡 স্যাটেলাইট D2C গেটওয়ে সিমুলেশন দ্বারা গৃহীত হয়েছে (CRC16 যাচাই সম্পন্ন)। কন্ট্রোল সেন্টারে রিপোর্ট প্রদর্শিত হচ্ছে।';
           });
         }
       } else {
-        if (mounted) setState(() => _operationMessage = 'গেটওয়ে সিমুলেশন একনলেজ করেনি (${result['statusCode']})।');
+        if (mounted) {
+          setState(() => _operationMessage =
+              'গেটওয়ে সিমুলেশন একনলেজ করেনি (${result['statusCode']})।');
+        }
       }
     } catch (_) {
-      if (mounted) setState(() => _operationMessage = 'স্যাটেলাইট গেটওয়ে রিলে ব্যর্থ হয়েছে। সার্ভার আইপি চেক করুন।');
+      if (mounted) {
+        setState(() => _operationMessage =
+            'স্যাটেলাইট গেটওয়ে রিলে ব্যর্থ হয়েছে। সার্ভার আইপি চেক করুন।');
+      }
     } finally {
       if (mounted) setState(() => _working = false);
     }
@@ -326,11 +649,25 @@ class _ResidentHomeScreenState extends State<ResidentHomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (_isOnboarded && _sessionRole != 'RESIDENT' && _accessToken != null) {
+      return StaffWorkspace(
+          apiBase: _apiBase,
+          accessToken: _accessToken!,
+          role: _sessionRole,
+          displayName: _displayName,
+          onSignOut: _signOut);
+    }
     return Scaffold(
       appBar: AppBar(
-        title: const Text('আলি এআই (Aali AI) — রেসিডেন্ট'),
-        backgroundColor: const Color(0xFF1E293B),
+        title: Text(_isOnboarded && _displayName.isNotEmpty
+            ? _displayName
+            : 'Aali AI · Feni Flood Support'),
         actions: [
+          if (_isOnboarded)
+            IconButton(
+                icon: const Icon(Icons.logout),
+                tooltip: 'Sign out',
+                onPressed: _signOut),
           IconButton(
             icon: const Icon(Icons.settings),
             tooltip: 'সার্ভার আইপি সেটিংস',
@@ -338,246 +675,367 @@ class _ResidentHomeScreenState extends State<ResidentHomeScreen> {
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Prototype notice banner
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: const Color(0x22FBBF24),
-                border: Border.all(color: const Color(0xFFCA8A04)),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Text(
-                '⚠️ সিদ্ধান্ত-সহায়তা প্রোটোটাইপ:\n'
-                'Aali AI কোনো স্বয়ংক্রিয় জরুরি পরিষেবা নয়। ইন্টারনেট না থাকলে এসওএস লোকাল আউটবক্সে জমা থাকে এবং এসএমএস কম্পোজার মাধ্যমে অফলাইন হ্যান্ডঅফ করতে হয়।',
-                style: TextStyle(fontSize: 12, color: Color(0xFFFEF08A)),
-              ),
-            ),
-            const SizedBox(height: 12),
-
-            // Demo Simulation Controls Card
-            Card(
-              color: const Color(0xFF1E293B),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
-                child: Row(
+      body: Center(
+          child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 720),
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Icon(
-                      _simulateBlackout ? Icons.signal_cellular_connected_no_internet_4_bar : Icons.wifi,
-                      color: _simulateBlackout ? const Color(0xFFF87171) : const Color(0xFF4ADE80),
-                      size: 24,
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            _simulateBlackout ? 'ব্ল্যাকআউট সিমুলেশন (D2C মোড)' : 'ইন্টারনেট কানেকশন সক্রিয়',
-                            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
-                          ),
-                          Text(
-                            _simulateBlackout ? 'ইন্টারনেট অফলাইন; এসএমএস ও স্যাটেলাইট মোড' : 'সার্ভার: $_apiBase',
-                            style: const TextStyle(fontSize: 11, color: Color(0xFF94A3B8)),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ],
+                    // Prototype notice banner
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFFF5D6),
+                        border: Border.all(color: const Color(0xFFE7C874)),
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: const Text(
+                        '⚠️ সিদ্ধান্ত-সহায়তা প্রোটোটাইপ:\n'
+                        'Aali AI কোনো স্বয়ংক্রিয় জরুরি পরিষেবা নয়। ইন্টারনেট না থাকলে এসওএস লোকাল আউটবক্সে জমা থাকে এবং এসএমএস কম্পোজার মাধ্যমে অফলাইন হ্যান্ডঅফ করতে হয়।',
+                        style:
+                            TextStyle(fontSize: 12, color: Color(0xFF785C16)),
                       ),
                     ),
-                    Switch(
-                      value: _simulateBlackout,
-                      activeThumbColor: const Color(0xFFF87171),
-                      onChanged: (val) => setState(() => _simulateBlackout = val),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 12),
+                    const SizedBox(height: 12),
 
-            // Step 1: Onboarding Card
-            if (!_isOnboarded) ...[
-              Card(
-                color: const Color(0xFF1E293B),
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        '১. রেসিডেন্ট অনবোর্ডিং (Mock NID Check)',
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF38BDF8)),
-                      ),
-                      const SizedBox(height: 4),
-                      const Text(
-                        '* Demo NID format check — not identity verification.',
-                        style: TextStyle(fontSize: 11, color: Color(0xFF94A3B8)),
-                      ),
-                      const SizedBox(height: 12),
-                      TextField(
-                        controller: _nameController,
-                        decoration: const InputDecoration(labelText: 'নাম (Name)'),
-                      ),
-                      const SizedBox(height: 8),
-                      TextField(
-                        controller: _phoneController,
-                        decoration: const InputDecoration(labelText: 'মোবাইল নম্বর (Phone)'),
-                        keyboardType: TextInputType.phone,
-                      ),
-                      const SizedBox(height: 8),
-                      TextField(
-                        controller: _nidController,
-                        decoration: InputDecoration(
-                          labelText: 'মক এনআইডি (১০ বা ১৭ ডিজিট)',
-                          errorText: _nidError,
-                        ),
-                        keyboardType: TextInputType.number,
-                      ),
-                      const SizedBox(height: 16),
-                      ElevatedButton(
-                        onPressed: _working ? null : () => _handleOnboard(),
-                        style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF0284C7)),
-                        child: const Text('অনবোর্ড নিশ্চিত করুন (Save & Continue)'),
-                      ),
+                    if (!_isOnboarded) ...[
+                      _buildAccessModeCard(),
+                      const SizedBox(height: 12)
                     ],
-                  ),
-                ),
-              ),
-            ] else ...[
-              // Step 2: 3-Step SOS Card
-              Card(
-                color: const Color(0xFF1E293B),
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        '২. তিন-ট্যাপ এসওএস (3-Step Flood SOS)',
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFFF87171)),
-                      ),
-                      const SizedBox(height: 12),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text('আটকে পড়া মানুষের সংখ্যা:'),
-                          Row(
+
+                    // Demo Simulation Controls Card
+                    if (_sessionRole == 'RESIDENT' &&
+                        (_isOnboarded || _accessMode == 'RESIDENT'))
+                      Card(
+                        color: const Color(0xFFFFFFFF),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12.0, vertical: 8.0),
+                          child: Row(
                             children: [
-                              IconButton(
-                                icon: const Icon(Icons.remove_circle_outline),
-                                onPressed: _peopleCount > 1 ? () => setState(() => _peopleCount--) : null,
+                              Icon(
+                                _simulateBlackout
+                                    ? Icons
+                                        .signal_cellular_connected_no_internet_4_bar
+                                    : Icons.wifi,
+                                color: _simulateBlackout
+                                    ? const Color(0xFFF87171)
+                                    : const Color(0xFF4ADE80),
+                                size: 24,
                               ),
-                              Text('$_peopleCount জন', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                              IconButton(
-                                icon: const Icon(Icons.add_circle_outline),
-                                onPressed: _peopleCount < 20 ? () => setState(() => _peopleCount++) : null,
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      _simulateBlackout
+                                          ? 'ব্ল্যাকআউট সিমুলেশন (D2C মোড)'
+                                          : 'ইন্টারনেট কানেকশন সক্রিয়',
+                                      style: const TextStyle(
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                    Text(
+                                      _simulateBlackout
+                                          ? 'ইন্টারনেট অফলাইন; এসএমএস ও স্যাটেলাইট মোড'
+                                          : 'সার্ভার: $_apiBase',
+                                      style: const TextStyle(
+                                          fontSize: 11,
+                                          color: Color(0xFF5D727B)),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Switch(
+                                value: _simulateBlackout,
+                                activeThumbColor: const Color(0xFFF87171),
+                                onChanged: (val) =>
+                                    setState(() => _simulateBlackout = val),
                               ),
                             ],
                           ),
-                        ],
-                      ),
-                      const Divider(color: Color(0xFF334155)),
-                      CheckboxListTile(
-                        title: const Text('পানিবন্দী / ছাদে বা গাছে আটকা (Trapped on roof/attic)'),
-                        value: _flagTrapped,
-                        onChanged: (val) => setState(() => _flagTrapped = val ?? false),
-                      ),
-                      CheckboxListTile(
-                        title: const Text('বৃদ্ধ / বয়স্ক সদস্য আছেন (Elderly person at risk)'),
-                        value: _flagElderly,
-                        onChanged: (val) => setState(() => _flagElderly = val ?? false),
-                      ),
-                      CheckboxListTile(
-                        title: const Text('শিশু / বাচ্চা আছেন (Infant or child present)'),
-                        value: _flagChild,
-                        onChanged: (val) => setState(() => _flagChild = val ?? false),
-                      ),
-                      CheckboxListTile(
-                        title: const Text('জরুরি চিকিৎসা প্রয়োজন (Medical emergency)'),
-                        value: _flagMedical,
-                        onChanged: (val) => setState(() => _flagMedical = val ?? false),
-                      ),
-                      const SizedBox(height: 8),
-                      DropdownButtonFormField<String>(
-                        initialValue: _selectedVillage,
-                        items: const [
-                          DropdownMenuItem(value: 'চিথলিয়া (Chitholia)', child: Text('চিথলিয়া (Chitholia)')),
-                          DropdownMenuItem(value: 'মির্জানগর (Mirzanagar)', child: Text('মির্জানগর (Mirzanagar)')),
-                        ],
-                        onChanged: (val) => setState(() => _selectedVillage = val ?? _selectedVillage),
-                        decoration: const InputDecoration(labelText: 'গ্রাম / এলাকা'),
-                      ),
-                      const SizedBox(height: 16),
-                      ElevatedButton(
-                        onPressed: _working ? null : () => _handleCreateSos(),
-                        style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFE11D48), padding: const EdgeInsets.symmetric(vertical: 12)),
-                        child: const Text('🚨 এসওএস পাঠান (SUBMIT SOS)', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-
-              // Step 3: Outbox & Handoff Card
-              if (_outboxPacket != null) ...[
-                const SizedBox(height: 16),
-                Card(
-                  color: const Color(0xFF1E293B),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text('৩. লোকাল আউটবক্স ও অফলাইন হ্যান্ডঅফ', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFFFBBF24))),
-                        const SizedBox(height: 8),
-                        Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(color: const Color(0xFF0F172A), borderRadius: BorderRadius.circular(4)),
-                          child: Text(_outboxPacket!, style: const TextStyle(fontFamily: 'monospace', color: Color(0xFF38BDF8))),
                         ),
-                        const SizedBox(height: 8),
-                        Text('স্ট্যাটাস: $_sosState', style: const TextStyle(fontSize: 12, color: Color(0xFF4ADE80))),
-                        if (_operationMessage != null) Padding(padding: const EdgeInsets.symmetric(vertical: 8), child: Text(_operationMessage!, style: const TextStyle(fontSize: 12, color: Color(0xFFFDE68A)))),
-                        const SizedBox(height: 12),
-                        Wrap(
-                          spacing: 8,
-                          runSpacing: 8,
-                          children: [
-                            ElevatedButton.icon(
-                              onPressed: () async {
-                                final launched = await launchUrl(Uri(scheme: 'sms', path: '1090', queryParameters: {'body': _outboxPacket!}));
-                                if (mounted) setState(() { _sosState = launched ? 'SMS_COMPOSER_OPENED' : _sosState; _operationMessage = launched ? 'এসএমএস কম্পোজার ওপেন হয়েছে। এটি বার্তা পৌঁছানোর নিশ্চয়তা দেয় না।' : 'এসএমএস কম্পোজার চালু করা সম্ভব হয়নি।'; });
-                              },
-                              icon: const Icon(Icons.sms),
-                              label: const Text('জরুরি এসএমএস কম্পোজার (1090)'),
-                              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF0284C7)),
+                      ),
+                    const SizedBox(height: 12),
+
+                    // Step 1: Onboarding Card
+                    if (!_isOnboarded) ...[
+                      if (_accessMode != 'RESIDENT')
+                        _buildStaffLoginCard()
+                      else
+                        Card(
+                          color: const Color(0xFFFFFFFF),
+                          child: Padding(
+                            padding: const EdgeInsets.all(16.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  '১. রেসিডেন্ট অনবোর্ডিং (Mock NID Check)',
+                                  style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xFF087F75)),
+                                ),
+                                const SizedBox(height: 4),
+                                const Text(
+                                  '* Demo NID format check — not identity verification.',
+                                  style: TextStyle(
+                                      fontSize: 11, color: Color(0xFF5D727B)),
+                                ),
+                                const SizedBox(height: 12),
+                                TextField(
+                                  controller: _nameController,
+                                  decoration: const InputDecoration(
+                                      labelText: 'নাম (Name)'),
+                                ),
+                                const SizedBox(height: 8),
+                                TextField(
+                                  controller: _phoneController,
+                                  decoration: const InputDecoration(
+                                      labelText: 'মোবাইল নম্বর (Phone)'),
+                                  keyboardType: TextInputType.phone,
+                                ),
+                                const SizedBox(height: 8),
+                                TextField(
+                                  controller: _nidController,
+                                  decoration: InputDecoration(
+                                    labelText: 'মক এনআইডি (১০ বা ১৭ ডিজিট)',
+                                    errorText: _nidError,
+                                  ),
+                                  keyboardType: TextInputType.number,
+                                ),
+                                const SizedBox(height: 16),
+                                ElevatedButton(
+                                  onPressed:
+                                      _working ? null : () => _handleOnboard(),
+                                  style: ElevatedButton.styleFrom(
+                                      backgroundColor: const Color(0xFF087F75)),
+                                  child: const Text(
+                                      'অনবোর্ড নিশ্চিত করুন (Save & Continue)'),
+                                ),
+                              ],
                             ),
-                            ElevatedButton.icon(
-                              onPressed: _working ? null : () => _simulateSatelliteD2cRelay(),
-                              icon: const Icon(Icons.satellite_alt),
-                              label: const Text('📡 স্যাটেলাইট D2C রিলে (Simulated)'),
-                              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF0D9488)),
+                          ),
+                        ),
+                    ] else ...[
+                      // Step 2: 3-Step SOS Card
+                      Card(
+                        color: const Color(0xFFFFFFFF),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                '২. তিন-ট্যাপ এসওএস (3-Step Flood SOS)',
+                                style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFFB42318)),
+                              ),
+                              const SizedBox(height: 12),
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  const Text('আটকে পড়া মানুষের সংখ্যা:'),
+                                  Row(
+                                    children: [
+                                      IconButton(
+                                        icon: const Icon(
+                                            Icons.remove_circle_outline),
+                                        onPressed: _peopleCount > 1
+                                            ? () =>
+                                                setState(() => _peopleCount--)
+                                            : null,
+                                      ),
+                                      Text('$_peopleCount জন',
+                                          style: const TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.bold)),
+                                      IconButton(
+                                        icon: const Icon(
+                                            Icons.add_circle_outline),
+                                        onPressed: _peopleCount < 20
+                                            ? () =>
+                                                setState(() => _peopleCount++)
+                                            : null,
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                              const Divider(color: Color(0xFFDCE7E4)),
+                              CheckboxListTile(
+                                title: const Text(
+                                    'পানিবন্দী / ছাদে বা গাছে আটকা (Trapped on roof/attic)'),
+                                value: _flagTrapped,
+                                onChanged: (val) =>
+                                    setState(() => _flagTrapped = val ?? false),
+                              ),
+                              CheckboxListTile(
+                                title: const Text(
+                                    'বৃদ্ধ / বয়স্ক সদস্য আছেন (Elderly person at risk)'),
+                                value: _flagElderly,
+                                onChanged: (val) =>
+                                    setState(() => _flagElderly = val ?? false),
+                              ),
+                              CheckboxListTile(
+                                title: const Text(
+                                    'শিশু / বাচ্চা আছেন (Infant or child present)'),
+                                value: _flagChild,
+                                onChanged: (val) =>
+                                    setState(() => _flagChild = val ?? false),
+                              ),
+                              CheckboxListTile(
+                                title: const Text(
+                                    'জরুরি চিকিৎসা প্রয়োজন (Medical emergency)'),
+                                value: _flagMedical,
+                                onChanged: (val) =>
+                                    setState(() => _flagMedical = val ?? false),
+                              ),
+                              const SizedBox(height: 8),
+                              DropdownButtonFormField<String>(
+                                initialValue: _selectedVillage,
+                                items: const [
+                                  DropdownMenuItem(
+                                      value: 'চিথলিয়া (Chitholia)',
+                                      child: Text('চিথলিয়া (Chitholia)')),
+                                  DropdownMenuItem(
+                                      value: 'মির্জানগর (Mirzanagar)',
+                                      child: Text('মির্জানগর (Mirzanagar)')),
+                                ],
+                                onChanged: (val) => setState(() =>
+                                    _selectedVillage = val ?? _selectedVillage),
+                                decoration: const InputDecoration(
+                                    labelText: 'গ্রাম / এলাকা'),
+                              ),
+                              const SizedBox(height: 16),
+                              ElevatedButton(
+                                onPressed:
+                                    _working ? null : () => _handleCreateSos(),
+                                style: ElevatedButton.styleFrom(
+                                    backgroundColor: const Color(0xFFE11D48),
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 12)),
+                                child: const Text('🚨 এসওএস পাঠান (SUBMIT SOS)',
+                                    style: TextStyle(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.bold)),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+
+                      // Step 3: Outbox & Handoff Card
+                      if (_outboxPacket != null) ...[
+                        const SizedBox(height: 16),
+                        Card(
+                          color: const Color(0xFFFFFFFF),
+                          child: Padding(
+                            padding: const EdgeInsets.all(16.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                    '৩. লোকাল আউটবক্স ও অফলাইন হ্যান্ডঅফ',
+                                    style: TextStyle(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFFFBBF24))),
+                                const SizedBox(height: 8),
+                                Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                      color: const Color(0xFFF3F7F6),
+                                      borderRadius: BorderRadius.circular(4)),
+                                  child: Text(_outboxPacket!,
+                                      style: const TextStyle(
+                                          fontFamily: 'monospace',
+                                          color: Color(0xFF087F75))),
+                                ),
+                                const SizedBox(height: 8),
+                                Text('স্ট্যাটাস: $_sosState',
+                                    style: const TextStyle(
+                                        fontSize: 12,
+                                        color: Color(0xFF087F75),
+                                        fontWeight: FontWeight.w700)),
+                                if (_operationMessage != null)
+                                  Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 8),
+                                      child: Text(_operationMessage!,
+                                          style: const TextStyle(
+                                              fontSize: 12,
+                                              color: Color(0xFF785C16)))),
+                                const SizedBox(height: 12),
+                                Wrap(
+                                  spacing: 8,
+                                  runSpacing: 8,
+                                  children: [
+                                    ElevatedButton.icon(
+                                      onPressed: () async {
+                                        final launched = await launchUrl(Uri(
+                                            scheme: 'sms',
+                                            path: '1090',
+                                            queryParameters: {
+                                              'body': _outboxPacket!
+                                            }));
+                                        if (mounted) {
+                                          setState(() {
+                                            _sosState = launched
+                                                ? 'SMS_COMPOSER_OPENED'
+                                                : _sosState;
+                                            _operationMessage = launched
+                                                ? 'এসএমএস কম্পোজার ওপেন হয়েছে। এটি বার্তা পৌঁছানোর নিশ্চয়তা দেয় না।'
+                                                : 'এসএমএস কম্পোজার চালু করা সম্ভব হয়নি।';
+                                          });
+                                        }
+                                      },
+                                      icon: const Icon(Icons.sms),
+                                      label: const Text(
+                                          'জরুরি এসএমএস কম্পোজার (1090)'),
+                                      style: ElevatedButton.styleFrom(
+                                          backgroundColor:
+                                              const Color(0xFF087F75)),
+                                    ),
+                                    ElevatedButton.icon(
+                                      onPressed: _working
+                                          ? null
+                                          : () => _simulateSatelliteD2cRelay(),
+                                      icon: const Icon(Icons.satellite_alt),
+                                      label: const Text(
+                                          '📡 স্যাটেলাইট D2C রিলে (Simulated)'),
+                                      style: ElevatedButton.styleFrom(
+                                          backgroundColor:
+                                              const Color(0xFF0D9488)),
+                                    ),
+                                    if (_pendingPayload != null)
+                                      OutlinedButton.icon(
+                                        onPressed: _working
+                                            ? null
+                                            : () => _submitPendingSos(),
+                                        icon: const Icon(Icons.refresh),
+                                        label:
+                                            const Text('Retry API submission'),
+                                      ),
+                                  ],
+                                ),
+                              ],
                             ),
-                            if (_pendingPayload != null) OutlinedButton.icon(
-                              onPressed: _working ? null : () => _submitPendingSos(),
-                              icon: const Icon(Icons.refresh),
-                              label: const Text('Retry API submission'),
-                            ),
-                          ],
+                          ),
                         ),
                       ],
-                    ),
-                  ),
+                    ],
+                  ],
                 ),
-              ],
-            ],
-          ],
-        ),
-      ),
+              ))),
     );
   }
 }

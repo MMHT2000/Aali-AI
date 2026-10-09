@@ -1,6 +1,6 @@
 # Aali AI — Resident Mobile Application (Flutter)
 
-This directory contains the independent Flutter Android/iOS client for Aali AI residents.
+This directory contains Aali AI's Flutter Android resident and field-operations client. The Authority command room remains a web workspace.
 
 ## Features
 - **Resident Onboarding & Mock NID Validation**:
@@ -16,13 +16,19 @@ This directory contains the independent Flutter Android/iOS client for Aali AI r
   - Offline queue stored in SharedPreferences, with a user-triggered retry.
   - Explicit Android SMS Composer handoff (`sms:16604?body=...`).
   - The SMS composer opening is only a user handoff; it does not mean the SMS was sent or delivered.
+- **Role workspaces on Android**:
+  - Resident: mock NID format check and three-step SOS with a local outbox.
+  - Responder: authenticated incident queue, deterministic evidence, duplicate review and acknowledgment of a boat recommendation. Acknowledgment does not dispatch a boat.
+  - Volunteer: authenticated village water reading form. Readings are volunteer reports, not official gauge observations.
+  - The selected mode is checked against the authenticated API role. The API remains authoritative for all permissions.
+- Material 3 light theme with role-specific workspaces, accessible status/error feedback, loading/empty states and large-screen-friendly cards.
 
 ## API connection
 - Android emulator default: `http://10.0.2.2:3001/api/v1`.
 - Override for a physical test device or other host with `--dart-define=AALI_API_URL=http://<host-ip>:3001/api/v1` and make sure the development API is reachable from that device.
 - Resident registration stores only a keyed hash of the mock NID at the API. Duplicate registration returns a conflict and is not treated as a successful login.
 - SOS packets use the same CRC-16/CCITT-FALSE packet checksum as the API. The API revalidates the packet and compares its people/urgency fields before storing it.
-- This repository currently contains Flutter source and tests but no generated Android/iOS platform scaffold. Run `flutter create --platforms=android .` from this directory with Flutter installed before the first Android build, then verify network permission and local HTTP settings for your device.
+- An Android Gradle scaffold is present in `android/`. Run `flutter pub get`, then `flutter run`. The app includes server settings shortcuts for emulator, USB/localhost and LAN. For a physical device, set a reachable API URL; API port `3001` is separate from MySQL port `3306`.
 
 ## Prerequisites & Installation
 

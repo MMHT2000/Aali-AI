@@ -1,4 +1,4 @@
-# Aali AI — Detailed Implementation Plan
+﻿# Aali AI â€” Detailed Implementation Plan
 
 **Purpose:** turn the Aali AI Feni flash-flood resilience proposal (Detailed Plan Rev 3 and two-page proposal, dated 9 Oct 2026) into a practical, phased full-stack prototype.
 
@@ -6,9 +6,9 @@
 
 Aali is an application/coordination layer around existing official data, phone/SMS capabilities and responders. It does not replace BWDB-FFWC, BMD, DDM, mobile operators, Red Crescent, Fire Service or local authorities. The prototype must demonstrate three moments:
 
-1. **BEFORE — warn earlier:** combine river gauge trend/threshold, satellite rainfall and volunteer gauge readings; escalate if the gauge is silent under risky conditions; draft ward-level Bangla warning for approval.
-2. **DURING — get SOS through and coordinate response:** create a compact SOS, queue offline, simulate gateway forwarding, put reports on a map, calculate explainable confidence, identify likely duplicates, flag silent villages and rank suitable available boats/assets for human review.
-3. **AFTER — recover fairly:** track village-level damage/needs and aid receipts; display unmet needs and coverage gaps without making eligibility decisions.
+1. **BEFORE â€” warn earlier:** combine river gauge trend/threshold, satellite rainfall and volunteer gauge readings; escalate if the gauge is silent under risky conditions; draft ward-level Bangla warning for approval.
+2. **DURING â€” get SOS through and coordinate response:** create a compact SOS, queue offline, simulate gateway forwarding, put reports on a map, calculate explainable confidence, identify likely duplicates, flag silent villages and rank suitable available boats/assets for human review.
+3. **AFTER â€” recover fairly:** track village-level damage/needs and aid receipts; display unmet needs and coverage gaps without making eligibility decisions.
 
 ### Must-have demo features
 - Three-tap Bangla-friendly SOS form with people count and urgency flags.
@@ -19,7 +19,7 @@ Aali is an application/coordination layer around existing official data, phone/S
 - Transparent confidence score and component breakdown.
 - Duplicate suggestions based on text similarity plus place/time/count; accept/reject/split by operator.
 - High-risk silent-village flag in a staged test; never infer safety from no reports.
-- Historical replay selector for 19–24 Aug 2024 and 20–22 Jul 2025, provenance labels and a silent-gauge switch.
+- Historical replay selector for 19â€“24 Aug 2024 and 20â€“22 Jul 2025, provenance labels and a silent-gauge switch.
 - Three-signal deterministic flood alert rules and Bangla warning drafts that require authority approval.
 - Boat/asset priority suggestions with reasons; no automatic dispatch.
 - AI workflow for Bangla/Banglish SOS extraction, duplicate suggestions and communication drafting; deterministic local mock and keyword fallback available.
@@ -53,7 +53,7 @@ Unless verified credentials/hardware/legal agreements are added separately, thes
 
 Each phase is a separate agent task. The agent must inspect the current code first and adapt if equivalent working code already exists. A phase is complete only when its exit gate passes and `docs/IMPLEMENTATION_LOG.md` is updated.
 
-### Phase 0 — Repository discovery and baseline
+### Phase 0 â€” Repository discovery and baseline
 **Tasks**
 - Inspect current files, git status, installed runtimes, manifests, lockfiles and existing code.
 - Record current commands and baseline test/build results; do not overwrite the user's work.
@@ -63,7 +63,7 @@ Each phase is a separate agent task. The agent must inspect the current code fir
 
 **Exit gate:** no unexplained destructive changes; known starting state and executable checks listed.
 
-### Phase 1 — Monorepo scaffold and local development
+### Phase 1 â€” Monorepo scaffold and local development
 **Tasks**
 - Create `apps/api` NestJS and `apps/web` React/Vite projects with strict TypeScript.
 - Add root scripts for dev, build, lint, typecheck, tests and database actions; use workspace tooling only if it simplifies Windows development.
@@ -74,7 +74,7 @@ Each phase is a separate agent task. The agent must inspect the current code fir
 
 **Exit gate:** clean install, MySQL starts, API health works, web renders, typecheck/build pass, no secrets committed.
 
-### Phase 2 — Domain model, migrations, auth and seed data
+### Phase 2 â€” Domain model, migrations, auth and seed data
 **Tasks**
 - Implement entities/migrations for users/roles, flood events, areas/villages, gauges/observations, shelters, SOS reports, incidents/report links, assets, alerts/warnings, recovery reports/deliveries, gateway messages and audit events.
 - Add explicit indexes for report time, event/area state, packet ID/checksum, incident status, geospatial lookup columns and audit time.
@@ -85,7 +85,7 @@ Each phase is a separate agent task. The agent must inspect the current code fir
 
 **Exit gate:** fresh database migration + seed succeeds; auth role tests pass; unauthorized requests are rejected; seeded data is synthetic and deterministically reproducible.
 
-### Phase 3 — Disaster Packet and SOS capture
+### Phase 3 â€” Disaster Packet and SOS capture
 **Tasks**
 - Build a single canonical packet serializer/parser shared via an API contract or mirrored with contract tests.
 - Implement schema/version validation, compact ASCII fields, geohash7, people count, urgency flags, timestamp/event context, short report ID and checksum.
@@ -96,7 +96,7 @@ Each phase is a separate agent task. The agent must inspect the current code fir
 
 **Exit gate:** round-trip packet tests; corrupted packet rejected with reason; offline queue survives refresh; SOS can be entered without GPS; simulated packet fits one ASCII SMS segment; all core controls usable on mobile-sized viewport.
 
-### Phase 4 — Transport adapters and blackout demonstration
+### Phase 4 â€” Transport adapters and blackout demonstration
 **Tasks**
 - Define `TransportAdapter` / `SmsGatewayAdapter` interfaces with statuses and explicit failure reasons.
 - Implement app API delivery, phone outbox, SMS composer/copy handoff and a Gateway Simulator that accepts a packet then posts it to the backend as a simulated operator gateway.
@@ -106,21 +106,21 @@ Each phase is a separate agent task. The agent must inspect the current code fir
 
 **Exit gate:** with internet submission disabled, a user can create the packet, use the labeled simulated fallback, and later see exactly one report in the dashboard. The demo labels all simulated stages.
 
-### Phase 5 — Responder dashboard, confidence, incidents and asset ranking [COMPLETED]
+### Phase 5 â€” Responder dashboard, confidence, incidents and asset ranking [COMPLETED]
 **Tasks**
 - Build routes/views: Dashboard, SOS Inbox, Incident Detail, Asset Register, Shelters/Areas, Alert Center, Replay, Recovery, Audit and Admin/Health.
 - Provide KPI cards, map/list toggle, filters by event/area/status/urgency/confidence, source badges, status updates and a detail drawer/panel.
 - Implement confidence formula exactly as specified below and display component-level reasons.
 - Implement candidate duplicate detection using text similarity signal + same geohash7 cell + 30-minute window + similar people count. AI similarity is a suggestion; operator approves merge. Include split/unmerge correction path with audit record and linked report preservation.
-- Implement silent-village detector using configured high hazard, high exposure, no reports for about 20 minutes while neighbor cells report; output `VERIFY_BY_SAFE_MEANS` with reasoning, not “safe”.
+- Implement silent-village detector using configured high hazard, high exposure, no reports for about 20 minutes while neighbor cells report; output `VERIFY_BY_SAFE_MEANS` with reasoning, not â€œsafeâ€.
 - Implement asset/boat priority formula and rank only suitable, available assets; operator approves/rejects recommendation; log all decisions and reason codes.
 
 **Exit gate:** unit tests cover score formula boundaries; dashboard updates from API; duplicate can be accepted/rejected/split; one high-risk silent village is flagged in fixtures; assets rank reproducibly; no auto-dispatch exists. (PASSED)
 
-### Phase 6 — Flood alert rules, historical replay and warning approval [COMPLETED]
+### Phase 6 â€” Flood alert rules, historical replay and warning approval [COMPLETED]
 **Tasks**
-- Create replay scenarios for 19–24 Aug 2024 and 20–22 Jul 2025 using only sourced/published readings entered as fixture data. Every record contains provenance, known gap and `reconstructed=true` metadata when applicable.
-- Add playback controls, time slider/tick stepping, scenario title, event date and a visible “RECONSTRUCTED / NOT LIVE” banner.
+- Create replay scenarios for 19â€“24 Aug 2024 and 20â€“22 Jul 2025 using only sourced/published readings entered as fixture data. Every record contains provenance, known gap and `reconstructed=true` metadata when applicable.
+- Add playback controls, time slider/tick stepping, scenario title, event date and a visible â€œRECONSTRUCTED / NOT LIVEâ€ banner.
 - Implement signals for Muhuri at Parshuram: (1) gauge rate-of-rise over prior 3 hours or level above the 12.05 m warning mark; (2) basin satellite rainfall signal including Tripura side; (3) volunteer staff-gauge reading via compact message. Starting values should be configurable, not hidden in UI code.
 - Apply source rule: Watch if any one signal fires; Warning if any two; Act if all three or a breach is reported. If gauge data is silent for 60 minutes while rain or volunteer reading is high, raise the level by one step and show `GAUGE_SILENT` reason. Define the no-level-overflow rule clearly.
 - Show which signals fired, source age, missing signals and alert history.
@@ -130,7 +130,7 @@ Each phase is a separate agent task. The agent must inspect the current code fir
 
 **Exit gate:** replay can be run from seed; changing/blanking gauge affects rules as expected; each alert shows why; warning is impossible to approve without Authority role; no claim of generalized ML forecast. (PASSED)
 
-### Phase 7 — AI-assisted language features with fallback [COMPLETED]
+### Phase 7 â€” AI-assisted language features with fallback [COMPLETED]
 **Tasks**
 - Define provider interfaces and a deterministic mock provider first, with optional locally hosted model adapter behind environment configuration.
 - Implement SOS understanding from Bangla/Banglish text and optional supplied voice transcript into strict validated JSON: people count, elderly, child, medical, trapped, location words, water trend and confidence per field. Preserve original text and let an operator correct values.
@@ -142,17 +142,17 @@ Each phase is a separate agent task. The agent must inspect the current code fir
 
 **Exit gate:** contract tests validate AI JSON; malformed output falls back safely; all score/alert decisions remain rule-based; operator can inspect original content and edit extracted fields; benchmark report generated on synthetic set. (PASSED)
 
-### Phase 8 — Recovery and aid ledger
+### Phase 8 â€” Recovery and aid ledger
 **Tasks**
 - Add reports for house damage level, tube-well status/contamination, crop/pond loss, road passability, water/medicine needs and local evidence notes.
 - Aggregate needs by village and severity, track status/last update and calculate coverage from aid delivery receipts.
 - Record delivery receipts with organization/volunteer actor, items/quantity/unit, recipient aggregate or village-level identifier, time and source reference; avoid unnecessary named beneficiary data.
-- Present unmet-needs rank with human-readable reasons and an “aid delivered” ledger; never algorithmically decide who deserves aid.
+- Present unmet-needs rank with human-readable reasons and an â€œaid deliveredâ€ ledger; never algorithmically decide who deserves aid.
 - Allow published Sentinel-1 flood footprint image overlay as optional static backdrop; do not build a satellite-processing pipeline in scope.
 
 **Exit gate:** needs can be entered, ranked transparently and marked served; receipts change coverage; duplicate receipts are guarded; the screen explains that rankings support coordination, not eligibility decisions.
 
-### Phase 9 — Security, reliability, accessibility and demo freeze
+### Phase 9 â€” Security, reliability, accessibility and demo freeze
 **Tasks**
 - Review role checks on every write/action endpoint, DTO validation, rate limits, CORS, auth/session behavior, safe error handling, logging redaction, environment variables, SQL/index/query behavior and migrations.
 - Ensure audit trail covers warning approval, incident merge/split, dispatch recommendation acceptance/rejection and aid receipt changes.
@@ -163,7 +163,7 @@ Each phase is a separate agent task. The agent must inspect the current code fir
 
 **Exit gate:** all must-have acceptance tests pass, fresh setup documented, no unresolved critical security/logic defect, demo can run without external AI and with network-dependent map tiles unavailable.
 
-### Phase 10 — Optional/stretch items (only after must-haves)
+### Phase 10 â€” Optional/stretch items (only after must-haves)
 Order to cut if time runs out:
 1. Flood-footprint visual overlay.
 2. Rich recovery-board charts (replace with clear static summary if necessary).
@@ -182,7 +182,7 @@ Starting rule from the proposal:
 - Add `0.15` per independent report within 300 m and 30 minutes, capped at `+0.30`.
 - Add `+0.10` when nearby gauge is above warning level or rainfall is heavy.
 - Clamp final score to `[0, 1]` and show each contribution, applied cap and freshness.
-- Road/water reports fade after 1–2 hours: implement a configurable freshness window (default 90 minutes for prototype) and display stale status. Do not erase source records.
+- Road/water reports fade after 1â€“2 hours: implement a configurable freshness window (default 90 minutes for prototype) and display stale status. Do not erase source records.
 - Confidence is context for responders, not a gate that blocks an SOS.
 
 ### Duplicate candidates
@@ -192,7 +192,7 @@ Starting rule from the proposal:
 - Exact duplicate transport retry is an ingestion/idempotency concern and must not create another report.
 
 ### Silent village
-Flag when all configured fixture/rule conditions hold: alert level Warning or higher, exposure high, no reports in approximately 20 minutes, and neighboring cells are reporting. Phrase the action as “verify by safe means”; never infer the village is safe.
+Flag when all configured fixture/rule conditions hold: alert level Warning or higher, exposure high, no reports in approximately 20 minutes, and neighboring cells are reporting. Phrase the action as â€œverify by safe meansâ€; never infer the village is safe.
 
 ### Boat/asset priority
 Use the proposal's starting weights:
@@ -207,27 +207,27 @@ Use the proposal's starting weights:
 - Signal C: recent volunteer staff-gauge reading.
 - Watch: any one signal; Warning: any two; Act: all three **or** reported breach.
 - Gauge silent at least 60 minutes while rainfall or volunteer reading is high -> raise level one step and add reason `GAUGE_SILENT`.
-- The specific rainfall thresholds/rise-rate settings must be configuration data with provenance and labeled “prototype starting values.” Do not present them as validated forecasting thresholds.
+- The specific rainfall thresholds/rise-rate settings must be configuration data with provenance and labeled â€œprototype starting values.â€ Do not present them as validated forecasting thresholds.
 
 ## 4. Suggested final project tree
 
 ```text
 .
-├── AGENTS.md
-├── PROMPT_START_HERE.md
-├── IMPLEMENTATION_PLAN.md
-├── docker-compose.yml
-├── .env.example
-├── apps/
-│   ├── api/                   # NestJS modules, DTOs, providers, entities, migrations
-│   └── web/                   # React/Vite routes, views, hooks, API client, offline outbox
-├── packages/
-│   └── contracts/             # optional shared packet/API types; add only if beneficial
-├── docs/                      # this specification, decisions, test plan, implementation log
-└── .agents/
-    ├── rules/
-    ├── skills/
-    └── agents/
+â”œâ”€â”€ AGENTS.md
+â”œâ”€â”€ PROMPT_START_HERE.md
+â”œâ”€â”€ IMPLEMENTATION_PLAN.md
+â”œâ”€â”€ docker-compose.yml
+â”œâ”€â”€ .env.example
+â”œâ”€â”€ apps/
+â”‚   â”œâ”€â”€ api/                   # NestJS modules, DTOs, providers, entities, migrations
+â”‚   â””â”€â”€ web/                   # React/Vite routes, views, hooks, API client, offline outbox
+â”œâ”€â”€ packages/
+â”‚   â””â”€â”€ contracts/             # optional shared packet/API types; add only if beneficial
+â”œâ”€â”€ docs/                      # this specification, decisions, test plan, implementation log
+â””â”€â”€ .agents/
+    â”œâ”€â”€ rules/
+    â”œâ”€â”€ skills/
+    â””â”€â”€ agents/
 ```
 
 Suggested Nest modules: `AuthModule`, `UsersModule`, `FloodEventsModule`, `AreasModule`, `GaugesModule`, `RainfallModule`, `AlertRulesModule`, `WarningsModule`, `SosModule`, `PacketsModule`, `GatewayModule`, `IncidentsModule`, `AssetsModule`, `SheltersModule`, `ReplayModule`, `AiModule`, `RecoveryModule`, `AuditModule`, `HealthModule`.
@@ -268,17 +268,17 @@ The prototype is ready only when a reviewer can, using synthetic data and the wr
 
 ## 7. Checklist
 
-- [x] Phase 0 — discovery and baseline
-- [x] Phase 1 — scaffold and local development
-- [x] Phase 2 — schema, migrations, auth and seeds
-- [x] Phase 3 — packet and offline SOS
-- [x] Phase 4 — transport simulation
-- [x] Phase 5 — responder dashboard and deterministic rules
-- [x] Phase 6 — flood replay and warning approval
-- [x] Phase 7 — AI language layer and fallback
-- [x] Phase 8 — recovery ledger
-- [x] Phase 9 — security, accessibility, E2E and demo freeze
-- [x] Phase 10 — optional stretch items only if time remains
+- [x] Phase 0 â€” discovery and baseline
+- [x] Phase 1 â€” scaffold and local development
+- [x] Phase 2 â€” schema, migrations, auth and seeds
+- [x] Phase 3 â€” packet and offline SOS
+- [x] Phase 4 â€” transport simulation
+- [x] Phase 5 â€” responder dashboard and deterministic rules
+- [x] Phase 6 â€” flood replay and warning approval
+- [x] Phase 7 â€” AI language layer and fallback
+- [x] Phase 8 â€” recovery ledger
+- [x] Phase 9 â€” security, accessibility, E2E and demo freeze
+- [x] Phase 10 â€” optional stretch items only if time remains
 
 ## 8. Modification Track (Hackathon Product Evolution)
 - [x] Mod 1: Mock NID format (10/17 digits) & resident registration API with SHA-256 minimization
@@ -287,9 +287,9 @@ The prototype is ready only when a reviewer can, using synthetic data and the wr
 - [x] Mod 4: Configurable primary/backup LLM failover seam with strict PII protections
 - [x] Mod 5: Independent Flutter resident mobile app (`apps/mobile`) with setup instructions
 
-## 9. Aali AI Product Overhaul — Current Acceptance Status (2026-10-10)
+## 9. Aali AI Product Overhaul â€” Current Acceptance Status (2026-10-10)
 
-This status supersedes earlier blanket completion labels where they conflict with the verified state below. Historical Mod 1–5 UI presence is not evidence that its full end-to-end behavior passed.
+This status supersedes earlier blanket completion labels where they conflict with the verified state below. Historical Mod 1â€“5 UI presence is not evidence that its full end-to-end behavior passed.
 
 ### Verified in this work
 - [x] XAMPP MySQL at `127.0.0.1:3306` connects; versioned migrations run with TypeORM `synchronize: false`; readiness reports MySQL up.
@@ -305,6 +305,7 @@ This status supersedes earlier blanket completion labels where they conflict wit
 - [x] Expanded API authorization suite (`authorization.e2e.spec.ts`) verifies forbidden routes (403) and authorized capabilities for every role (Viewer, Volunteer, Recovery Coordinator, Responder, Authority, Admin).
 - [x] Resident Simulator aligned with backend `CreateSosDto` and `SimulatedGatewayIngestDto`, utilizing CRC16-CCITT Base36 disaster packet encoding and authenticated API fetch.
 - [x] Flutter mobile client (`apps/mobile/`) generated with native Android Gradle scaffold; `flutter analyze` passes with 0 issues; Dart unit tests pass 10/10.
+- [x] Android uses a Material 3 resident flow plus authenticated, role-matched Responder and Volunteer workspaces. The mobile API contract includes village type metadata and responder actions remain human-reviewed.
 - [x] Local Android execution verified: Android Studio, OpenJDK 21, Android SDK Platform 36, and NDK 28 integrated; `app-debug.apk` successfully compiled via `flutter build apk --debug`.
 - [x] Live Google Gemini Flash integration verified: `@google/genai` provider operational with strict PII sanitization (phone/NID/GPS redacting) and automatic deterministic failover on timeout or 503.
 - [x] Flutter mobile client enhanced: Added dynamic Wi-Fi/LAN Server IP configuration dialog, in-app Cellular Blackout simulation switch, and Satellite D2C simulation relay action.
@@ -314,4 +315,15 @@ This status supersedes earlier blanket completion labels where they conflict wit
 - [ ] Sentinel-1 SAR flood footprint in the recovery ledger is a simulated visual overlay, not a live satellite feed.
 - [ ] Emergency telecom gateway and satellite forwarding remain explicitly labelled simulations for demo safety.
 
+## 10. Web and Android UI Redesign Plans (2026-10-10)
+
+These are approved redesigns being delivered in reviewable increments. The present map/API/role implementation remains the functional baseline and must be preserved where it works.
+
+- [ ] Web: implement the persistent, role-aware Feni Operations Control Room described in [`docs/WEB_UI_REDESIGN_PLAN.md`](docs/WEB_UI_REDESIGN_PLAN.md): map-centered Authority situation room, triage queue, evidence drawer, distinct role workspaces, and explicit provenance/freshness states.
+- [ ] Android: implement the emergency-first Resident experience and focused authenticated Responder/Volunteer field workspaces described in [`docs/ANDROID_UI_REDESIGN_PLAN.md`](docs/ANDROID_UI_REDESIGN_PLAN.md): SOS entry without a profile/login barrier, short report flow, truthful API/outbox/SMS states, and accessible field tasks.
+- **Current redesign progress:** Product/data/access audit is recorded in [`docs/PRODUCT_DATA_ACCESS_AUDIT.md`](docs/PRODUCT_DATA_ACCESS_AUDIT.md). The API snapshot accepts shared Live / Exercise / Historical event context, emits provenance/source status and applies role-specific layer projections. BMD CAP RSS and CAP XML are now wired to the authenticated LIVE snapshot as separately-provenanced public advisories; alert expiry/cancellation and feed publication age are surfaced. FFWC developer access and JAXA registration/product details remain to be confirmed. CAP polygons are not yet rendered on the map. Distinct role home workspaces remain incomplete. Do not treat API health as source-feed freshness. Detailed verified scope and remaining exit gates are in `docs/WEB_UI_REDESIGN_PLAN.md` and the implementation log. Android redesign and responsive role review remain incomplete.
+- [ ] Before UI implementation, capture route screenshots and complete the UTF-8/Bangla rendering inventory for both clients.
+- [ ] Preserve backend role enforcement, deterministic rule semantics, API contracts, human approval gates and demo/synthetic disclosures. Any required API/security changes must be separately scoped and tested.
+- [ ] Implement each platform in reviewable increments and mark acceptance criteria complete only after role-by-role, responsive/accessibility and real API-flow checks.
+- **Design tools installed:** `figma-create-design-system-rules` and `figma-generate-design` in the local Codex skills directory. Their Figma workflows require an available Figma MCP connection; direct codebase implementation does not.
 

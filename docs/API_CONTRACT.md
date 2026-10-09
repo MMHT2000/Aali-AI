@@ -9,6 +9,13 @@ This is a contract target, not a claim that endpoints already exist. Antigravity
 - `POST /api/v1/auth/login` — `{ username, password }` -> access token, expiry and safe user profile.
 - `GET /api/v1/auth/me` — current authenticated user.
 
+## Shared operations context
+- `GET /api/v1/operations/snapshot?mode=LIVE|EXERCISE|HISTORICAL&eventId=` — authenticated, role-projected operating picture. `mode` defaults to `EXERCISE` for backward compatibility. `LIVE` does not accept a synthetic/replay event ID; it includes current API-submitted reports for active events, BMD CAP RSS source status and separate public CAP advisory records. BMD CAP records include issue/effective/expiry timestamps, fetched time, original source URL and external-observation provenance; only `Actual`, effective and unexpired `Alert`/`Update` records are emitted, and cancellation/supersession references are applied. Feed build time is reported separately from fetch time. CAP advisories do not become Aali rule outputs, approvals or map markers. FFWC and GSMaP remain unavailable. `EXERCISE` accepts the active synthetic demo event. `HISTORICAL` accepts only seeded replay event IDs and returns reconstructed fixture metadata/ticks with source-verification status. An event ID from another mode returns `400`.
+- Snapshot context includes selected mode/event, source availability, last check, latest observation time/age when known, and item provenance. API service health is not an external provider health signal.
+- Role projection: Authority and Responder can see permitted SOS/incidents/assets; Volunteer receives village-level field reference and gauges but no rescue queue; Recovery Coordinator receives area/shelter context but no rescue records/assets; Viewer receives aggregate-safe reference layers without SOS/incident details; Admin receives oversight-safe reference layers without rescue-report details, with the existing authority to control a synthetic exercise. Server route/action guards remain authoritative.
+- Provenance values include `SYNTHETIC_FIXTURE`, `SYNTHETIC_SIMULATION`, `HISTORICAL_RECONSTRUCTION`, `API_SUBMITTED_REPORT`, `DETERMINISTIC_RULE_OUTPUT`, `AI_SUGGESTION`, `HUMAN_ACTION`, and `EXTERNAL_OBSERVATION`.
+- Historical tick fixtures currently carry `FIXTURE_CITATIONS_NOT_YET_AUDITED`; this is an explicit source verification limitation, not a claim that the values are verified observations.
+
 ## Demo and reference data
 - `GET /api/v1/events` — list flood/replay scenarios.
 - `GET /api/v1/events/:eventId` — event details/provenance/mode.

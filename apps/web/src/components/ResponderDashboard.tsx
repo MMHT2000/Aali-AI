@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { apiFetch as fetch } from '../lib/authenticated-fetch';
+import { getOperationsSnapshot, OperationMapPoint, OperationsMode } from '../lib/operations-client';
 
 export interface IncidentViewItem {
   id: string;
@@ -41,18 +42,38 @@ export interface SilentVillageItem {
   reason: string;
 }
 
-export function ResponderDashboard() {
+export function ResponderDashboard({ mode = 'EXERCISE', eventId }: { mode?: OperationsMode; eventId?: string }) {
   const [incidents, setIncidents] = useState<IncidentViewItem[]>([]);
   const [silentAreas, setSilentAreas] = useState<SilentVillageItem[]>([]);
+  const [liveReports, setLiveReports] = useState<OperationMapPoint[]>([]);
+  const [contextEventName, setContextEventName] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [actionMessage, setActionMessage] = useState<string | null>(null);
 
   const fetchData = async () => {
     setLoading(true);
     try {
+      if (mode === 'LIVE') {
+        const snapshot = await getOperationsSnapshot({ mode });
+        setLiveReports(snapshot.mapLayers.sos);
+        setContextEventName('Current API-submitted activity');
+        setIncidents([]);
+        setSilentAreas([]);
+        return;
+      }
+      if (mode === 'HISTORICAL') {
+        const snapshot = await getOperationsSnapshot({ mode, eventId });
+        setContextEventName(snapshot.context.event?.name ?? 'Historical event');
+        setLiveReports([]);
+        setIncidents([]);
+        setSilentAreas([]);
+        return;
+      }
+      setLiveReports([]);
+      const selectedEventId = eventId ?? '11111111-1111-1111-1111-111111111103';
       const [incRes, silentRes] = await Promise.all([
-        fetch('/api/v1/incidents'),
-        fetch('/api/v1/incidents/silent-areas'),
+        fetch(`/api/v1/incidents?eventId=${encodeURIComponent(selectedEventId)}`),
+        fetch(`/api/v1/incidents/silent-areas?eventId=${encodeURIComponent(selectedEventId)}`),
       ]);
       if (incRes.ok) setIncidents(await incRes.json());
       if (silentRes.ok) setSilentAreas(await silentRes.json());
@@ -64,8 +85,19 @@ export function ResponderDashboard() {
   };
 
   useEffect(() => {
-    fetchData();
-  }, []);
+    void fetchData();
+  }, [eventId, mode]);
+
+  if (mode === 'LIVE' || mode === 'HISTORICAL') {
+    return <section className="ops-panel responder-context-view">
+      <span className="eyebrow">RESPONDER WORKSPACE · {mode === 'LIVE' ? 'LIVE API REPORTS' : 'HISTORICAL RECONSTRUCTION'}</span>
+      <h1>{mode === 'LIVE' ? 'Current SOS reports' : contextEventName ?? 'Historical event view'}</h1>
+      <p>{mode === 'LIVE' ? 'Reports were submitted to the Aali API. External flood feeds remain unavailable; no rescue assignment is implied.' : 'Historical reconstruction is available for context. It does not contain current responder assignments.'}</p>
+      {loading ? <p role="status">Loading selected context…</p> : mode === 'LIVE' && liveReports.length > 0
+        ? <ul className="responder-live-report-list">{liveReports.map((report) => <li key={report.id}><strong>{report.name ?? report.label ?? 'SOS location unavailable'}</strong><span>{report.peopleCount ?? 1} people · {report.status ?? 'Received'}</span><small>{report.provenance} · {report.receivedAt ? new Date(report.receivedAt).toLocaleString('en-GB', { timeZone: 'Asia/Dhaka' }) : 'Time unavailable'}</small></li>)}</ul>
+        : <p className="empty-state">{mode === 'LIVE' ? 'No current API-submitted SOS reports.' : 'No current rescue queue is shown in historical mode.'}</p>}
+    </section>;
+  }
 
   const handleDuplicateReview = async (incidentId: string, candidateId: string, decision: 'ACCEPT' | 'REJECT') => {
     try {

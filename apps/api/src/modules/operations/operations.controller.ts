@@ -1,11 +1,12 @@
-import { Body, Controller, Get, Patch, Post, Request } from '@nestjs/common';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { Body, Controller, Get, Patch, Post, Query, Request } from '@nestjs/common';
+import { ApiBearerAuth, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { Roles } from '../../common/auth/roles.decorator';
 import { UserRole } from '../users/entities/user-role.enum';
 import { SimulationService } from './simulation.service';
 import { CreateFieldReadingDto } from './field-reading.dto';
 import { OperationsService } from './operations.service';
 import { SetSimulationConnectivityDto, SetSimulationSpeedDto } from './simulation-controls.dto';
+import { OperationsSnapshotQueryDto } from './operations-snapshot-query.dto';
 
 @ApiTags('Operations Control Room & Synthetic Simulation')
 @ApiBearerAuth()
@@ -15,8 +16,10 @@ export class OperationsController {
 
   @Get('operations/snapshot')
   @Roles(UserRole.AUTHORITY, UserRole.RESPONDER, UserRole.VOLUNTEER, UserRole.RECOVERY_COORDINATOR, UserRole.VIEWER, UserRole.ADMIN)
-  getSnapshot(@Request() req: { user: { role: UserRole } }) {
-    return this.operations.getSnapshot(req.user.role);
+  @ApiQuery({ name: 'mode', required: false, enum: ['LIVE', 'EXERCISE', 'HISTORICAL'] })
+  @ApiQuery({ name: 'eventId', required: false, description: 'Supported event ID for Exercise or Historical mode.' })
+  getSnapshot(@Request() req: { user: { role: UserRole } }, @Query() query: OperationsSnapshotQueryDto) {
+    return this.operations.getSnapshot(req.user.role, query);
   }
 
   @Post('field-readings')

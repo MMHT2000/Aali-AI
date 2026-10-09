@@ -166,7 +166,8 @@ export class IncidentsService implements OnModuleInit {
     ];
   }
 
-  async getIncidents(): Promise<IncidentSummary[]> {
+  async getIncidents(eventId?: string): Promise<IncidentSummary[]> {
+    if (eventId && eventId !== '11111111-1111-1111-1111-111111111103') return [];
     return this.incidents;
   }
 
@@ -336,7 +337,8 @@ export class IncidentsService implements OnModuleInit {
     return { originalIncident: inc, newIncident: newInc };
   }
 
-  getSilentVillages() {
+  getSilentVillages(eventId?: string) {
+    if (eventId && eventId !== '11111111-1111-1111-1111-111111111103') return [];
     // Evaluates silent village detection for seeded areas
     return SYNTHETIC_FENI_SEEDS.areas.map((a) => {
       const isChitholia = a.code === 'CHITHOLIA_VIL';

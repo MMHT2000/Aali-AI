@@ -9,6 +9,13 @@ All data and transport stages are synthetic/simulated unless an operator integra
 - Authority can run the API-backed synthetic scenario from the map workspace. Scenario position persists in MySQL and the API restarts in a paused state; it is not a trained forecasting model.
 - Web resident simulator and Flutter client source are distinct: Flutter still needs API onboarding/SOS wiring and Flutter CLI verification before it can be used as the same end-to-end flow.
 
+## Docker Compose setup (full stack)
+- Copy `.env.example` to `.env` if you have not already done so.
+- Run `docker compose up --build -d`. Compose starts MySQL, API and web; wait until `docker compose ps` reports all three healthy.
+- Open `http://localhost:5174`. API readiness is `http://localhost:3002/api/v1/health/readiness`; the UI proxies `/api` requests to the API container.
+- Compose uses MySQL host port `3307` and a dedicated non-root `aali_dev` account, so it can run alongside XAMPP on port `3306` and the native web/API servers on `5173`/`3001`.
+- Docker DB credentials and published ports are set with `AALI_DB_*`, `MYSQL_PUBLISHED_PORT`, `AALI_API_PORT`, and `AALI_WEB_PORT` in `.env`. The MySQL data lives in the `aali_mysql_data` named volume and persists across container restarts.
+
 ## Pre-demo checklist
 - Start MySQL, apply migrations, seed fixtures, start API and web.
 - Use the seeded Authority and Responder demo accounts from local developer docs; do not deploy the demo password.

@@ -5,12 +5,14 @@ import {
   NotFoundException,
   Param,
   Post,
+  Query,
   Request,
 } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { IncidentsService } from './incidents.service';
 import { Roles } from '../../common/auth/roles.decorator';
 import { UserRole } from '../users/entities/user-role.enum';
+import { OperationsSnapshotQueryDto } from '../operations/operations-snapshot-query.dto';
 
 @ApiTags('Incidents, Triage & Responder Operations')
 @Controller('api/v1/incidents')
@@ -20,15 +22,15 @@ export class IncidentsController {
   @Get()
   @Roles(UserRole.AUTHORITY, UserRole.RESPONDER, UserRole.ADMIN)
   @ApiOperation({ summary: 'List all open incidents with confidence and boat priority' })
-  async getIncidents() {
-    return this.incidentsService.getIncidents();
+  async getIncidents(@Query() query: OperationsSnapshotQueryDto) {
+    return this.incidentsService.getIncidents(query.eventId);
   }
 
   @Get('silent-areas')
   @Roles(UserRole.AUTHORITY, UserRole.RESPONDER, UserRole.ADMIN)
   @ApiOperation({ summary: 'List high-risk silent areas requiring verification by safe means' })
-  getSilentAreas() {
-    return this.incidentsService.getSilentVillages();
+  getSilentAreas(@Query() query: OperationsSnapshotQueryDto) {
+    return this.incidentsService.getSilentVillages(query.eventId);
   }
 
   @Get(':id')

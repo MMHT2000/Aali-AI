@@ -8,11 +8,12 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { VolunteerReading } from '../gauges/entities/observation.entity';
 import { SimulationRunState } from './entities/simulation-run-state.entity';
 import { AuditModule } from '../audit/audit.module';
+import { BmdCapService } from './bmd-cap.service';
 
 @Module({
   imports: [IncidentsModule, SosModule, AuditModule, TypeOrmModule.forFeature([VolunteerReading, SimulationRunState])],
   controllers: [OperationsController],
-  providers: [OperationsService, SimulationService],
+  providers: [OperationsService, SimulationService, BmdCapService],
   exports: [OperationsService, SimulationService],
 })
 export class OperationsModule {}

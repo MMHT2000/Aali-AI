@@ -1,6 +1,26 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { getOperationsSnapshot, OperationMapPoint, OperationsSnapshot, sendSimulationControl } from '../lib/operations-client';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import {
+  Activity,
+  AlertTriangle,
+  Clock3,
+  Pause,
+  Play,
+  RotateCcw,
+  SkipForward,
+  Users,
+  Volume2,
+  VolumeX,
+  Wifi,
+  WifiOff,
+} from 'lucide-react';
+import {
+  getOperationsSnapshot,
+  OperationMapPoint,
+  OperationsMode,
+  OperationsSnapshotBase,
+  sendSimulationControl,
+} from '../lib/operations-client';
 import { OperationsMap } from './OperationsMap';
 
 interface SosAlertInfo {
@@ -14,69 +34,99 @@ interface SosAlertInfo {
   receivedAt: string;
 }
 
+type ReportFilter = 'pending' | 'all';
+
 function playEmergencyBeep() {
   try {
     const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
     if (!AudioCtx) return;
-    const ctx = new AudioCtx();
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.type = 'triangle';
-    osc.frequency.setValueAtTime(880, ctx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(587.33, ctx.currentTime + 0.22);
-    gain.gain.setValueAtTime(0.2, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.28);
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    osc.start();
-    osc.stop(ctx.currentTime + 0.32);
+    const context = new AudioCtx();
+    const oscillator = context.createOscillator();
+    const gain = context.createGain();
+    oscillator.type = 'triangle';
+    oscillator.frequency.setValueAtTime(880, context.currentTime);
+    oscillator.frequency.exponentialRampToValueAtTime(587.33, context.currentTime + 0.22);
+    gain.gain.setValueAtTime(0.2, context.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, context.currentTime + 0.28);
+    oscillator.connect(gain);
+    gain.connect(context.destination);
+    oscillator.start();
+    oscillator.stop(context.currentTime + 0.32);
   } catch {
-    // Audio blocked or not supported
+    // The visual alert remains available when browser audio is blocked.
   }
 }
 
-export function OperationsOverview() {
-  const [snapshot, setSnapshot] = useState<OperationsSnapshot | null>(null);
+function formatDhakaTime(value?: string): string {
+  if (!value) return 'Time unavailable';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return 'Time unavailable';
+  return new Intl.DateTimeFormat('en-GB', {
+    timeZone: 'Asia/Dhaka',
+    day: '2-digit',
+    month: 'short',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(date);
+}
+
+function receivedTime(value?: string): string {
+  if (!value) return 'Received time unavailable';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return 'Received time unavailable';
+  return new Intl.DateTimeFormat('en-GB', {
+    timeZone: 'Asia/Dhaka',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(date);
+}
+
+function isPending(point: OperationMapPoint): boolean {
+  return point.status === 'NEEDS_REVIEW';
+}
+
+export function OperationsOverview({ mode = 'EXERCISE', eventId }: { mode?: OperationsMode; eventId?: string }) {
+  const location = useLocation();
+  const [snapshot, setSnapshot] = useState<OperationsSnapshotBase | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [controlError, setControlError] = useState<string | null>(null);
   const [activeAlert, setActiveAlert] = useState<SosAlertInfo | null>(null);
   const [soundEnabled, setSoundEnabled] = useState(true);
-
+  const [reportFilter, setReportFilter] = useState<ReportFilter>('pending');
+  const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
   const knownSosIds = useRef<Set<string>>(new Set());
   const isInitialMount = useRef(true);
 
   const refresh = useCallback(async () => {
     try {
-      const next = await getOperationsSnapshot();
+      const next = await getOperationsSnapshot({ mode, eventId });
       setSnapshot(next);
       setError(null);
 
       const currentSos: OperationMapPoint[] = next.mapLayers?.sos ?? [];
-      if (!isInitialMount.current && currentSos.length > 0) {
-        const newArrivals = currentSos.filter((item) => !knownSosIds.current.has(item.id));
-        if (newArrivals.length > 0) {
-          const newest = newArrivals[0];
+      if (currentSos.length > 0) {
+        // Keep unreviewed reports visible after a reload; later polls alert on new IDs.
+        const candidate = isInitialMount.current
+          ? currentSos.find(isPending)
+          : currentSos.find((item) => !knownSosIds.current.has(item.id));
+        if (candidate) {
           const flags: string[] = [];
-          if (newest.isTrapped) flags.push('পানিবন্দি');
-          if (newest.hasChild) flags.push('শিশু');
-          if (newest.elderlyCount) flags.push('বয়োবৃদ্ধ');
-          if (newest.hasMedicalNeed) flags.push('চিকিৎসা');
+          if (candidate.isTrapped) flags.push('Trapped');
+          if (candidate.hasChild) flags.push('Child or infant');
+          if (candidate.elderlyCount) flags.push('Older person');
+          if (candidate.hasMedicalNeed) flags.push('Medical need');
 
-          const alertInfo: SosAlertInfo = {
-            id: newest.id,
-            shortId: newest.shortId,
-            title: newest.label || newest.name || 'জরুরি এসওএস প্রাপ্তি',
-            location: newest.name || 'পরশুরাম / ফেনী',
-            peopleCount: newest.peopleCount || 1,
+          setActiveAlert({
+            id: candidate.id,
+            shortId: candidate.shortId,
+            title: candidate.label || candidate.name || 'SOS report received',
+            location: candidate.name || 'Location unavailable',
+            peopleCount: candidate.peopleCount || 1,
             flags,
-            provenance: newest.provenance || 'MOBILE_DIRECT_SOS',
-            receivedAt: newest.receivedAt || new Date().toISOString(),
-          };
-
-          setActiveAlert(alertInfo);
-          if (soundEnabled) {
-            playEmergencyBeep();
-          }
+            provenance: candidate.provenance,
+            receivedAt: candidate.receivedAt || new Date().toISOString(),
+          });
+          if (soundEnabled) playEmergencyBeep();
         }
       }
       currentSos.forEach((item) => knownSosIds.current.add(item.id));
@@ -84,27 +134,13 @@ export function OperationsOverview() {
     } catch (failure) {
       setError(failure instanceof Error ? failure.message : 'Unable to reach operations API.');
     }
-  }, [soundEnabled]);
+  }, [eventId, mode, soundEnabled]);
 
   useEffect(() => {
     void refresh();
-    const timer = window.setInterval(() => void refresh(), 4000);
+    const timer = window.setInterval(() => void refresh(), 5000);
     return () => window.clearInterval(timer);
   }, [refresh]);
-
-  const triggerTestAlert = () => {
-    playEmergencyBeep();
-    setActiveAlert({
-      id: `test-${Date.now()}`,
-      shortId: 'TEST',
-      title: 'চিথলিয়া (পরশুরাম) · ৪ জন বিপদাপন্ন',
-      location: 'চিথলিয়া প্রাইমারি স্কুল সংলগ্ন',
-      peopleCount: 4,
-      flags: ['পানিবন্দি', 'শিশু', 'বয়োবৃদ্ধ'],
-      provenance: 'MOBILE_RESIDENT_APP (Simulated D2C)',
-      receivedAt: new Date().toISOString(),
-    });
-  };
 
   const control = async (action: string, body?: unknown) => {
     setControlError(null);
@@ -116,281 +152,286 @@ export function OperationsOverview() {
     }
   };
 
+  const testAlert = () => {
+    setActiveAlert({
+      id: `local-test-${Date.now()}`,
+      shortId: 'TEST',
+      title: 'Local visual test alert',
+      location: 'Synthetic test location',
+      peopleCount: 4,
+      flags: ['Local UI test only'],
+      provenance: 'LOCAL_TEST_ONLY · NOT AN API REPORT',
+      receivedAt: new Date().toISOString(),
+    });
+    if (soundEnabled) playEmergencyBeep();
+  };
+
+  const allSos = useMemo(() => {
+    const points = snapshot?.mapLayers.sos ?? [];
+    return [...points].sort((a, b) => {
+      const pendingDelta = Number(isPending(b)) - Number(isPending(a));
+      if (pendingDelta !== 0) return pendingDelta;
+      return new Date(b.receivedAt ?? 0).getTime() - new Date(a.receivedAt ?? 0).getTime();
+    });
+  }, [snapshot?.mapLayers.sos]);
+  const pendingSos = allSos.filter(isPending);
+  const visibleSos = reportFilter === 'pending' ? pendingSos : allSos;
+  const allMapPoints = useMemo(() => {
+    if (!snapshot) return [];
+    return [
+      ...snapshot.mapLayers.sos,
+      ...snapshot.mapLayers.incidents,
+      ...snapshot.mapLayers.gauges,
+      ...snapshot.mapLayers.shelters,
+      ...snapshot.mapLayers.assets,
+      ...snapshot.mapLayers.areas,
+    ];
+  }, [snapshot]);
+  const selectedItem = allMapPoints.find((item) => item.id === selectedItemId)
+    ?? pendingSos[0]
+    ?? allSos[0]
+    ?? null;
+
   if (error && !snapshot) {
     const isAuthError = error.includes('401');
     return (
-      <section className="ops-state-card" role="alert">
-        <h2>{isAuthError ? 'লগইন সেশনের মেয়াদ শেষ (Session Expired)' : 'Operations API unavailable'}</h2>
-        <p>{isAuthError ? 'আপনার অথরাইজেশন সেশনের মেয়াদ শেষ হয়েছে। অনুগ্রহ করে পুনরায় সাইন ইন করুন।' : error}</p>
-        <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1rem', justifyContent: 'center' }}>
-          {isAuthError ? (
-            <button
-              onClick={() => {
-                try {
-                  window.localStorage?.removeItem('aali_session');
-                } catch {
-                  // ignore
-                }
-                window.dispatchEvent(new CustomEvent('aali_session_expired'));
-              }}
-              style={{ background: '#0284c7', color: 'white', padding: '0.5rem 1rem', borderRadius: '4px', border: 'none', cursor: 'pointer', fontWeight: 'bold' }}
-            >
-              পুনরায় সাইন ইন করুন (Sign in again)
-            </button>
-          ) : (
-            <button onClick={() => void refresh()}>Retry connection</button>
-          )}
+      <section className="situation-state" role="alert">
+        <div className="situation-state__icon"><AlertTriangle size={20} /></div>
+        <div>
+          <p className="situation-eyebrow">SITUATION ROOM</p>
+          <h1>{isAuthError ? 'Session expired' : 'Operations feed unavailable'}</h1>
+          <p>{isAuthError ? 'Sign in again to reconnect to the operations snapshot.' : error}</p>
+          <button type="button" onClick={() => void refresh()}>{isAuthError ? 'Sign in again' : 'Retry connection'}</button>
         </div>
       </section>
     );
   }
-  if (!snapshot) return <section className="ops-state-card" aria-live="polite">Loading API-backed operation state…</section>;
+  if (!snapshot) {
+    return <section className="situation-state" aria-live="polite"><Activity size={20} /> Loading the Feni operating picture…</section>;
+  }
 
-  const simulation = snapshot.simulation;
-  const level = simulation.alert.computedLevel;
-  const simulatedSos = simulation.incomingSos ?? snapshot.queue.incomingSimulatedSos ?? 0;
-  const liveSosList = snapshot.mapLayers.sos || [];
+  const snapshotMatchesContext = snapshot.context.mode === mode &&
+    (mode !== 'HISTORICAL' || snapshot.context.event?.id === (eventId ?? '11111111-1111-1111-1111-111111111101'));
+  if (!snapshotMatchesContext) {
+    return <section className="situation-state" aria-live="polite"><Activity size={20} /> Loading selected event and mode…</section>;
+  }
+
+  if (mode !== 'EXERCISE') {
+    const title = mode === 'LIVE' ? 'Live sources' : 'Historical reconstruction';
+    return <div className="situation-room">
+      {mode === 'LIVE' && snapshot.visibility.sos && activeAlert && <section className="sos-alert" role="alert" aria-live="assertive">
+        <div className="sos-alert__mark" aria-hidden="true">SOS</div>
+        <div className="sos-alert__main"><div className="sos-alert__heading"><strong>New API-submitted SOS report</strong><span>{activeAlert.shortId ? `Report ${activeAlert.shortId}` : activeAlert.id}</span></div>
+          <p>{activeAlert.location} · {activeAlert.peopleCount} people reported</p><small>{activeAlert.flags.join(' · ') || 'No additional needs selected'} · {activeAlert.provenance} · received {receivedTime(activeAlert.receivedAt)}</small></div>
+        <div className="sos-alert__actions"><Link to={{ pathname: '/control-room/responder', search: location.search }}>Open SOS triage</Link><button type="button" onClick={() => setActiveAlert(null)}>Dismiss alert</button></div>
+      </section>}
+      <header className="situation-heading">
+        <div><p className="situation-eyebrow">FENI DISTRICT <span>/</span> SHARED OPERATING PICTURE</p><h1>{title}</h1></div>
+        <div className="snapshot-time"><Clock3 size={15} /><span><small>SNAPSHOT · DHAKA TIME</small><strong>{formatDhakaTime(snapshot.generatedAt)} BST</strong></span></div>
+      </header>
+      <section className={`exercise-strip exercise-strip--${mode.toLowerCase()}`} aria-label="Selected data mode and source status">
+        <span className="exercise-strip__tag">{mode === 'LIVE' ? 'LIVE SOURCE STATUS' : 'HISTORICAL RECONSTRUCTION'}</span>
+        <strong>{snapshot.context.event?.name ?? 'Current API-submitted activity'}</strong>
+        <span className="exercise-strip__disclosure">{mode === 'LIVE' ? 'BMD CAP public advisories are separate from Aali rule alerts; other external feeds remain unavailable' : 'Fixture source citations and gaps are not yet verified'}</span>
+      </section>
+      <div className="situation-workspace">
+        <OperationsMap layers={snapshot.mapLayers} selectedPointId={selectedItem?.id} onSelectPoint={(point) => setSelectedItemId(point.id)} />
+        <aside className="operations-rail" aria-label="Data sources and authorized SOS activity">
+          <section className="evidence-rail"><header className="rail-heading"><div><p className="situation-eyebrow">SOURCE REGISTER</p><h2>Availability and provenance</h2></div></header>
+            {snapshot.context.sources.map((source) => <div className="evidence-line" key={source.id}><span>{source.label}</span><strong>{source.availability}</strong><small>{source.message}</small>{source.lastCheckedAt && <small>Checked {formatDhakaTime(source.lastCheckedAt)} BST</small>}{source.latestObservedAt && <small>Feed last published {formatDhakaTime(source.latestObservedAt)} BST · {source.ageSeconds == null ? 'age unknown' : `${Math.floor(source.ageSeconds / 3600)}h old`}</small>}</div>)}
+          </section>
+          {mode === 'LIVE' && <section className="evidence-rail" aria-labelledby="bmd-alerts-title">
+            <header className="rail-heading"><div><p className="situation-eyebrow">EXTERNAL SOURCE · BMD CAP</p><h2 id="bmd-alerts-title">Public weather advisories</h2></div><span className="queue-count">{snapshot.externalAlerts?.length ?? 0}</span></header>
+            {snapshot.externalAlerts?.length ? <div className="queue-list">{snapshot.externalAlerts.map((alert) => <article className="evidence-line" key={alert.id}>
+              <strong>{alert.headline}</strong>
+              <span>{alert.severity ?? 'Severity unavailable'}{alert.urgency ? ` · ${alert.urgency}` : ''}{alert.certainty ? ` · ${alert.certainty}` : ''}</span>
+              <small>{alert.areas.length ? `Area: ${alert.areas.join(', ')}` : 'Area description unavailable'} · issued {formatDhakaTime(alert.issuedAt ?? undefined)} · expires {formatDhakaTime(alert.expiresAt)}</small>
+              {alert.description && <small>{alert.description}</small>}
+              {alert.instruction && <small>Instruction: {alert.instruction}</small>}
+              <a href={alert.sourceUrl} target="_blank" rel="noreferrer">Open original CAP record</a>
+              <small>Fetched {formatDhakaTime(alert.fetchedAt)} · public source advisory; not an Aali warning or human approval</small>
+            </article>)}</div> : <p className="evidence-note">{snapshot.context.sources.find((source) => source.id === 'bmd')?.availability === 'AVAILABLE'
+              ? 'No current unexpired Actual CAP alerts were found in the fetched feed entries. No alert does not establish safety.'
+              : 'No current advisory can be confirmed while the BMD CAP feed is unavailable.'}</p>}
+          </section>}
+          {snapshot.visibility.sos && <section className="report-queue"><header className="rail-heading"><div><p className="situation-eyebrow">API-SUBMITTED REPORTS</p><h2>Current SOS activity</h2></div><span className="queue-count">{snapshot.mapLayers.sos.length}</span></header>
+            {snapshot.mapLayers.sos.length ? <div className="queue-list">{snapshot.mapLayers.sos.map((item) => <button className="sos-row" key={item.id} type="button" onClick={() => setSelectedItemId(item.id)}><span className="sos-row__content"><span className="sos-row__top"><strong>{item.name ?? item.label ?? 'Location unavailable'}</strong><time>{receivedTime(item.receivedAt)}</time></span><span className="sos-row__bottom"><span>{item.status ?? 'Received'}</span><span>{item.provenance}</span></span></span></button>)}</div> : <div className="queue-empty"><strong>{mode === 'LIVE' ? 'No current API-submitted SOS reports' : 'Historical SOS reports are not included in this reconstruction'}</strong><p>Absence of reports does not establish safety.</p></div>}
+          </section>}
+          {selectedItem && <section className="selected-record"><p className="situation-eyebrow">SELECTED RECORD</p><strong>{selectedItem.name ?? selectedItem.label ?? 'Map record'}</strong><dl><div><dt>Provenance</dt><dd>{selectedItem.provenance}</dd></div><div><dt>Coordinates</dt><dd>{selectedItem.latitude != null && selectedItem.longitude != null ? `${Number(selectedItem.latitude).toFixed(4)}, ${Number(selectedItem.longitude).toFixed(4)}` : 'Unknown · list only'}</dd></div></dl></section>}
+        </aside>
+      </div>
+    </div>;
+  }
+  if (!snapshot.simulation) return <section className="situation-state" role="alert">Exercise scenario state is unavailable.</section>;
+
+  const { simulation, queue } = snapshot;
+  const level = simulation?.alert.computedLevel ?? 'UNAVAILABLE';
+  const canControl = snapshot.visibility.simulationControls;
+  const canTriage = snapshot.visibility.sos;
+  const gauge = simulation?.sourceData?.gauge;
+  const currentLocal = new Intl.DateTimeFormat('en-GB', {
+    timeZone: 'Asia/Dhaka', hour: '2-digit', minute: '2-digit',
+  }).format(new Date(snapshot.generatedAt));
 
   return (
-    <div className="ops-overview">
-      {/* Real-time Emergency Audio-Visual Popup Banner */}
+    <div className="situation-room">
       {activeAlert && (
-        <aside
-          role="alert"
-          aria-live="assertive"
-          style={{
-            background: 'linear-gradient(90deg, #7f1d1d, #991b1b)',
-            border: '2px solid #ef4444',
-            borderRadius: '8px',
-            padding: '1rem 1.25rem',
-            marginBottom: '1rem',
-            color: '#fff',
-            boxShadow: '0 10px 25px -5px rgba(239, 68, 68, 0.5)',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '0.5rem',
-            animation: 'fadeIn 0.25s ease-in-out',
-          }}
-        >
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-              <span style={{ fontSize: '1.4rem' }}>🚨</span>
-              <strong style={{ fontSize: '1.05rem', color: '#fee2e2', letterSpacing: '0.02em' }}>
-                নতুন জরুরি এসওএস অ্যালার্ট (NEW EMERGENCY SOS ALERT)
-              </strong>
+        <section className="sos-alert" role="alert" aria-live="assertive">
+          <div className="sos-alert__mark" aria-hidden="true">SOS</div>
+          <div className="sos-alert__main">
+            <div className="sos-alert__heading">
+              <strong>{activeAlert.id.startsWith('local-test-') ? 'Local test alert' : 'New SOS report'}</strong>
+              <span>{activeAlert.shortId ? `Report ${activeAlert.shortId}` : activeAlert.id}</span>
             </div>
-            <button
-              onClick={() => setActiveAlert(null)}
-              style={{ background: 'transparent', border: 'none', color: '#fca5a5', fontSize: '1.2rem', cursor: 'pointer' }}
-              aria-label="Dismiss alert"
-            >
-              ✕
-            </button>
+            <p>{activeAlert.location} <span>·</span> {activeAlert.peopleCount} people reported</p>
+            <small>{activeAlert.flags.length ? activeAlert.flags.join(' · ') : 'No additional needs selected'} · {activeAlert.provenance} · received {receivedTime(activeAlert.receivedAt)}</small>
           </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.5rem', fontSize: '0.85rem', background: 'rgba(0,0,0,0.25)', padding: '0.65rem 0.85rem', borderRadius: '5px' }}>
-            <div>
-              <span style={{ color: '#fca5a5' }}>📍 স্থান / এলাকা:</span> <strong>{activeAlert.location}</strong>
-            </div>
-            <div>
-              <span style={{ color: '#fca5a5' }}>👥 বিপদাপন্ন ব্যক্তি:</span> <strong style={{ color: '#fbbf24' }}>{activeAlert.peopleCount} জন</strong>
-            </div>
-            <div>
-              <span style={{ color: '#fca5a5' }}>⚠️ জরুরী ঝুঁকি ফ্ল্যাগ:</span> <strong>{activeAlert.flags.length > 0 ? activeAlert.flags.join(' · ') : 'সাধারণ উদ্ধার'}</strong>
-            </div>
-            <div>
-              <span style={{ color: '#fca5a5' }}>📡 নেটওয়ার্ক উৎস:</span> <code style={{ color: '#93c5fd' }}>{activeAlert.provenance}</code>
-            </div>
+          <div className="sos-alert__actions">
+            {canTriage && <Link to={{ pathname: '/control-room/responder', search: location.search }}>Open SOS triage</Link>}
+            <button type="button" onClick={() => setActiveAlert(null)}>Dismiss alert</button>
           </div>
-
-          <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.4rem', justifyContent: 'flex-end', alignItems: 'center' }}>
-            <span style={{ fontSize: '0.75rem', color: '#fecaca' }}>
-              সময়: {new Date(activeAlert.receivedAt).toLocaleTimeString('en-GB', { timeZone: 'Asia/Dhaka' })} BST
-            </span>
-            <Link
-              to="/control-room/responder"
-              style={{
-                background: '#ea580c',
-                color: '#fff',
-                textDecoration: 'none',
-                padding: '0.45rem 0.9rem',
-                borderRadius: '4px',
-                fontSize: '0.82rem',
-                fontWeight: 'bold',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '0.35rem',
-              }}
-            >
-              🚤 উদ্ধারকারী বোট পাঠান (Dispatch Boat)
-            </Link>
-            <button
-              onClick={() => setActiveAlert(null)}
-              style={{ background: '#374151', color: '#e5e7eb', border: 'none', padding: '0.45rem 0.8rem', borderRadius: '4px', fontSize: '0.82rem', cursor: 'pointer' }}
-            >
-              স্বীকার করুন (Dismiss)
-            </button>
-          </div>
-        </aside>
+        </section>
       )}
 
-      <header className="ops-page-heading">
+      <header className="situation-heading">
         <div>
-          <span className="eyebrow">FENI DISTRICT · CENTRAL OPERATIONS</span>
-          <h1>Situation overview</h1>
-          <p>Shared operational picture from the Aali API.</p>
+          <p className="situation-eyebrow">FENI DISTRICT <span>/</span> RESPONSE OPERATIONS</p>
+          <h1>Situation room</h1>
         </div>
-        <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-          <button
-            onClick={() => setSoundEnabled((prev) => !prev)}
-            style={{
-              background: soundEnabled ? '#0f766e' : '#334155',
-              color: '#fff',
-              border: '1px solid #14b8a6',
-              padding: '0.35rem 0.65rem',
-              borderRadius: '4px',
-              fontSize: '0.75rem',
-              cursor: 'pointer',
-            }}
-            title="টগল অ্যালার্ট শব্দ"
-          >
-            {soundEnabled ? '🔊 অ্যালার্ট সাউন্ড চালু' : '🔇 নিঃশব্দ'}
+        <div className="situation-heading__status">
+          <div className="snapshot-time"><Clock3 size={15} /><span><small>API SNAPSHOT · DHAKA TIME</small><strong>{currentLocal} BST</strong></span></div>
+          <button className="quiet-button" type="button" aria-pressed={soundEnabled} onClick={() => setSoundEnabled((enabled) => !enabled)}>
+            {soundEnabled ? <Volume2 size={16} /> : <VolumeX size={16} />}{soundEnabled ? 'Alert sound on' : 'Alert sound off'}
           </button>
-          <button
-            onClick={triggerTestAlert}
-            style={{
-              background: '#0284c7',
-              color: '#fff',
-              border: 'none',
-              padding: '0.35rem 0.65rem',
-              borderRadius: '4px',
-              fontSize: '0.75rem',
-              cursor: 'pointer',
-              fontWeight: 'bold',
-            }}
-          >
-            🔔 টেস্ট অ্যালার্ট
-          </button>
-          <div className="ops-updated">
-            <span className="status-dot" />
-            API snapshot<br />
-            <small>{new Date(snapshot.generatedAt).toLocaleTimeString('en-GB', { timeZone: 'Asia/Dhaka', hour: '2-digit', minute: '2-digit', second: '2-digit' })} BST</small>
-          </div>
         </div>
       </header>
 
-      <section className="exercise-banner" aria-label="Simulation status">
-        <div><span className="exercise-live-dot" /><strong>SYNTHETIC EXERCISE</strong><span>{simulation.scenarioName}</span><small>API fixture · not a live flood feed · no pretrained forecast model</small></div>
-        <span className="exercise-tick">TICK {simulation.tickIndex + 1} / {simulation.totalTicks}</span>
+      <section className="exercise-strip" aria-label="Data mode and exercise status">
+        <span className="exercise-strip__tag">SYNTHETIC EXERCISE</span>
+        <strong>{simulation.scenarioName}</strong>
+        <span className="exercise-strip__divider" />
+        <span>{simulation.running ? 'RUNNING' : 'PAUSED'} · tick {simulation.tickIndex + 1} of {simulation.totalTicks}</span>
+        <span className="exercise-strip__disclosure">Fixture data · not a live flood feed</span>
       </section>
 
-      <section className="ops-kpis" aria-label="Operational indicators">
-        <article className={`ops-kpi ops-kpi--${level.toLowerCase()}`}><span>RULE ALERT LEVEL</span><strong>{level}</strong><small>{simulation.alert.reasonCodes?.length ? simulation.alert.reasonCodes.join(' · ') : 'No configured signal threshold crossed'}</small></article>
-        <article className="ops-kpi"><span>OPEN INCIDENTS</span><strong>{snapshot.queue.activeIncidents ?? '—'}</strong><small>{snapshot.queue.strandedPeople ?? '—'} people in fixture incidents</small></article>
-        <article className="ops-kpi" style={{ borderLeft: liveSosList.length > 0 ? '4px solid #ea580c' : undefined }}>
-          <span>LIVE RESIDENT SOS</span>
-          <strong style={{ color: liveSosList.length > 0 ? '#f97316' : 'inherit' }}>{liveSosList.length}</strong>
-          <small>{simulatedSos} scenario simulation activities</small>
+      <section className="situation-summary" aria-label="Operational status">
+        <article className={`summary-cell summary-cell--${level.toLowerCase()}`}>
+          <span className="summary-cell__label">RULE ALERT</span>
+          <strong>{level}</strong>
+          <small>{simulation.alert.reasonCodes?.length ? simulation.alert.reasonCodes.join(' · ') : 'No rule threshold crossed'}</small>
         </article>
-        <article className="ops-kpi"><span>RIVER GAUGE</span><strong>{simulation.sourceData?.gauge.available ? `${simulation.sourceData.gauge.valueM.toFixed(2)} m` : 'STALE'}</strong><small>{simulation.sourceData?.gauge.source ?? 'Evidence hidden for this role'}</small></article>
+        <article className="summary-cell summary-cell--urgent">
+          <span className="summary-cell__label">SOS NEEDING REVIEW</span>
+          <strong>{queue.reportsPendingReview ?? pendingSos.length}</strong>
+          <small>{pendingSos.length === 1 ? 'report awaits a responder' : 'reports await a responder'}</small>
+        </article>
+        <article className="summary-cell">
+          <span className="summary-cell__label">OPEN INCIDENTS</span>
+          <strong>{queue.activeIncidents ?? '—'}</strong>
+          <small>{queue.strandedPeople ?? '—'} people in linked incidents</small>
+        </article>
+        <article className="summary-cell">
+          <span className="summary-cell__label">MUHURI GAUGE · SCENARIO</span>
+          <strong>{gauge?.available ? `${gauge.valueM.toFixed(2)} m` : 'Unavailable'}</strong>
+          <small>{gauge?.source ?? 'No scenario reading available'}</small>
+        </article>
       </section>
 
-      <div className="ops-main-grid">
-        <OperationsMap layers={snapshot.mapLayers} />
-        <aside className="ops-right-rail">
-          {/* Live Mobile / Resident SOS Feed */}
-          <section className="ops-panel" style={{ border: '1px solid #c2410c', background: '#1c1917' }}>
-            <div className="ops-panel-heading">
+      <div className="situation-workspace">
+        <OperationsMap
+          layers={snapshot.mapLayers}
+          selectedPointId={selectedItem?.id}
+          onSelectPoint={(point) => setSelectedItemId(point.id)}
+        />
+
+        <aside className="operations-rail" aria-label="Priority reports and evidence">
+          <section className="report-queue" aria-labelledby="report-queue-title">
+            <header className="rail-heading">
               <div>
-                <span className="eyebrow" style={{ color: '#fb923c' }}>REAL-TIME FEED</span>
-                <h2 style={{ color: '#ffedd5' }}>🚨 লাইভ এসওএস রিপোর্ট ({liveSosList.length})</h2>
+                <p className="situation-eyebrow">RESPONSE QUEUE</p>
+                <h2 id="report-queue-title">Resident SOS</h2>
               </div>
-              <span style={{ background: '#7c2d12', color: '#fed7aa', padding: '0.2rem 0.5rem', borderRadius: '4px', fontSize: '0.7rem', fontWeight: 'bold' }}>
-                LIVE
-              </span>
+              <span className="queue-count" aria-label={`${pendingSos.length} reports need review`}>{pendingSos.length}</span>
+            </header>
+            <div className="queue-filter" role="group" aria-label="SOS report filter">
+              <button type="button" aria-pressed={reportFilter === 'pending'} onClick={() => setReportFilter('pending')}>Needs review <span>{pendingSos.length}</span></button>
+              <button type="button" aria-pressed={reportFilter === 'all'} onClick={() => setReportFilter('all')}>All reports <span>{allSos.length}</span></button>
             </div>
-            {liveSosList.length === 0 ? (
-              <p className="muted">মোবাইল অ্যাপ বা D2C গেটওয়ে থেকে এখনও কোনো এসওএস রিপোর্ট জমা পড়েনি। অ্যান্ড্রয়েড অ্যাপ থেকে এসওএস পাঠালে এখানে তৎক্ষণাৎ যুক্ত হবে।</p>
+            {visibleSos.length === 0 ? (
+              <div className="queue-empty">
+                <div className="queue-empty__icon"><Users size={18} /></div>
+                <strong>{reportFilter === 'pending' ? 'No SOS awaiting review' : 'No SOS reports in this snapshot'}</strong>
+                <p>No report here does not indicate that an area is safe.</p>
+              </div>
             ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', maxHeight: '220px', overflowY: 'auto' }}>
-                {liveSosList.map((item) => (
-                  <div
+              <div className="queue-list" aria-label="SOS reports">
+                {visibleSos.map((item) => (
+                  <button
+                    className={`sos-row${isPending(item) ? ' sos-row--pending' : ''}${selectedItem?.id === item.id ? ' is-selected' : ''}`}
                     key={item.id}
-                    style={{
-                      background: '#292524',
-                      border: '1px solid #44403c',
-                      borderRadius: '5px',
-                      padding: '0.55rem 0.75rem',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: '0.25rem',
-                    }}
+                    type="button"
+                    aria-pressed={selectedItem?.id === item.id}
+                    onClick={() => setSelectedItemId(item.id)}
                   >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <strong style={{ fontSize: '0.8rem', color: '#fed7aa' }}>
-                        {item.label ?? item.name}
-                      </strong>
-                      <span style={{ fontSize: '0.68rem', padding: '0.15rem 0.4rem', borderRadius: '3px', background: item.status === 'NEEDS_REVIEW' ? '#7f1d1d' : '#1e3a5f', color: '#fff' }}>
-                        {item.status ?? 'RECEIVED'}
-                      </span>
-                    </div>
-                    <div style={{ fontSize: '0.72rem', color: '#a8a29e' }}>
-                      <span>বিপদাপন্ন: <strong style={{ color: '#fbbf24' }}>{item.peopleCount ?? 1} জন</strong></span>
-                      {' · '}
-                      <span>উৎস: <code style={{ color: '#93c5fd' }}>{item.provenance}</code></span>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '0.2rem' }}>
-                      <Link
-                        to="/control-room/responder"
-                        style={{ fontSize: '0.72rem', color: '#fb923c', textDecoration: 'underline' }}
-                      >
-                        রেসকিউ টিম নিয়োগ করুন →
-                      </Link>
-                    </div>
-                  </div>
+                    <span className="sos-row__marker" aria-hidden="true">{isPending(item) ? '!' : '·'}</span>
+                    <span className="sos-row__content">
+                      <span className="sos-row__top"><strong>{item.name ?? item.label ?? 'Location unavailable'}</strong><time>{receivedTime(item.receivedAt)}</time></span>
+                      <span className="sos-row__meta">{item.peopleCount ?? 1} people · {item.shortId ? `ID ${item.shortId}` : 'ID unavailable'}</span>
+                      <span className="sos-row__bottom"><span className={isPending(item) ? 'status-label status-label--urgent' : 'status-label'}>{isPending(item) ? 'Needs review' : item.status ?? 'Received'}</span><span>{item.provenance}</span></span>
+                    </span>
+                  </button>
                 ))}
               </div>
             )}
-            <p className="provenance-note" style={{ marginTop: '0.5rem' }}>
-              মোবাইল ও D2C রিলে সরাসরি এই কেন্দ্রীয় তালিকায় রিয়েল-টাইম আপডেট হয়।
-            </p>
+            {selectedItem && (
+              <div className="selected-record" aria-live="polite">
+                <p className="situation-eyebrow">SELECTED RECORD</p>
+                <strong>{selectedItem.name ?? selectedItem.label ?? 'Map record'}</strong>
+                <dl>
+                  <div><dt>Status</dt><dd>{selectedItem.status ?? 'Not provided'}</dd></div>
+                  <div><dt>Source</dt><dd>{selectedItem.provenance}</dd></div>
+                  <div><dt>Coordinates</dt><dd>{selectedItem.latitude != null && selectedItem.longitude != null ? `${Number(selectedItem.latitude).toFixed(4)}, ${Number(selectedItem.longitude).toFixed(4)}` : 'Unknown · list only'}</dd></div>
+                </dl>
+                {canTriage && snapshot.mapLayers.sos.some((item) => item.id === selectedItem.id) && <Link to={{ pathname: '/control-room/responder', search: location.search }} className="rail-action">Review in SOS workspace <span aria-hidden="true">→</span></Link>}
+              </div>
+            )}
           </section>
 
-          <section className="ops-panel ops-evidence-panel">
-            <div className="ops-panel-heading"><div><span className="eyebrow">RULE INPUTS</span><h2>Alert evidence</h2></div><span className={`alert-pill alert-pill--${level.toLowerCase()}`}>{level}</span></div>
+          <section className="evidence-rail" aria-labelledby="rule-evidence-title">
+            <header className="rail-heading rail-heading--compact">
+              <div><p className="situation-eyebrow">DETERMINISTIC RULE OUTPUT</p><h2 id="rule-evidence-title">Alert evidence</h2></div>
+              <span className={`rule-level rule-level--${level.toLowerCase()}`}>{level}</span>
+            </header>
             {simulation.sourceData ? <>
-              <div className="evidence-row"><span>Muhuri gauge</span><strong>{simulation.sourceData.gauge.available ? `${simulation.sourceData.gauge.valueM.toFixed(2)} m` : 'No reading · stale'}</strong></div>
-              <div className="evidence-row"><span>Rainfall · 3h</span><strong>{simulation.sourceData.rainfall.valueMm} mm</strong></div>
-              <div className="evidence-row"><span>Volunteer reading</span><strong>{simulation.sourceData.volunteerReading.available ? 'Reported' : 'Unavailable'}</strong></div>
-              <div className="reason-list">{simulation.alert.reasonCodes?.map((reason) => <span key={reason}>{reason}</span>) ?? <span>Rule engine returned no reason codes.</span>}</div>
-              <p className="provenance-note">Deterministic alert rule output. Thresholds are prototype starting values, not validated forecasts.</p>
-            </> : <p className="muted">Detailed source evidence is limited for this role.</p>}
-          </section>
-
-          <section className="ops-panel ops-simulation-panel">
-            <div className="ops-panel-heading"><div><span className="eyebrow">DEMO CONTROLS</span><h2>Scenario playback</h2></div><span className={simulation.running ? 'run-state run-state--on' : 'run-state'}>{simulation.running ? 'RUNNING' : 'PAUSED'}</span></div>
-            <p>{simulation.provenance} · tick {simulation.tickIndex + 1} of {simulation.totalTicks}</p>
-            {['AUTHORITY', 'ADMIN'].includes(snapshot.role) ? <>
-            <div className="simulation-buttons">
-              <button onClick={() => void control(simulation.running ? 'pause' : 'start')}>{simulation.running ? 'Pause' : 'Run exercise'}</button>
-              <button onClick={() => void control('step')}>Step forward</button>
-              <button className="button-secondary" onClick={() => void control('reset')}>Reset</button>
-            </div>
-            <label className="control-label">Playback speed<select value={simulation.speed ?? 1} onChange={(event) => void control('speed', { speed: Number(event.target.value) })}><option value={1}>1× · 5 sec/tick</option><option value={2}>2× · 2.5 sec/tick</option><option value={4}>4× · 1.25 sec/tick</option></select></label>
-            <label className="connectivity-toggle"><input type="checkbox" checked={simulation.connectivity?.internetAvailable ?? true} onChange={(event) => void control('connectivity', { internetAvailable: event.target.checked })} />Simulate internet available</label>
-            <p className="provenance-note">Connectivity toggle affects the simulator state only. It does not send an SMS or represent carrier delivery.</p>
-            {controlError && <p className="error-inline" role="alert">{controlError}</p>}
-            </> : <p className="provenance-note">Read-only scenario view. Controls are restricted to Authority and Admin.</p>}
-          </section>
-
-          <section className="ops-panel ops-queue-panel"><div className="ops-panel-heading"><div><span className="eyebrow">RESPONSE QUEUE</span><h2>Needs attention</h2></div></div>
-            {snapshot.queue.reportsPendingReview !== undefined && <div className="evidence-row"><span>Reports pending review</span><strong>{snapshot.queue.reportsPendingReview}</strong></div>}
-            {snapshot.mapLayers.incidents.length ? snapshot.mapLayers.incidents.slice(0, 5).map((item) => <div className="queue-item" key={item.id}><i /><div><strong>{item.label ?? item.name}</strong><span>{item.status} · {item.peopleCount ?? 0} people · {item.provenance}</span></div></div>) : <p className="muted">No incident records in this role’s operational view.</p>}
-            <p className="provenance-note">Synthetic fixture incidents and API submitted SOS reports are distinguished on the map and list.</p>
+              <div className="evidence-line"><span>Muhuri gauge</span><strong>{simulation.sourceData.gauge.available ? `${simulation.sourceData.gauge.valueM.toFixed(2)} m` : 'Unavailable'}</strong></div>
+              <div className="evidence-line"><span>Rainfall · scenario</span><strong>{simulation.sourceData.rainfall.available ? `${simulation.sourceData.rainfall.valueMm} mm` : 'Unavailable'}</strong></div>
+              <div className="evidence-line"><span>Volunteer observation</span><strong>{simulation.sourceData.volunteerReading.available ? 'Submitted' : 'Unavailable'}</strong></div>
+              <div className="rule-reasons" aria-label="Alert reason codes">
+                {simulation.alert.reasonCodes?.length ? simulation.alert.reasonCodes.map((reason) => <span key={reason}>{reason}</span>) : <span className="rule-reasons__none">No reason codes returned by the rule engine</span>}
+              </div>
+              <p className="evidence-note">Scenario state updated {formatDhakaTime(simulation.simulatedAt)}. Rule output only; this is not a validated forecast.</p>
+            </> : <p className="evidence-note">Detailed rule inputs are not available to this role.</p>}
           </section>
         </aside>
       </div>
-      {error && <p className="error-inline" role="status">Last refresh failed; showing the previous API snapshot. {error}</p>}
+
+      {canControl && <details className="exercise-controls">
+        <summary><span><Activity size={16} /> Exercise controls</span><span>{simulation.running ? 'Running' : 'Paused'} · tick {simulation.tickIndex + 1}/{simulation.totalTicks}</span></summary>
+        <div className="exercise-controls__body">
+          <div className="exercise-controls__actions">
+            <button type="button" onClick={() => void control(simulation.running ? 'pause' : 'start')}>{simulation.running ? <Pause size={15} /> : <Play size={15} />}{simulation.running ? 'Pause' : 'Start exercise'}</button>
+            <button type="button" onClick={() => void control('step')}><SkipForward size={15} />Advance one tick</button>
+            <button type="button" onClick={() => void control('reset')}><RotateCcw size={15} />Reset</button>
+          </div>
+          <label className="exercise-speed">Speed<select value={simulation.speed ?? 1} onChange={(event) => void control('speed', { speed: Number(event.target.value) })}><option value={1}>1×</option><option value={2}>2×</option><option value={4}>4×</option></select></label>
+          <label className="exercise-connectivity">{simulation.connectivity?.internetAvailable ? <Wifi size={15} /> : <WifiOff size={15} />}<input type="checkbox" checked={simulation.connectivity?.internetAvailable ?? true} onChange={(event) => void control('connectivity', { internetAvailable: event.target.checked })} />Scenario internet available</label>
+          <button className="local-test-alert" type="button" onClick={testAlert}>Test local alert display</button>
+          <span className="exercise-disclaimer">Connectivity is a scenario toggle; it does not send SMS or represent carrier delivery.</span>
+          {controlError && <p className="situation-error" role="alert">{controlError}</p>}
+        </div>
+      </details>}
+
+      {error && <p className="situation-warning" role="status">Last snapshot request failed; showing the previous API data. {error}</p>}
     </div>
   );
 }
