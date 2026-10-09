@@ -270,7 +270,7 @@ The prototype is ready only when a reviewer can, using synthetic data and the wr
 - [x] Phase 1 — scaffold and local development
 - [x] Phase 2 — schema, migrations, auth and seeds
 - [x] Phase 3 — packet and offline SOS
-- [ ] Phase 4 — transport simulation
+- [x] Phase 4 — transport simulation
 - [ ] Phase 5 — responder dashboard and deterministic rules
 - [ ] Phase 6 — flood replay and warning approval
 - [ ] Phase 7 — AI language layer and fallback

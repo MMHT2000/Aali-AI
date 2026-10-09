@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { ApiHealthResponse, ApiReadinessResponse, checkApiHealth, checkApiReadiness } from './lib/api-client';
+import { GatewaySimulator } from './components/GatewaySimulator';
 import { ThreeTapSos } from './components/ThreeTapSos';
 import './App.css';
 
@@ -47,6 +48,7 @@ export function App() {
       {/* Primary SOS Interactive Section */}
       <section style={{ margin: '1rem 0' }}>
         <ThreeTapSos />
+        <GatewaySimulator />
       </section>
 
       <main className="grid-cards">

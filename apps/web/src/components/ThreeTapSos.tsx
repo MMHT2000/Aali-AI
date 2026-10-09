@@ -7,9 +7,7 @@ interface ThreeTapSosProps {
 }
 
 export function ThreeTapSos({ onReportCreated }: ThreeTapSosProps) {
-  // Step 1: Need Rescue & People Count
-  // Step 2: Vulnerability Flags
-  // Step 3: Location (GPS or Village fallback)
+  const [isBlackoutMode, setIsBlackoutMode] = useState<boolean>(false);
   const [step, setStep] = useState<number>(1);
   const [peopleCount, setPeopleCount] = useState<number>(1);
   const [elderlyCount, setElderlyCount] = useState<number>(0);
@@ -83,7 +81,13 @@ export function ThreeTapSos({ onReportCreated }: ThreeTapSosProps) {
     setCreatedItem(outboxItem);
     if (onReportCreated) onReportCreated(outboxItem);
 
-    // 2. Try immediate online submission if available
+    // 2. Try immediate online submission if NOT in blackout mode
+    if (isBlackoutMode) {
+      setCreatedItem(outboxItem);
+      setSubmitting(false);
+      return;
+    }
+
     try {
       const res = await fetch('/api/v1/sos', {
         method: 'POST',
@@ -134,9 +138,19 @@ export function ThreeTapSos({ onReportCreated }: ThreeTapSosProps) {
 
   return (
     <div className="sos-flow-container" style={{ background: '#1e293b', padding: '1.25rem', borderRadius: '8px', border: '1px solid #475569' }}>
-      <h3 style={{ fontSize: '1.2rem', marginBottom: '0.75rem', color: '#f87171' }}>
-        🚨 জরুরি উদ্ধার অনুরোধ / 3-Tap SOS
-      </h3>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+        <h3 style={{ fontSize: '1.2rem', color: '#f87171', margin: 0 }}>
+          🚨 জরুরি উদ্ধার অনুরোধ / 3-Tap SOS
+        </h3>
+        <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.8rem', color: isBlackoutMode ? '#f59e0b' : '#94a3b8', cursor: 'pointer', background: '#0f172a', padding: '0.2rem 0.5rem', borderRadius: '4px', border: '1px solid #475569' }}>
+          <input
+            type="checkbox"
+            checked={isBlackoutMode}
+            onChange={(e) => setIsBlackoutMode(e.target.checked)}
+          />
+          <span>টেলিকম ব্ল্যাকআউট সিমুলেশন / Blackout Mode</span>
+        </label>
+      </div>
 
       {!createdItem ? (
         <div>

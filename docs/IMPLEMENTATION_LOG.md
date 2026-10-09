@@ -163,3 +163,44 @@ Antigravity must append an entry after each completed phase. Do not pre-fill com
   - Web SMS composer handoff opens the device composer (`sms:1090`) or copies the ASCII packet; it does not claim background transmission from the browser.
 - **Open issues:** None for Phase 3.
 - **Next phase:** Phase 4 — Transport adapters and blackout demonstration.
+
+---
+
+### 2026-10-09 — Phase 4: Transport Adapters and Blackout Demonstration
+- **Baseline:** Phase 3 complete with Disaster Packet encoder/decoder and 3-tap SOS capture.
+- **Files changed:**
+  - `apps/api/src/modules/gateway/transport-adapter.interface.ts` (TransportAdapter, SmsGatewayIngestResult, TransportResult)
+  - `apps/api/src/modules/gateway/dto/gateway-ingest.dto.ts` (SimulatedGatewayIngestDto)
+  - `apps/api/src/modules/gateway/gateway.service.ts` (simulated packet ingestion, validation, and checksum-based deduplication)
+  - `apps/api/src/modules/gateway/gateway.controller.ts` (`POST /api/v1/gateway/simulated/ingest`, `GET /api/v1/gateway/simulated/traces`)
+  - `apps/api/src/modules/gateway/gateway.module.ts`, `apps/api/src/app.module.ts`
+  - `apps/api/src/modules/gateway/gateway.service.spec.ts` (unit tests for simulation flag, deduplication, and checksum error rejection)
+  - `apps/web/src/components/ThreeTapSos.tsx` (added Telecom Blackout Simulation toggle mode)
+  - `apps/web/src/components/GatewaySimulator.tsx` (carrier SMS gateway simulation view with sample packet loader and simulated delivery feedback)
+  - `apps/web/src/components/GatewaySimulator.spec.tsx` (component tests for gateway simulation UI)
+  - `apps/web/src/App.tsx` (integrated GatewaySimulator below SOS view)
+  - `IMPLEMENTATION_PLAN.md` (updated Phase 4 checklist)
+- **Behavior delivered:**
+  - `POST /api/v1/gateway/simulated/ingest`: accepts raw packets, validates CRC-16 checksums, ingests new reports, and explicitly returns `simulation: true`.
+  - Idempotency guard: duplicate packet submissions at the gateway simulator return `status: DUPLICATE_IGNORED` and `isIdempotentDuplicate: true` with the original report ID, preventing duplicate incident records.
+  - Blackout Mode toggle: user can simulate internet disruption in the UI. When enabled, SOS submissions bypass direct HTTP calls and remain queued in the local IndexedDB outbox, exposing the ASCII packet for transport handoff.
+  - Gateway Simulator UI: explicitly labeled with "DEMO SIMULATION ONLY", allowing operators/users to forward queued packets into the system through simulated carrier relays.
+- **Commands run:**
+  - `npm.cmd test` (exited 0: 20 API unit tests passed across 5 test suites; 5 Web component tests passed across 3 test suites)
+  - `npm.cmd run typecheck` (exited 0 across all workspaces)
+  - `npm.cmd run lint` (exited 0: 0 errors, 0 warnings)
+  - `npm.cmd run build` (exited 0: clean compilation of API and Web)
+  - Live Node client verification:
+    - First packet ingest: HTTP 201, `simulation: true`, `status: ACCEPTED`.
+    - Resubmission of identical packet: HTTP 201, `simulation: true`, `status: DUPLICATE_IGNORED`, `isIdempotentDuplicate: true`.
+    - Tampered packet: HTTP 400 Bad Request with `CHECKSUM_MISMATCH`.
+- **Acceptance criteria:**
+  - Labeled gateway simulation with `simulation: true`: PASS
+  - Idempotent packet deduplication: PASS
+  - Corrupted packet rejected with error details: PASS
+  - Telecom blackout mode keeping SOS queued: PASS
+  - UI labels simulated stages visibly: PASS
+- **Simulated or unverified integrations:**
+  - Carrier SMS gateway and satellite relays are explicitly labelled and run as deterministic simulations. No carrier contracts or satellite hardware are claimed.
+- **Open issues:** None for Phase 4.
+- **Next phase:** Phase 5 — Responder dashboard, confidence, incidents and asset ranking.
