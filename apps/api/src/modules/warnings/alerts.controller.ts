@@ -97,3 +97,4 @@ export class AlertsController {
     return this.alertsService.simulateBroadcast(id);
   }
 }
+

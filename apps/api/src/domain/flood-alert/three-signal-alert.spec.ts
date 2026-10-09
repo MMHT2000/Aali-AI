@@ -162,3 +162,4 @@ describe('Three-Signal Alert Domain Rule', () => {
     expect(result.computedLeadTimeHours).toBe(6.0);
   });
 });
+

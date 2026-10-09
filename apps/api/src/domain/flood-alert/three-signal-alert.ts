@@ -185,3 +185,4 @@ export function evaluateThreeSignalAlert(input: ThreeSignalAlertInput): ThreeSig
     prototypeNotice: 'Prototype starting values for decision-support demo only. Not an operational meteorological forecast.',
   };
 }
+

@@ -11,3 +11,4 @@ import { AlertsController } from './alerts.controller';
   exports: [AlertsService],
 })
 export class WarningsModule {}
+

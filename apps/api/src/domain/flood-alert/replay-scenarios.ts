@@ -116,3 +116,4 @@ export const REPLAY_SCENARIOS: ReplayScenario[] = [
     ],
   },
 ];
+

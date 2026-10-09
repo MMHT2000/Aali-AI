@@ -272,7 +272,7 @@ The prototype is ready only when a reviewer can, using synthetic data and the wr
 - [x] Phase 3 — packet and offline SOS
 - [x] Phase 4 — transport simulation
 - [x] Phase 5 — responder dashboard and deterministic rules
-- [ ] Phase 6 — flood replay and warning approval
+- [x] Phase 6 — flood replay and warning approval
 - [ ] Phase 7 — AI language layer and fallback
 - [ ] Phase 8 — recovery ledger
 - [ ] Phase 9 — security, accessibility, E2E and demo freeze

@@ -159,11 +159,20 @@ export function App() {
               </div>
             </li>
             <li className="roadmap-item">
-              <span className="roadmap-status status-pending">Phase 4-9</span>
+              <span className="roadmap-status status-active">Phase 5 & 6</span>
               <div>
-                <strong>Simulator, Dashboard, Replay & Recovery</strong>
+                <strong>Dashboard, Replay & Warning Approvals</strong>
                 <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-                  Gateway simulator, silent-village flags, boat ranking, historical replay, recovery ledger.
+                  Deterministic 3-signal rules, historical replay, sensor blackout escalation, and role-guarded warnings.
+                </p>
+              </div>
+            </li>
+            <li className="roadmap-item">
+              <span className="roadmap-status status-pending">Phase 7-9</span>
+              <div>
+                <strong>AI Language Layer, Recovery & Security</strong>
+                <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                  Bangla/Banglish NLP extraction with deterministic fallback, recovery ledger, and audit log.
                 </p>
               </div>
             </li>
