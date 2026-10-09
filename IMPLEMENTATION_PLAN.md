@@ -304,11 +304,11 @@ This status supersedes earlier blanket completion labels where they conflict wit
 - [x] Service actor context and security audit logging are consistently attributed to authenticated users for warnings, incidents, aid deliveries, and volunteer field reports.
 - [x] Expanded API authorization suite (`authorization.e2e.spec.ts`) verifies forbidden routes (403) and authorized capabilities for every role (Viewer, Volunteer, Recovery Coordinator, Responder, Authority, Admin).
 - [x] Resident Simulator aligned with backend `CreateSosDto` and `SimulatedGatewayIngestDto`, utilizing CRC16-CCITT Base36 disaster packet encoding and authenticated API fetch.
-- [x] Flutter mobile client (`apps/mobile/`) generated with native Android Gradle scaffold; `flutter analyze` passes with 0 issues; Dart unit tests pass 9/9.
+- [x] Flutter mobile client (`apps/mobile/`) generated with native Android Gradle scaffold; `flutter analyze` passes with 0 issues; Dart unit tests pass 10/10.
+- [x] Local Android execution verified: Android Studio, OpenJDK 21, Android SDK Platform 36, and NDK 28 integrated; `app-debug.apk` successfully compiled via `flutter build apk --debug`.
 - [x] Web typecheck, lint, tests (30/30) and production build pass; API typecheck, lint and tests (89/89 across 20 suites) pass.
 
 ### Still incomplete or limited
-- [ ] Local Android execution requires Android SDK setup (Android Studio / SDK command-line tools) on this host; Flutter 3.47.7 and Dart 3.13.5 are present, but host currently lacks the Android SDK path.
 - [ ] Sentinel-1 SAR flood footprint in the recovery ledger is a simulated visual overlay, not a live satellite feed.
 - [ ] Emergency telecom gateway and satellite forwarding remain explicitly labelled simulations for demo safety.
 
