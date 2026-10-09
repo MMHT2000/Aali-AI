@@ -10,3 +10,4 @@ import { GatewayService } from './gateway.service';
   exports: [GatewayService],
 })
 export class GatewayModule {}
+

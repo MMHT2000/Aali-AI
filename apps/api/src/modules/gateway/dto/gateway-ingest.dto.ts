@@ -26,3 +26,4 @@ export class SimulatedGatewayIngestDto {
   @IsOptional()
   receivedAt?: string;
 }
+

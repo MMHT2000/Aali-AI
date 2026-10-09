@@ -34,3 +34,4 @@ describe('GatewaySimulator Component', () => {
     expect(screen.getByText(/ACCEPTED/i)).toBeInTheDocument();
   });
 });
+
