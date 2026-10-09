@@ -37,8 +37,8 @@ describe('HealthController', () => {
   describe('getReadiness', () => {
     it('should return readiness structure', async () => {
       const res = await healthController.getReadiness();
-      expect(res.status).toBe('ready');
-      expect(res.checks.database.status).toBe('up');
+      expect(res.status).toBe('not_ready');
+      expect(res.checks.database.status).toBe('unconfigured');
     });
   });
 });

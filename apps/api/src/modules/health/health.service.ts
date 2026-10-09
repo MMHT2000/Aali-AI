@@ -1,5 +1,7 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable, Optional } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { DataSource } from 'typeorm';
+import { getDataSourceToken } from '@nestjs/typeorm';
 
 export interface HealthStatus {
   status: 'ok' | 'degraded' | 'error';
@@ -29,7 +31,10 @@ export interface ReadinessStatus {
 
 @Injectable()
 export class HealthService {
-  constructor(private readonly configService: ConfigService) {}
+  constructor(
+    private readonly configService: ConfigService,
+    @Optional() @Inject(getDataSourceToken()) private readonly dataSource?: DataSource,
+  ) {}
 
   getLiveness(): { status: string; timestamp: string } {
     return {
@@ -56,14 +61,23 @@ export class HealthService {
   }
 
   async getReadiness(): Promise<ReadinessStatus> {
-    // In Phase 1 without strict DB dependency yet, reports readiness status clearly
+    let databaseStatus: 'up' | 'down' | 'unconfigured' = 'down';
+    if (!this.dataSource) databaseStatus = 'unconfigured';
+    else if (this.dataSource.isInitialized) {
+      try {
+        await this.dataSource.query('SELECT 1');
+        databaseStatus = 'up';
+      } catch {
+        databaseStatus = 'down';
+      }
+    }
     return {
-      status: 'ready',
+      status: databaseStatus === 'up' ? 'ready' : 'not_ready',
       timestamp: new Date().toISOString(),
       checks: {
         database: {
-          status: 'up',
-          message: 'Database connection check configured for MySQL 8.4',
+          status: databaseStatus,
+          message: databaseStatus === 'up' ? 'MySQL is accepting queries.' : 'MySQL is unavailable; API data is not ready.',
         },
       },
     };

@@ -1,4 +1,6 @@
-import { useState, useEffect } from 'react';
+import { FormEvent, useEffect, useState } from 'react';
+import { Navigate, NavLink, Route, Routes, useLocation } from 'react-router-dom';
+import { Activity, AlertTriangle, ClipboardList, Map, Radio, Settings, ShieldCheck, Truck, Users, Waves } from 'lucide-react';
 import { UserSession } from './Login';
 import { ResponderDashboard } from './ResponderDashboard';
 import { FloodReplayWarning } from './FloodReplayWarning';
@@ -9,261 +11,75 @@ import { GatewaySimulator } from './GatewaySimulator';
 import { ResidentSimulator } from './ResidentSimulator';
 import { SettingsPanel } from './SettingsPanel';
 import { AuditViewer } from './AuditViewer';
+import { OperationsOverview } from './OperationsOverview';
+import { getOperationsSnapshot, OperationMapPoint } from '../lib/operations-client';
+import { apiFetch } from '../lib/authenticated-fetch';
+import { canAccessControlRoomRoute } from '../lib/control-room-access';
 import { checkApiHealth, ApiHealthResponse } from '../lib/api-client';
+import './ControlRoom.css';
 
-export type ControlRoomTab =
-  | 'overview'
-  | 'triage'
-  | 'alerts'
-  | 'replay'
-  | 'recovery'
-  | 'ai'
-  | 'audit'
-  | 'settings'
-  | 'simulator';
-
-interface ControlRoomProps {
-  session: UserSession;
-  onLogout: () => void;
-}
+interface ControlRoomProps { session: UserSession; onLogout: () => void }
+const routes = [
+  { path: '/control-room/map', label: 'Situation map', icon: Map },
+  { path: '/control-room/responder', label: 'Rescue operations', icon: Radio },
+  { path: '/control-room/alerts', label: 'Alerts & approvals', icon: AlertTriangle },
+  { path: '/control-room/replay', label: 'Replay & exercise', icon: Activity },
+  { path: '/control-room/recovery', label: 'Recovery needs', icon: Truck },
+  { path: '/control-room/field', label: 'Field reporting', icon: ClipboardList },
+  { path: '/control-room/simulator', label: 'Resident simulator', icon: Users },
+  { path: '/control-room/language', label: 'Language assistant', icon: Waves },
+  { path: '/control-room/audit', label: 'Audit trail', icon: ShieldCheck },
+  { path: '/control-room/settings', label: 'System settings', icon: Settings },
+];
 
 export function ControlRoom({ session, onLogout }: ControlRoomProps) {
-  const [activeTab, setActiveTab] = useState<ControlRoomTab>('overview');
   const [health, setHealth] = useState<ApiHealthResponse | null>(null);
+  const location = useLocation();
+  const visible = routes.filter((item) => canAccessControlRoomRoute(item.path, session.role));
+  useEffect(() => { checkApiHealth().then(setHealth).catch(() => setHealth(null)); }, []);
+  const allowed = (path: string) => canAccessControlRoomRoute(path, session.role);
+  const fallback = visible[0]?.path ?? '/login';
 
-  useEffect(() => {
-    checkApiHealth().then(setHealth).catch(() => {});
-  }, []);
-
-  const navItems: { id: ControlRoomTab; label: string; icon: string; minRole?: string }[] = [
-    { id: 'overview', label: 'সেন্ট্রাল ওভারভিউ (Overview)', icon: '🏛️' },
-    { id: 'triage', label: 'এসওএস ও রেসপন্ডার ট্রায়াজ (SOS & Responders)', icon: '🚨' },
-    { id: 'alerts', label: 'বন্যা সতর্কতা ও অনুমোদন (Flood Alerts)', icon: '🌊' },
-    { id: 'replay', label: 'ঐতিহাসিক মহড়া ও রিলে (Historical Replay)', icon: '⏪' },
-    { id: 'recovery', label: 'পুনর্বাসন ও ত্রাণ খতিয়ান (Recovery Ledger)', icon: '🤝' },
-    { id: 'ai', label: 'এআই সহকারী ও ফলব্যাক (AI Language Layer)', icon: '🤖' },
-    { id: 'audit', label: 'অডিট লগ (Audit Logs)', icon: '📜' },
-    { id: 'settings', label: 'এলএলএম ও সিস্টেম সেটিংস (Settings)', icon: '⚙️' },
-    { id: 'simulator', label: '🧪 রেসিডেন্ট ক্লায়েন্ট সিমুলেটর (Resident Simulator)', icon: '📱' },
-  ];
-
-  return (
-    <div style={{ minHeight: '100vh', background: '#090d16', color: '#f8fafc', display: 'flex', flexDirection: 'column' }}>
-      {/* Top Application Bar */}
-      <header style={{ background: '#0f172a', borderBottom: '1px solid #1e293b', padding: '0.75rem 1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
-          <span style={{ fontSize: '1.4rem' }}>🌊</span>
-          <div>
-            <h1 style={{ fontSize: '1.15rem', margin: 0, color: '#38bdf8', fontWeight: 'bold' }}>
-              আলি এআই — কেন্দ্রীয় দুর্যোগ কন্ট্রোল রুম
-            </h1>
-            <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
-              Feni Disaster Resilience Decision-Support Platform | Asia/Dhaka Local Time
-            </span>
-          </div>
-        </div>
-
-        {/* User Session & Status Badge */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <div style={{ textAlign: 'right' }}>
-            <div style={{ fontSize: '0.82rem', fontWeight: 'bold', color: '#f1f5f9' }}>{session.displayName}</div>
-            <div style={{ fontSize: '0.72rem', color: '#38bdf8' }}>
-              রোল: <span style={{ background: '#1e293b', padding: '0.1rem 0.4rem', borderRadius: '3px', border: '1px solid #334155' }}>{session.role}</span>
-            </div>
-          </div>
-
-          <button
-            type="button"
-            onClick={onLogout}
-            style={{ background: '#334155', color: '#cbd5e1', border: '1px solid #475569', padding: '0.35rem 0.75rem', borderRadius: '4px', fontSize: '0.78rem', cursor: 'pointer' }}
-          >
-            লগআউট (Logout)
-          </button>
-        </div>
-      </header>
-
-      {/* Product Honesty Notice Banner */}
-      <aside style={{ background: '#451a03', borderBottom: '1px solid #78350f', padding: '0.4rem 1.5rem', fontSize: '0.78rem', color: '#fde047' }}>
-        ⚠️ <strong>সিদ্ধান্ত-সহায়তা প্রোটোটাইপ:</strong> আলি এআই একটি সিদ্ধান্ত-সহায়তা প্ল্যাটফর্ম, কোনো স্বয়ংক্রিয় জরুরি পরিষেবা নয়। সকল অফিশিয়াল সতর্কতা প্রকাশ ও বোট প্রেরণ অনুমোদিত মানুষের স্বাক্ষরে সম্পন্ন হতে হবে।
-      </aside>
-
-      {/* Main Control Room Layout (Sidebar Nav + Work Area) */}
-      <div style={{ display: 'flex', flex: 1 }}>
-        {/* Sidebar Navigation */}
-        <nav style={{ width: '260px', background: '#0b1120', borderRight: '1px solid #1e293b', padding: '1rem 0.5rem', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-          {navItems.map((item) => {
-            const isActive = activeTab === item.id;
-            return (
-              <button
-                key={item.id}
-                type="button"
-                onClick={() => setActiveTab(item.id)}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.6rem',
-                  padding: '0.6rem 0.8rem',
-                  borderRadius: '6px',
-                  border: 'none',
-                  background: isActive ? '#0284c7' : 'transparent',
-                  color: isActive ? '#fff' : '#cbd5e1',
-                  fontWeight: isActive ? 'bold' : 'normal',
-                  fontSize: '0.82rem',
-                  textAlign: 'left',
-                  cursor: 'pointer',
-                  transition: 'background 0.15s ease',
-                }}
-              >
-                <span>{item.icon}</span>
-                <span>{item.label}</span>
-              </button>
-            );
-          })}
-
-          <div style={{ marginTop: 'auto', padding: '0.75rem 0.5rem', borderTop: '1px solid #1e293b', fontSize: '0.72rem', color: '#64748b' }}>
-            <div>API: {health?.status === 'ok' ? '🟢 অনলাইন (3001)' : '🔴 অফলাইন'}</div>
-            <div>AI: {health?.modes?.aiProvider || 'mock'} (Local Failover)</div>
-          </div>
-        </nav>
-
-        {/* Focused Workspace View */}
-        <main style={{ flex: 1, padding: '1.5rem', overflowY: 'auto' }}>
-          {activeTab === 'overview' && (
-            <div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
-                <div style={{ background: '#1e293b', border: '1px solid #334155', borderRadius: '8px', padding: '1rem' }}>
-                  <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>চলমান প্লাবন সতর্কতা লেভেল:</span>
-                  <div style={{ fontSize: '1.3rem', fontWeight: 'bold', color: '#f87171', marginTop: '0.2rem' }}>
-                    ⚠️ ACT (জরুরি স্থানান্তর)
-                  </div>
-                  <span style={{ fontSize: '0.72rem', color: '#cbd5e1' }}>মুহুরী নদী (পরশুরাম গেজ স্টেশন)</span>
-                </div>
-
-                <div style={{ background: '#1e293b', border: '1px solid #334155', borderRadius: '8px', padding: '1rem' }}>
-                  <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>নীরব গ্রাম (Silent Village Flag):</span>
-                  <div style={{ fontSize: '1.3rem', fontWeight: 'bold', color: '#fbbf24', marginTop: '0.2rem' }}>
-                    ১টি ইউনিয়ন যাচাইাধীন
-                  </div>
-                  <span style={{ fontSize: '0.72rem', color: '#cbd5e1' }}>চিথলিয়া ইউনিয়ন (নিরাপদ মাধ্যমে যাচাই)</span>
-                </div>
-
-                <div style={{ background: '#1e293b', border: '1px solid #334155', borderRadius: '8px', padding: '1rem' }}>
-                  <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>প্রস্তুত রেসকিউ বোট:</span>
-                  <div style={{ fontSize: '1.3rem', fontWeight: 'bold', color: '#38bdf8', marginTop: '0.2rem' }}>
-                    ৩টি জলযান প্রস্তুত
-                  </div>
-                  <span style={{ fontSize: '0.72rem', color: '#cbd5e1' }}>বিডিআরসিএস ও ফায়ার সার্ভিস ট্রলার</span>
-                </div>
-
-                <div style={{ background: '#1e293b', border: '1px solid #334155', borderRadius: '8px', padding: '1rem' }}>
-                  <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>সিস্টেম মোড:</span>
-                  <div style={{ fontSize: '1.1rem', fontWeight: 'bold', color: '#4ade80', marginTop: '0.2rem' }}>
-                    ডেমো ও ঐতিহাসিক রিলে
-                  </div>
-                  <span style={{ fontSize: '0.72rem', color: '#cbd5e1' }}>আগস্ট ২০২৪ বন্যা ক্রেস্ট ডেটাসেট</span>
-                </div>
-              </div>
-
-              {/* Quick Launchpad to major features */}
-              <div style={{ background: '#1e293b', border: '1px solid #334155', borderRadius: '8px', padding: '1.25rem' }}>
-                <h3 style={{ fontSize: '1.05rem', color: '#38bdf8', marginTop: 0 }}>
-                  🚀 কেন্দ্রীয় কন্ট্রোল রুম দ্রুত অ্যাক্সেস / Quick Operations Launchpad
-                </h3>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.8rem' }}>
-                  <button
-                    type="button"
-                    onClick={() => setActiveTab('triage')}
-                    style={{ background: '#0f172a', border: '1px solid #475569', color: '#fff', padding: '0.75rem', borderRadius: '6px', textAlign: 'left', cursor: 'pointer' }}
-                  >
-                    <strong>🚨 রেসপন্ডার ট্রায়াজ</strong>
-                    <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '0.2rem' }}>এসওএস ইনবক্স ও বোট বরাদ্দ সিদ্ধান্ত</div>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setActiveTab('alerts')}
-                    style={{ background: '#0f172a', border: '1px solid #475569', color: '#fff', padding: '0.75rem', borderRadius: '6px', textAlign: 'left', cursor: 'pointer' }}
-                  >
-                    <strong>🌊 সতর্কতা অনুমোদন</strong>
-                    <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '0.2rem' }}>৩-সংকেত নিয়ম ও অথরিটি স্বাক্ষর</div>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setActiveTab('simulator')}
-                    style={{ background: '#0f172a', border: '1px solid #ca8a04', color: '#fef08a', padding: '0.75rem', borderRadius: '6px', textAlign: 'left', cursor: 'pointer' }}
-                  >
-                    <strong>📱 ক্লায়েন্ট সিমুলেটর</strong>
-                    <div style={{ fontSize: '0.75rem', color: '#ca8a04', marginTop: '0.2rem' }}>মক এনআইডি চেক ও অফলাইন এসওএস টেস্ট</div>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setActiveTab('recovery')}
-                    style={{ background: '#0f172a', border: '1px solid #475569', color: '#fff', padding: '0.75rem', borderRadius: '6px', textAlign: 'left', cursor: 'pointer' }}
-                  >
-                    <strong>🤝 ত্রাণ সমন্বয়</strong>
-                    <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '0.2rem' }}>গ্রাম-ভিত্তিক অপূর্ণ চাহিদা ও খতিয়ান</div>
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {activeTab === 'triage' && (
-            <div>
-              <ResponderDashboard />
-            </div>
-          )}
-
-          {activeTab === 'alerts' && (
-            <div>
-              <FloodReplayWarning />
-            </div>
-          )}
-
-          {activeTab === 'replay' && (
-            <div>
-              <FloodReplayWarning />
-            </div>
-          )}
-
-          {activeTab === 'recovery' && (
-            <div>
-              <RecoveryLedger />
-            </div>
-          )}
-
-          {activeTab === 'ai' && (
-            <div>
-              <AiLanguageAssistant />
-            </div>
-          )}
-
-          {activeTab === 'audit' && (
-            <div>
-              <AuditViewer />
-            </div>
-          )}
-
-          {activeTab === 'settings' && (
-            <div>
-              <SettingsPanel />
-            </div>
-          )}
-
-          {activeTab === 'simulator' && (
-            <div>
-              <ResidentSimulator />
-              <div style={{ marginTop: '2rem' }}>
-                <ThreeTapSos />
-                <GatewaySimulator />
-              </div>
-            </div>
-          )}
-        </main>
-      </div>
+  return <div className="control-shell">
+    <header className="control-topbar">
+      <div className="control-brand"><span className="brand-mark">A</span><div><strong>AALI AI <span>OPERATIONS</span></strong><small>Feni district · decision support prototype</small></div></div>
+      <div className="session-strip"><span className={health?.status === 'ok' ? 'api-indicator online' : 'api-indicator'} />API {health?.status === 'ok' ? 'CONNECTED' : 'UNAVAILABLE'}<span className="session-name">{session.displayName} · {session.role}</span><button className="logout-button" onClick={onLogout}>Sign out</button></div>
+    </header>
+    <div className="prototype-ribbon"><strong>DEMO ENVIRONMENT</strong> Synthetic scenario data and prototype rules. This is not an emergency service. Official warnings and dispatches require authorized human approval.</div>
+    <div className="control-body">
+      <aside className="control-sidebar"><div className="sidebar-heading">WORKSPACES</div>{visible.map(({ path, label, icon: Icon }) => <NavLink key={path} to={path} className={({ isActive }) => `control-nav-link${isActive || location.pathname === path ? ' active' : ''}`}><Icon size={17} /><span>{label}</span></NavLink>)}<div className="sidebar-foot"><span>LOCAL TIME</span><strong>{new Date().toLocaleTimeString('en-GB', { timeZone: 'Asia/Dhaka', hour: '2-digit', minute: '2-digit' })} BST</strong><small>{health?.modes?.aiProvider ?? 'Deterministic local language fallback'}</small></div></aside>
+      <main className="control-content"><Routes>
+        <Route path="/control-room/map" element={allowed('/control-room/map') ? <OperationsOverview /> : <Navigate to={fallback} replace />} />
+        <Route path="/control-room/responder" element={allowed('/control-room/responder') ? <ResponderDashboard /> : <Navigate to={fallback} replace />} />
+        <Route path="/control-room/alerts" element={allowed('/control-room/alerts') ? <FloodReplayWarning /> : <Navigate to={fallback} replace />} />
+        <Route path="/control-room/replay" element={allowed('/control-room/replay') ? <FloodReplayWarning /> : <Navigate to={fallback} replace />} />
+        <Route path="/control-room/recovery" element={allowed('/control-room/recovery') ? <RecoveryLedger /> : <Navigate to={fallback} replace />} />
+        <Route path="/control-room/field" element={session.role === 'VOLUNTEER' || session.role === 'ADMIN' ? <VolunteerRoute /> : <Navigate to={fallback} replace />} />
+        <Route path="/control-room/simulator" element={allowed('/control-room/simulator') ? <><ResidentSimulator /><ThreeTapSos /><GatewaySimulator /></> : <Navigate to={fallback} replace />} />
+        <Route path="/control-room/language" element={allowed('/control-room/language') ? <AiLanguageAssistant /> : <Navigate to={fallback} replace />} />
+        <Route path="/control-room/audit" element={allowed('/control-room/audit') ? <AuditViewer /> : <Navigate to={fallback} replace />} />
+        <Route path="/control-room/settings" element={allowed('/control-room/settings') ? <SettingsPanel /> : <Navigate to={fallback} replace />} />
+        <Route path="*" element={<Navigate to={fallback} replace />} />
+      </Routes></main>
     </div>
-  );
+  </div>;
 }
 
+function VolunteerRoute() {
+  return <VolunteerFieldForm />;
+}
+
+function VolunteerFieldForm() {
+  const [areas, setAreas] = useState<OperationMapPoint[]>([]);
+  const [areaId, setAreaId] = useState('');
+  const [levelM, setLevelM] = useState('');
+  const [note, setNote] = useState('');
+  const [message, setMessage] = useState('');
+  useEffect(() => { getOperationsSnapshot().then((data) => { setAreas(data.mapLayers.areas); setAreaId(data.mapLayers.areas[0]?.id ?? ''); }).catch(() => setMessage('Could not load village list from API.')); }, []);
+  const submit = async (event: FormEvent) => {
+    event.preventDefault(); setMessage('');
+    const response = await apiFetch('/api/v1/field-readings', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ areaId, levelM: Number(levelM), note }) });
+    setMessage(response.ok ? 'Reading recorded by API.' : `Submission failed (${response.status}).`);
+  };
+  return <section className="ops-panel field-desk"><span className="eyebrow">VOLUNTEER WORKSPACE · API SUBMISSION</span><h1>Field water reading</h1><p>Submit a synthetic exercise reading. It is stored as a volunteer report and does not establish an official gauge observation.</p><form onSubmit={(event) => void submit(event)}><label>Village<select required value={areaId} onChange={(event) => setAreaId(event.target.value)}>{areas.map((area) => <option key={area.id} value={area.id}>{area.name}</option>)}</select></label><label>Observed water level (metres)<input required type="number" min="0" max="20" step="0.01" value={levelM} onChange={(event) => setLevelM(event.target.value)} /></label><label>Field note<textarea maxLength={500} value={note} onChange={(event) => setNote(event.target.value)} /></label><button type="submit" disabled={!areaId || !levelM}>Submit reading</button>{message && <p role="status">{message}</p>}</form></section>;
+}

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { apiFetch as fetch } from '../lib/authenticated-fetch';
 
 interface GatewayResponse {
   simulation: boolean;

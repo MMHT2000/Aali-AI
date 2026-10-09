@@ -1,10 +1,12 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import { Body, Controller, Get, Post, Request } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import {
   CreateReportDto,
   RecordDeliveryDto,
   RecoveryService,
 } from './recovery.service';
+import { Roles } from '../../common/auth/roles.decorator';
+import { UserRole } from '../users/entities/user-role.enum';
 
 @ApiTags('Recovery & Aid Delivery Ledger')
 @Controller('api/v1/recovery')
@@ -13,30 +15,35 @@ export class RecoveryController {
 
   @ApiOperation({ summary: 'Submit village damage and needs assessment report' })
   @Post('reports')
-  createReport(@Body() dto: CreateReportDto) {
-    return this.recoveryService.createReport(dto);
+  @Roles(UserRole.RECOVERY_COORDINATOR, UserRole.ADMIN)
+  createReport(@Body() dto: CreateReportDto, @Request() req: { user: { id: string } }) {
+    return this.recoveryService.createReport({ ...dto, reportedBy: req.user.id });
   }
 
   @ApiOperation({ summary: 'List all submitted damage/needs reports' })
   @Get('reports')
+  @Roles(UserRole.RECOVERY_COORDINATOR, UserRole.AUTHORITY, UserRole.ADMIN)
   getReports() {
     return this.recoveryService.getReports();
   }
 
   @ApiOperation({ summary: 'Record aid delivery receipt with idempotency guard' })
   @Post('deliveries')
-  recordDelivery(@Body() dto: RecordDeliveryDto) {
-    return this.recoveryService.recordDelivery(dto);
+  @Roles(UserRole.RECOVERY_COORDINATOR, UserRole.ADMIN)
+  recordDelivery(@Body() dto: RecordDeliveryDto, @Request() req: { user: { id: string } }) {
+    return this.recoveryService.recordDelivery({ ...dto, recordedBy: req.user.id });
   }
 
   @ApiOperation({ summary: 'List all recorded aid delivery receipts' })
   @Get('deliveries')
+  @Roles(UserRole.RECOVERY_COORDINATOR, UserRole.AUTHORITY, UserRole.ADMIN)
   getDeliveries() {
     return this.recoveryService.getDeliveries();
   }
 
   @ApiOperation({ summary: 'Get village unmet-needs ranking and relief coverage summary' })
   @Get('summary')
+  @Roles(UserRole.RECOVERY_COORDINATOR, UserRole.AUTHORITY, UserRole.ADMIN, UserRole.VIEWER)
   getSummary() {
     return this.recoveryService.getSummary();
   }

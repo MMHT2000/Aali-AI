@@ -1,38 +1,41 @@
 import { ConflictException, Injectable, UnauthorizedException, BadRequestException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { SYNTHETIC_FENI_SEEDS } from '../../database/seeds/feni-synthetic.seeds';
 import { UserRole } from '../users/entities/user-role.enum';
 import { LoginDto, LoginResponseDto } from './dto/login.dto';
 import { validateMockNidFormat, hashNid, ResidentRegistrationResult } from './nid-validation';
-
-interface RegisteredResidentRecord {
-  id: string;
-  fullName: string;
-  phoneNumberRedacted: string;
-  nidHash: string;
-  nidLast4: string;
-  registeredAt: string;
-}
+import { ResidentAccount } from './entities/resident-account.entity';
 
 @Injectable()
 export class AuthService {
-  // In-memory registry of residents registered during demo session
-  private readonly registeredResidents = new Map<string, RegisteredResidentRecord>();
-
   constructor(
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
+    @InjectRepository(ResidentAccount) private readonly residentRepository: Repository<ResidentAccount>,
   ) {}
 
   async login(loginDto: LoginDto): Promise<LoginResponseDto> {
     const { username, password } = loginDto;
 
+    const normalizedInput = username.trim().toLowerCase();
     // In demo/prototype mode, resolve user from seeded fixtures or registered users
-    const user = SYNTHETIC_FENI_SEEDS.users.find(
-      (u) => u.username?.toLowerCase() === username.toLowerCase(),
-    );
+    const user = SYNTHETIC_FENI_SEEDS.users.find((u) => {
+      const uName = u.username?.toLowerCase();
+      const uRole = u.role?.toLowerCase();
+      return (
+        uName === normalizedInput ||
+        uRole === normalizedInput ||
+        (normalizedInput === 'authority' && uName === 'authority_dc') ||
+        (normalizedInput === 'responder' && uName === 'responder_feni') ||
+        (normalizedInput === 'volunteer' && uName === 'volunteer_parshuram') ||
+        (normalizedInput === 'recovery' && uName === 'recovery_coord') ||
+        (normalizedInput === 'viewer' && uName === 'viewer_guest')
+      );
+    });
 
     if (!user) {
       throw new UnauthorizedException('Invalid credentials');
@@ -80,12 +83,9 @@ export class AuthService {
     }
 
     const cleanNid = dto.mockNid.trim();
-    const nidHash = hashNid(cleanNid);
-
-    // Enforce uniqueness against already-registered residents in demo session
-    if (this.registeredResidents.has(nidHash)) {
-      throw new ConflictException('This demo NID has already been registered in the system.');
-    }
+    const hashSecret = this.configService.get<string>('NID_HASH_SECRET')
+      ?? this.configService.get<string>('JWT_SECRET', 'aali_demo_nid_hmac_secret_change_before_deploy');
+    const nidHash = hashNid(cleanNid, hashSecret);
 
     const residentId = `res-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
     const rawPhone = (dto.phoneNumber || '').trim();
@@ -93,23 +93,38 @@ export class AuthService {
       ? `${rawPhone.slice(0, 3)}****${rawPhone.slice(-3)}`
       : '***-***';
 
-    const record: RegisteredResidentRecord = {
+    const record = this.residentRepository.create({
       id: residentId,
-      fullName: dto.fullName || 'Anonymous Resident',
-      phoneNumberRedacted: redactedPhone,
-      nidHash,
-      nidLast4: cleanNid.slice(-4),
-      registeredAt: new Date().toISOString(),
-    };
+      display_name: dto.fullName || 'Anonymous Resident',
+      phone_redacted: redactedPhone,
+      nid_hash: nidHash,
+      nid_last4: cleanNid.slice(-4),
+    });
+    try {
+      await this.residentRepository.save(record);
+    } catch (error) {
+      const code = (error as { driverError?: { code?: string } })?.driverError?.code;
+      if (code === 'ER_DUP_ENTRY') {
+        throw new ConflictException('This demo NID has already been registered in the system.');
+      }
+      throw error;
+    }
 
-    this.registeredResidents.set(nidHash, record);
+    const expiresIn = this.configService.get<string>('JWT_EXPIRES_IN', '30m');
+    const accessToken = this.jwtService.sign({
+      sub: record.id,
+      username: `resident:${record.id}`,
+      role: UserRole.RESIDENT,
+      displayName: record.display_name,
+    });
 
     return {
       residentId: record.id,
-      nidHash: record.nidHash,
-      nidLast4: record.nidLast4,
-      phoneNumberRedacted: record.phoneNumberRedacted,
-      registeredAt: record.registeredAt,
+      nidLast4: record.nid_last4,
+      phoneNumberRedacted: record.phone_redacted,
+      registeredAt: record.created_at?.toISOString() ?? new Date().toISOString(),
+      accessToken,
+      expiresIn,
       disclaimer: 'Demo NID format check — not identity verification.',
     };
   }

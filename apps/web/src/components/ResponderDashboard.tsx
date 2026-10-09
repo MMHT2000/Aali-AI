@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { apiFetch as fetch } from '../lib/authenticated-fetch';
 
 export interface IncidentViewItem {
   id: string;

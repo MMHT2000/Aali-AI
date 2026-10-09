@@ -1,9 +1,14 @@
 import { useEffect, useState } from 'react';
 import { Login, UserSession } from './components/Login';
 import { ControlRoom } from './components/ControlRoom';
+import { BrowserRouter } from 'react-router-dom';
 import './App.css';
 
 export function App() {
+  return <BrowserRouter><AppContent /></BrowserRouter>;
+}
+
+function AppContent() {
   const [session, setSession] = useState<UserSession | null>(null);
 
   useEffect(() => {

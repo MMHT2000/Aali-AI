@@ -135,7 +135,7 @@ export class RecoveryService {
     return this.reports;
   }
 
-  recordDelivery(dto: RecordDeliveryDto): { delivery: AidDelivery; isDuplicateIgnored: boolean } {
+  async recordDelivery(dto: RecordDeliveryDto): Promise<{ delivery: AidDelivery; isDuplicateIgnored: boolean }> {
     // Idempotency check: Guard against duplicate deliveries
     const existing = this.deliveries.find((d) => d.idempotency_key === dto.idempotencyKey);
     if (existing) {
@@ -158,10 +158,7 @@ export class RecoveryService {
     del.idempotency_key = dto.idempotencyKey;
     del.created_at = new Date();
 
-    this.deliveries.unshift(del);
-    this.logger.log(`Recorded aid delivery receipt ${del.id} with key ${dto.idempotencyKey}`);
-
-    this.auditService?.record({
+    await this.auditService?.record({
       actorUserId: dto.recordedBy,
       action: 'RECORD_AID_DELIVERY',
       entityType: 'AID_DELIVERY',
@@ -175,6 +172,9 @@ export class RecoveryService {
         idempotencyKey: dto.idempotencyKey,
       },
     });
+
+    this.deliveries.unshift(del);
+    this.logger.log(`Recorded aid delivery receipt ${del.id}`);
 
     return { delivery: del, isDuplicateIgnored: false };
   }

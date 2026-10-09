@@ -6,6 +6,8 @@ import {
   DuplicateSimilarityDto,
   UnderstandSosDto,
 } from './ai.service';
+import { Roles } from '../../common/auth/roles.decorator';
+import { UserRole } from '../users/entities/user-role.enum';
 
 @ApiTags('AI-Assisted Language Features & Fallback')
 @Controller('api/v1/ai')
@@ -14,48 +16,56 @@ export class AiController {
 
   @ApiOperation({ summary: 'Get current AI provider mode and fallback status' })
   @Get('status')
+  @Roles(UserRole.AUTHORITY, UserRole.RESPONDER, UserRole.ADMIN)
   getStatus() {
     return this.aiService.getProviderStatus();
   }
 
   @ApiOperation({ summary: 'Toggle simulated AI provider outage to demonstrate deterministic fallback' })
   @Put('status/outage')
+  @Roles(UserRole.ADMIN)
   setOutageState(@Body('outage') outage: boolean) {
     return this.aiService.setOutageState(outage);
   }
 
   @ApiOperation({ summary: 'Extract structured SOS fields from Bangla/Banglish text' })
   @Post('understand-sos')
+  @Roles(UserRole.AUTHORITY, UserRole.RESPONDER, UserRole.ADMIN)
   understandSos(@Body() body: UnderstandSosDto) {
     return this.aiService.understandSos(body);
   }
 
   @ApiOperation({ summary: 'Explain text duplicate candidate similarity' })
   @Post('duplicate-similarity')
+  @Roles(UserRole.AUTHORITY, UserRole.RESPONDER, UserRole.ADMIN)
   duplicateSimilarity(@Body() body: DuplicateSimilarityDto) {
     return this.aiService.explainDuplicateSimilarity(body);
   }
 
   @ApiOperation({ summary: 'Draft Bangla emergency communication citing source record IDs' })
   @Post('draft-communication')
+  @Roles(UserRole.AUTHORITY, UserRole.ADMIN)
   draftCommunication(@Body() body: DraftCommunicationDto) {
     return this.aiService.draftCommunication(body);
   }
 
   @ApiOperation({ summary: 'Get 30 synthetic benchmark flood messages' })
   @Get('benchmark/samples')
+  @Roles(UserRole.AUTHORITY, UserRole.ADMIN)
   getBenchmarkSamples() {
     return this.aiService.getBenchmarkSamples();
   }
 
   @ApiOperation({ summary: 'Execute benchmark evaluation report across 30 messages' })
   @Get('benchmark')
+  @Roles(UserRole.AUTHORITY, UserRole.ADMIN)
   runBenchmark() {
     return this.aiService.runBenchmark();
   }
 
   @ApiOperation({ summary: 'Generate fact-constrained operations shift summary (Phase 10 stretch)' })
   @Post('shift-summary')
+  @Roles(UserRole.AUTHORITY, UserRole.ADMIN)
   generateShiftSummary(
     @Body()
     body: {

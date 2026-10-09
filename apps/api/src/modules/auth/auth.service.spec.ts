@@ -4,11 +4,26 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { AuthService } from './auth.service';
 import { UserRole } from '../users/entities/user-role.enum';
 import { UnauthorizedException } from '@nestjs/common';
+import { getRepositoryToken } from '@nestjs/typeorm';
+import { ResidentAccount } from './entities/resident-account.entity';
 
 describe('AuthService', () => {
   let authService: AuthService;
+  let registeredHashes: Set<string>;
+  let residentRepository: { create: jest.Mock; save: jest.Mock };
 
   beforeEach(async () => {
+    registeredHashes = new Set<string>();
+    residentRepository = {
+      create: jest.fn((record: ResidentAccount) => ({ ...record, created_at: new Date() })),
+      save: jest.fn(async (record: ResidentAccount) => {
+        if (registeredHashes.has(record.nid_hash)) {
+          throw { driverError: { code: 'ER_DUP_ENTRY' } };
+        }
+        registeredHashes.add(record.nid_hash);
+        return record;
+      }),
+    };
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         AuthService,
@@ -21,9 +36,10 @@ describe('AuthService', () => {
         {
           provide: ConfigService,
           useValue: {
-            get: jest.fn().mockReturnValue('30m'),
+            get: jest.fn((key: string, fallback?: string) => key === 'JWT_EXPIRES_IN' ? '30m' : fallback),
           },
         },
+        { provide: getRepositoryToken(ResidentAccount), useValue: residentRepository },
       ],
     }).compile();
 
@@ -69,7 +85,9 @@ describe('AuthService', () => {
       });
 
       expect(res.residentId).toBeDefined();
-      expect(res.nidHash).toHaveLength(64);
+      expect(res.accessToken).toBe('mock.jwt.token');
+      expect(residentRepository.save).toHaveBeenCalledWith(expect.objectContaining({ nid_hash: expect.any(String) }));
+      expect(res).not.toHaveProperty('nidHash');
       expect(res.nidLast4).toBe('1829');
       expect(res.phoneNumberRedacted).toBe('017****344');
       expect(res.disclaimer).toContain('Demo NID format check — not identity verification');
@@ -101,6 +119,25 @@ describe('AuthService', () => {
           mockNid: '12345', // Too short
         }),
       ).rejects.toThrow('NID length must be exactly 10 or 17 digits');
+    });
+
+    it('accepts and stores a valid 17-digit NID without returning its hash', async () => {
+      const res = await authService.registerResident({
+        fullName: 'Synthetic Resident',
+        phoneNumber: '01711223344',
+        mockNid: '19842618293817264',
+      });
+      expect(res.nidLast4).toBe('7264');
+      expect(res).not.toHaveProperty('nidHash');
+    });
+
+    it('maps a database uniqueness race to a conflict response', async () => {
+      residentRepository.save.mockRejectedValueOnce({ driverError: { code: 'ER_DUP_ENTRY' } });
+      await expect(authService.registerResident({
+        fullName: 'Concurrent Duplicate',
+        phoneNumber: '01711223344',
+        mockNid: '1984261829',
+      })).rejects.toThrow('This demo NID has already been registered in the system.');
     });
   });
 });

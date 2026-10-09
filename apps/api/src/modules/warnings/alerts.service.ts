@@ -183,47 +183,47 @@ export class AlertsService {
     return this.warnings;
   }
 
-  approveWarning(id: string, authorityUserId: string, note: string): Warning {
+  async approveWarning(id: string, authorityUserId: string, note: string): Promise<Warning> {
     const w = this.warnings.find((item) => item.id === id);
     if (!w) throw new NotFoundException('Warning not found');
 
     const prevState = w.state;
-    w.state = WarningState.APPROVED;
-    w.approved_by = authorityUserId;
-    w.approved_at = new Date();
-    w.approval_note = note;
-
-    this.auditService?.record({
+    await this.auditService?.record({
       actorUserId: authorityUserId,
       action: 'APPROVE_WARNING',
       entityType: 'WARNING',
       entityId: w.id,
       reason: note,
       beforeSummary: { state: prevState },
-      afterSummary: { state: w.state, approvedBy: authorityUserId },
+      afterSummary: { state: WarningState.APPROVED, approvedBy: authorityUserId },
     });
+
+    w.state = WarningState.APPROVED;
+    w.approved_by = authorityUserId;
+    w.approved_at = new Date();
+    w.approval_note = note;
 
     return w;
   }
 
-  rejectWarning(id: string, authorityUserId: string, reason: string): Warning {
+  async rejectWarning(id: string, authorityUserId: string, reason: string): Promise<Warning> {
     const w = this.warnings.find((item) => item.id === id);
     if (!w) throw new NotFoundException('Warning not found');
 
     const prevState = w.state;
-    w.state = WarningState.REJECTED;
-    w.approved_by = authorityUserId;
-    w.approval_note = `REJECTED: ${reason}`;
-
-    this.auditService?.record({
+    await this.auditService?.record({
       actorUserId: authorityUserId,
       action: 'REJECT_WARNING',
       entityType: 'WARNING',
       entityId: w.id,
       reason,
       beforeSummary: { state: prevState },
-      afterSummary: { state: w.state, approvedBy: authorityUserId },
+      afterSummary: { state: WarningState.REJECTED, approvedBy: authorityUserId },
     });
+
+    w.state = WarningState.REJECTED;
+    w.approved_by = authorityUserId;
+    w.approval_note = `REJECTED: ${reason}`;
 
     return w;
   }

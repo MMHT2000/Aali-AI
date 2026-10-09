@@ -6,6 +6,7 @@ import {
   IsNumber,
   IsOptional,
   IsString,
+  MaxLength,
   Max,
   Min,
 } from 'class-validator';
@@ -68,6 +69,12 @@ export class CreateSosDto {
   @IsString()
   @IsOptional()
   sourceType?: string;
+
+  @ApiPropertyOptional({ description: 'Canonical validated ASCII packet produced by the resident client' })
+  @IsString()
+  @MaxLength(160)
+  @IsOptional()
+  packet?: string;
 }
 
 export class DecodePacketDto {

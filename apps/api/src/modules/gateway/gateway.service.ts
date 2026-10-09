@@ -59,16 +59,14 @@ export class GatewayService {
     const { report } = await this.sosService.createSos({
       clientReportId,
       peopleCount: data.peopleCount,
+      elderlyCount: data.flags.elderly ? 1 : 0,
       hasChild: data.flags.child,
       hasMedicalNeed: data.flags.medical,
       isTrapped: data.flags.trapped,
+      packet: rawPacket,
       sourceType: SosSourceType.GATEWAY,
       messageOriginal: `[GATEWAY SIMULATION] Packet: ${rawPacket}`,
-    });
-
-    // Mark transport kind as simulated gateway
-    report.transport_kind = 'GATEWAY_SIMULATED';
-    report.geohash7 = data.geohash7;
+    }, undefined, SosSourceType.GATEWAY);
 
     // Record trace
     this.gatewayTraces.set(checksum, {

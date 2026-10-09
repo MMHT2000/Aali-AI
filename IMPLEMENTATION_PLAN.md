@@ -49,6 +49,8 @@ Unless verified credentials/hardware/legal agreements are added separately, thes
 
 ## 2. Phase-by-phase roadmap
 
+> **Status correction (2026-10-10):** Historical phase completion labels and the 2026-10-09 Modification Track claims below were not a reliable acceptance audit. The Aali AI Product Overhaul acceptance criteria are now tracked separately at the end of this document; only items verified in the current repository and environment are called complete.
+
 Each phase is a separate agent task. The agent must inspect the current code first and adapt if equivalent working code already exists. A phase is complete only when its exit gate passes and `docs/IMPLEMENTATION_LOG.md` is updated.
 
 ### Phase 0 — Repository discovery and baseline
@@ -284,4 +286,29 @@ The prototype is ready only when a reviewer can, using synthetic data and the wr
 - [x] Mod 3: Interactive Resident Client Simulator with online/offline queue and gateway handoff
 - [x] Mod 4: Configurable primary/backup LLM failover seam with strict PII protections
 - [x] Mod 5: Independent Flutter resident mobile app (`apps/mobile`) with setup instructions
+
+## 9. Aali AI Product Overhaul — Current Acceptance Status (2026-10-10)
+
+This status supersedes earlier blanket completion labels where they conflict with the verified state below. Historical Mod 1–5 UI presence is not evidence that its full end-to-end behavior passed.
+
+### Verified in this work
+- [x] XAMPP MySQL at `127.0.0.1:3306` connects; versioned migrations run with TypeORM `synchronize: false`; readiness reports MySQL up.
+- [x] JWT is enforced globally except explicitly public health/onboarding and SOS intake; operational controllers carry role guards; warning approval uses the authenticated actor.
+- [x] Resident mock NID format and uniqueness are stored using a one-way keyed identifier hash and a database unique constraint. It is a format check, not identity verification.
+- [x] SOS records use the MySQL repository and unique `client_report_id` for idempotency; live API smoke check created then deduplicated a report.
+- [x] Deterministic scenario controls and role-aware operations snapshot API exist; alert level comes from deterministic rules; web polls every five seconds while the workspace is open.
+- [x] Simulation tick, speed and connectivity override persist through a versioned migration; API restart restores the tick paused. A live XAMPP restart smoke check restored tick 2 as paused.
+- [x] Map-first Authority workspace uses API layer data, OSM attribution, layer controls, provenance and list fallback. Navigation is distinct for Authority/Admin, Responder, Volunteer, Recovery Coordinator and Viewer.
+- [x] Volunteer field reporting writes an API-backed observation; SMS remains an explicit composer handoff, not delivery.
+- [x] Web typecheck, lint, tests and production build pass; API typecheck, lint and tests pass (results in `docs/IMPLEMENTATION_LOG.md`).
+
+### Still incomplete or limited
+- [ ] Incidents, alerts/warnings, recovery records and review/audit actions are not yet consistently persisted through MySQL. Several existing services remain in-memory.
+- [ ] Flutter source now posts resident registration and canonical SOS packets to the API, keeps queued submissions in SharedPreferences, supports explicit SMS composer handoff and retries, and uses the API-compatible CRC. Flutter CLI/platform scaffold is unavailable here, so this path remains unverified on Android.
+- [ ] Resident simulator needs an end-to-end check against the shared API submission contract; API-submitted SOS visibility should be verified in authorized operations UI.
+- [ ] Expand API tests to exercise every role’s forbidden routes and record-level scoping; current coverage does not prove all record scopes.
+- [ ] Validate tile failure behavior and map marker/list provenance in a browser session; the online basemap needs internet access.
+- [ ] Update service actor context and audit attribution consistently for incident, rescue review, warning, recovery and field actions.
+
+Do not mark the overhaul complete until these remaining criteria are implemented and verified.
 

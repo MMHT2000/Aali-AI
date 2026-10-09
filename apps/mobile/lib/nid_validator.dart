@@ -11,7 +11,7 @@ class MockNidValidator {
     }
 
     final clean = value.trim();
-    if (!RegExp(r'^\d+$').hasMatch(clean)) {
+    if (!RegExp(r'^[0-9]+$').hasMatch(clean)) {
       return 'NID শুধুমাত্র সংখ্যার হতে হবে (Digits only)';
     }
 

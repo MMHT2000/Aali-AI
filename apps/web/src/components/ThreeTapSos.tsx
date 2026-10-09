@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { apiFetch as fetch } from '../lib/authenticated-fetch';
 import { buildClientDisasterPacket } from '../lib/packet';
 import { OutboxSosItem, saveToOutbox, updateOutboxStatus } from '../lib/offline-outbox';
 

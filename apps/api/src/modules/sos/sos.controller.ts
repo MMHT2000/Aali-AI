@@ -5,10 +5,14 @@ import {
   NotFoundException,
   Param,
   Post,
+  Request,
 } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { CreateSosDto, DecodePacketDto } from './dto/sos.dto';
 import { SosService } from './sos.service';
+import { Public } from '../../common/auth/public.decorator';
+import { Roles } from '../../common/auth/roles.decorator';
+import { UserRole } from '../users/entities/user-role.enum';
 
 @ApiTags('SOS & Disaster Packets')
 @Controller('api/v1')
@@ -16,10 +20,11 @@ export class SosController {
   constructor(private readonly sosService: SosService) {}
 
   @Post('sos')
+  @Public()
   @ApiOperation({ summary: 'Submit an emergency SOS report (idempotent)' })
   @ApiResponse({ status: 201, description: 'SOS report created or existing idempotent record returned' })
-  async createSos(@Body() dto: CreateSosDto) {
-    const result = await this.sosService.createSos(dto);
+  async createSos(@Body() dto: CreateSosDto, @Request() req: { user?: { id?: string } }) {
+    const result = await this.sosService.createSos(dto, req.user?.id);
     return {
       status: 'success',
       report: result.report,
@@ -35,12 +40,14 @@ export class SosController {
   }
 
   @Get('sos')
+  @Roles(UserRole.AUTHORITY, UserRole.RESPONDER, UserRole.ADMIN)
   @ApiOperation({ summary: 'List recent SOS reports' })
   async getReports() {
     return this.sosService.getReports();
   }
 
   @Get('sos/:id')
+  @Roles(UserRole.AUTHORITY, UserRole.RESPONDER, UserRole.ADMIN)
   @ApiOperation({ summary: 'Get a single SOS report by ID' })
   async getReportById(@Param('id') id: string) {
     const report = await this.sosService.getReportById(id);

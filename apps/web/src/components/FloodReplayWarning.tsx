@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { apiFetch as fetch } from '../lib/authenticated-fetch';
 
 export interface ReplayTickView {
   tickIndex: number;

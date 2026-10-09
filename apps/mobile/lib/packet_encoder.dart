@@ -30,10 +30,16 @@ class CompactDisasterPacket {
     final sid = shortId.toUpperCase().padRight(4, 'X').substring(0, 4);
 
     final payload = '$version|$type|$geo|$count|$flags|$timestamp|$sid';
-    // Simplified deterministic base36 4-char CRC for in-app mobile encoder
-    final crc = (payload.codeUnits.fold<int>(0, (acc, c) => (acc + c * 31) & 0xFFFF)).toRadixString(36).toUpperCase().padLeft(4, '0');
+    var crc = 0xFFFF;
+    for (final byte in payload.codeUnits) {
+      crc ^= (byte & 0xFF) << 8;
+      for (var bit = 0; bit < 8; bit++) {
+        crc = (crc & 0x8000) != 0 ? ((crc << 1) ^ 0x1021) & 0xFFFF : (crc << 1) & 0xFFFF;
+      }
+    }
+    final checksum = crc.toRadixString(36).toUpperCase().padLeft(4, '0');
 
-    return '$payload|$crc';
+    return '$payload|$checksum';
   }
 }
 

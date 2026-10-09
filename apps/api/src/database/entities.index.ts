@@ -11,6 +11,8 @@ import { Asset, DispatchSuggestion } from '../modules/assets/entities/asset.enti
 import { AlertEvaluation, Warning } from '../modules/warnings/entities/warning.entity';
 import { RecoveryReport, AidDelivery } from '../modules/recovery/entities/recovery.entity';
 import { AuditLog } from '../modules/audit/entities/audit-log.entity';
+import { ResidentAccount } from '../modules/auth/entities/resident-account.entity';
+import { SimulationRunState } from '../modules/operations/entities/simulation-run-state.entity';
 
 export const allEntities = [
   User,
@@ -33,5 +35,7 @@ export const allEntities = [
   RecoveryReport,
   AidDelivery,
   AuditLog,
+  ResidentAccount,
+  SimulationRunState,
 ];
 

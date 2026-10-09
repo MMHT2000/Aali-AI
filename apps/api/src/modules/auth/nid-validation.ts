@@ -2,10 +2,11 @@ import * as crypto from 'crypto';
 
 export interface ResidentRegistrationResult {
   residentId: string;
-  nidHash: string;
   nidLast4: string;
   phoneNumberRedacted: string;
   registeredAt: string;
+  accessToken: string;
+  expiresIn: string;
   disclaimer: string;
 }
 
@@ -21,7 +22,7 @@ export function validateMockNidFormat(rawNid: string): { isValid: boolean; error
   }
 
   const clean = rawNid.trim();
-  if (!/^\d+$/.test(clean)) {
+  if (!/^[0-9]+$/.test(clean)) {
     return { isValid: false, error: 'NID must contain only numeric digits' };
   }
 
@@ -48,7 +49,7 @@ export function validateMockNidFormat(rawNid: string): { isValid: boolean; error
 /**
  * Computes a deterministic SHA-256 hash of the normalized NID so raw NID is never stored or logged.
  */
-export function hashNid(nid: string, salt = 'aali_mock_nid_salt_2026'): string {
-  return crypto.createHash('sha256').update(`${salt}:${nid.trim()}`).digest('hex');
+export function hashNid(nid: string, secret = 'aali_demo_nid_hmac_secret_change_before_deploy'): string {
+  return crypto.createHmac('sha256', secret).update(nid.trim()).digest('hex');
 }
 

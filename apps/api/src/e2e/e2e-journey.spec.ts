@@ -10,6 +10,7 @@ import { RecoveryService } from '../modules/recovery/recovery.service';
 import { AuditService } from '../modules/audit/audit.service';
 import { encodeDisasterPacket } from '../common/packet/disaster-packet';
 import { AuditLog } from '../modules/audit/entities/audit-log.entity';
+import { SosService } from '../modules/sos/sos.service';
 
 describe('Aali AI — End-to-End Synthetic Flood Journey (Phase 9 Acceptance)', () => {
   let app: INestApplication;
@@ -21,8 +22,17 @@ describe('Aali AI — End-to-End Synthetic Flood Journey (Phase 9 Acceptance)', 
   let auditService: AuditService;
 
   beforeAll(async () => {
+    const sosRecords = new Map<string, { id: string; transport_kind: string; geohash7: string | null }>();
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
+    }).overrideProvider(SosService).useValue({
+      createSos: async (dto: { clientReportId: string }) => {
+        const prior = sosRecords.get(dto.clientReportId);
+        if (prior) return { report: prior, isDuplicate: true };
+        const report = { id: `e2e-${sosRecords.size + 1}`, transport_kind: 'APP_DIRECT', geohash7: null };
+        sosRecords.set(dto.clientReportId, report);
+        return { report, isDuplicate: false };
+      },
     }).compile();
 
     app = moduleFixture.createNestApplication();
@@ -140,7 +150,7 @@ describe('Aali AI — End-to-End Synthetic Flood Journey (Phase 9 Acceptance)', 
     expect(boatAudits.some((e: AuditLog) => e.action === 'BOAT_DISPATCH_PROPOSAL_ACCEPTED')).toBe(true);
   });
 
-  it('Step 6: Runs historical replay, blanks sensor, and approves warning via human Authority', () => {
+  it('Step 6: Runs historical replay, blanks sensor, and approves warning via human Authority', async () => {
     const scenarios = alertsService.getScenarios();
     expect(scenarios.length).toBeGreaterThanOrEqual(2);
 
@@ -158,7 +168,7 @@ describe('Aali AI — End-to-End Synthetic Flood Journey (Phase 9 Acceptance)', 
     // Authority warning approval
     const warnings = alertsService.getWarnings();
     const draft = warnings[0];
-    const approvedWarning = alertsService.approveWarning(
+    const approvedWarning = await alertsService.approveWarning(
       draft.id,
       '00000000-0000-0000-0000-000000000002',
       'Official warning approved following Muhuri crest and gauge telemetry blackout',
@@ -172,12 +182,12 @@ describe('Aali AI — End-to-End Synthetic Flood Journey (Phase 9 Acceptance)', 
     expect(warningAudits.some((e: AuditLog) => e.action === 'APPROVE_WARNING')).toBe(true);
   });
 
-  it('Step 7: Records post-disaster recovery aid delivery with idempotency and audit record', () => {
+  it('Step 7: Records post-disaster recovery aid delivery with idempotency and audit record', async () => {
     const initialSummary = recoveryService.getSummary();
     expect(initialSummary.villagesRanking.length).toBeGreaterThan(0);
     const topVillage = initialSummary.villagesRanking[0];
 
-    const delRes1 = recoveryService.recordDelivery({
+    const delRes1 = await recoveryService.recordDelivery({
       areaId: topVillage.villageId,
       organizationLabel: 'Bangladesh Red Crescent Society (BDRCS)',
       itemCode: 'CLEAN_WATER',
@@ -190,7 +200,7 @@ describe('Aali AI — End-to-End Synthetic Flood Journey (Phase 9 Acceptance)', 
     expect(delRes1.isDuplicateIgnored).toBe(false);
 
     // Replay same delivery idempotency key
-    const delRes2 = recoveryService.recordDelivery({
+    const delRes2 = await recoveryService.recordDelivery({
       areaId: topVillage.villageId,
       organizationLabel: 'Bangladesh Red Crescent Society (BDRCS)',
       itemCode: 'CLEAN_WATER',

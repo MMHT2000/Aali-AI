@@ -141,24 +141,28 @@ export class IncidentsService {
     candidateId: string,
     decision: 'ACCEPT' | 'REJECT',
     reason: string,
+    operatorUserId?: string,
   ): Promise<{ status: string; incident: IncidentSummary }> {
     const inc = this.incidents.find((i) => i.id === incidentId);
     if (!inc || !inc.duplicateCandidate || inc.duplicateCandidate.candidateId !== candidateId) {
       throw new Error('Candidate not found on incident');
     }
 
-    inc.duplicateCandidate.status = decision === 'ACCEPT' ? 'ACCEPTED' : 'REJECTED';
+    const nextStatus = decision === 'ACCEPT' ? 'ACCEPTED' : 'REJECTED';
     this.logger.log(
       `Operator reviewed duplicate candidate ${candidateId} on incident ${incidentId}: ${decision}. Reason: ${reason}`,
     );
 
-    this.auditService?.record({
+    await this.auditService?.record({
+      actorUserId: operatorUserId,
       action: decision === 'ACCEPT' ? 'MERGE_DUPLICATE_ACCEPTED' : 'MERGE_DUPLICATE_REJECTED',
       entityType: 'INCIDENT',
       entityId: incidentId,
       reason,
-      afterSummary: { candidateId, decision, status: inc.duplicateCandidate.status },
+      afterSummary: { candidateId, decision, status: nextStatus },
     });
+
+    inc.duplicateCandidate.status = nextStatus;
 
     return { status: 'success', incident: inc };
   }
@@ -175,12 +179,12 @@ export class IncidentsService {
     }
 
     const prevStatus = inc.suggestedBoat.status;
-    inc.suggestedBoat.status = decision === 'ACCEPT' ? 'ACCEPTED' : 'REJECTED';
+    const nextStatus = decision === 'ACCEPT' ? 'ACCEPTED' : 'REJECTED';
     this.logger.log(
       `Operator ${operatorUserId || 'RESPONDER'} reviewed boat ${inc.suggestedBoat.name} on incident ${incidentId}: ${decision}. Note: ${reason} (NO AUTO-DISPATCH)`,
     );
 
-    this.auditService?.record({
+    await this.auditService?.record({
       actorUserId: operatorUserId || '00000000-0000-0000-0000-000000000003',
       action: decision === 'ACCEPT' ? 'BOAT_DISPATCH_PROPOSAL_ACCEPTED' : 'BOAT_DISPATCH_PROPOSAL_REJECTED',
       entityType: 'ASSET_PROPOSAL',
@@ -191,10 +195,12 @@ export class IncidentsService {
         incidentId,
         boatName: inc.suggestedBoat.name,
         decision,
-        status: inc.suggestedBoat.status,
+        status: nextStatus,
         note: 'HUMAN APPROVAL ONLY: Recommendation acknowledged by responder; no automatic external dispatch triggered.',
       },
     });
+
+    inc.suggestedBoat.status = nextStatus;
 
     return { status: 'success', incident: inc };
   }
@@ -203,14 +209,12 @@ export class IncidentsService {
     incidentId: string,
     reportIdToSeparate: string,
     reason: string,
+    operatorUserId?: string,
   ): Promise<{ originalIncident: IncidentSummary; newIncident: IncidentSummary }> {
     const inc = this.incidents.find((i) => i.id === incidentId);
     if (!inc || !inc.linkedReportIds.includes(reportIdToSeparate)) {
       throw new Error('Report not linked to incident');
     }
-
-    inc.linkedReportIds = inc.linkedReportIds.filter((id) => id !== reportIdToSeparate);
-    inc.reportsCount = inc.linkedReportIds.length;
 
     const newInc: IncidentSummary = {
       id: `inc-split-${Date.now().toString(36)}`,
@@ -227,10 +231,8 @@ export class IncidentsService {
       linkedReportIds: [reportIdToSeparate],
     };
 
-    this.incidents.push(newInc);
-    this.logger.log(`Incident ${incidentId} split. Separated report ${reportIdToSeparate} into ${newInc.id}.`);
-
-    this.auditService?.record({
+    await this.auditService?.record({
+      actorUserId: operatorUserId,
       action: 'SPLIT_INCIDENT',
       entityType: 'INCIDENT',
       entityId: incidentId,
@@ -242,6 +244,11 @@ export class IncidentsService {
         newIncidentId: newInc.id,
       },
     });
+
+    inc.linkedReportIds = inc.linkedReportIds.filter((id) => id !== reportIdToSeparate);
+    inc.reportsCount = inc.linkedReportIds.length;
+    this.incidents.push(newInc);
+    this.logger.log(`Incident ${incidentId} split. Separated report ${reportIdToSeparate} into ${newInc.id}.`);
 
     return { originalIncident: inc, newIncident: newInc };
   }

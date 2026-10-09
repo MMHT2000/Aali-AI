@@ -1,11 +1,13 @@
 import { useState } from 'react';
+import { apiFetch as fetch } from '../lib/authenticated-fetch';
 
 export interface ResidentRegistrationResponse {
   residentId: string;
-  nidHash: string;
   nidLast4: string;
   phoneNumberRedacted: string;
   registeredAt: string;
+  accessToken: string;
+  expiresIn: string;
   disclaimer: string;
 }
 

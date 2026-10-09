@@ -1,6 +1,7 @@
 import { Controller, Get } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { HealthService, HealthStatus, ReadinessStatus } from './health.service';
+import { Public } from '../../common/auth/public.decorator';
 
 @ApiTags('Health')
 @Controller()
@@ -8,6 +9,7 @@ export class HealthController {
   constructor(private readonly healthService: HealthService) {}
 
   @Get('health')
+  @Public()
   @ApiOperation({ summary: 'Liveness probe' })
   @ApiResponse({ status: 200, description: 'Service is alive' })
   getLiveness(): { status: string; timestamp: string } {
@@ -15,6 +17,7 @@ export class HealthController {
   }
 
   @Get('api/v1/health')
+  @Public()
   @ApiOperation({ summary: 'API version and configuration status' })
   @ApiResponse({ status: 200, description: 'API health information' })
   getHealth(): HealthStatus {
@@ -22,6 +25,7 @@ export class HealthController {
   }
 
   @Get('api/v1/health/readiness')
+  @Public()
   @ApiOperation({ summary: 'Readiness check for database and core subsystems' })
   @ApiResponse({ status: 200, description: 'System readiness status' })
   async getReadiness(): Promise<ReadinessStatus> {

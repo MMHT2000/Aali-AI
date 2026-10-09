@@ -15,6 +15,7 @@ import {
 } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { LoginDto, LoginResponseDto } from './dto/login.dto';
+import { Public } from '../../common/auth/public.decorator';
 
 @ApiTags('Auth')
 @Controller('api/v1/auth')
@@ -22,6 +23,7 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('login')
+  @Public()
   @ApiOperation({ summary: 'Authenticate user with username and password' })
   @ApiResponse({
     status: 200,
@@ -44,6 +46,7 @@ export class AuthController {
   }
 
   @Post('resident-register')
+  @Public()
   @ApiOperation({ summary: 'Register resident with demo mock NID format & uniqueness check' })
   @ApiResponse({ status: 201, description: 'Resident registration successful' })
   @ApiResponse({ status: 400, description: 'Invalid mock NID format or length' })

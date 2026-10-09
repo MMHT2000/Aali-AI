@@ -2,6 +2,13 @@
 
 All data and transport stages are synthetic/simulated unless an operator integration has independently been configured and verified.
 
+## Current local setup (XAMPP)
+- Start the XAMPP MySQL service on port `3306`; the local `.env` uses database `aali_ai` and the XAMPP `root` account. If your root account has a password, set `MYSQL_PASSWORD` in `.env`.
+- Run API migrations at startup and wait for `GET /api/v1/health/readiness` to report `ready` before opening the web app.
+- The authenticated web application opens role workspaces. Authority starts at the map-first `/control-room/map`; Responders use `/control-room/responder`; Volunteers use `/control-room/field`; Recovery Coordinators use `/control-room/recovery`.
+- Authority can run the API-backed synthetic scenario from the map workspace. Scenario position persists in MySQL and the API restarts in a paused state; it is not a trained forecasting model.
+- Web resident simulator and Flutter client source are distinct: Flutter still needs API onboarding/SOS wiring and Flutter CLI verification before it can be used as the same end-to-end flow.
+
 ## Pre-demo checklist
 - Start MySQL, apply migrations, seed fixtures, start API and web.
 - Use the seeded Authority and Responder demo accounts from local developer docs; do not deploy the demo password.
@@ -15,10 +22,10 @@ All data and transport stages are synthetic/simulated unless an operator integra
 Show the Feni scenario and the tower-outage context from the proposal. State that the prototype demonstrates the app/packet/rules; the operator compact and satellite delivery are assumptions/simulations, not proven field performance.
 
 ### 0:30–1:20 — BEFORE: replay and gauge silence
-Open the July 2025 replay, point to gauge/rain/volunteer signals and alert reason list. Blank the gauge. Show escalation only if rule conditions hold and highlight the `GAUGE_SILENT` reason. Show that replay data is reconstructed and lead time is computed from fixture timestamps.
+Open Replay & Exercise, then the July 2025 reconstructed replay view. Separately return to Situation Map to run the current deterministic synthetic scenario and show API snapshot updates, gauge/rain inputs and alert reason codes. Do not describe the exercise timeline as an ML forecast.
 
 ### 1:20–3:10 — DURING: blackout SOS
-Switch to the resident view, submit a three-step SOS with synthetic people/urgency details and no GPS if practical. Disable app network submit; show `QUEUED`. Copy/open the SMS packet and send it through the clearly labelled Gateway Simulator. Open responder view and find the single ingested report.
+Open Resident Simulator and submit a three-step SOS with synthetic people/urgency details and no GPS if practical. The API stores SOS submissions in MySQL with client-ID idempotency. The SMS composer remains an explicit user handoff; the gateway path is a simulation. Open Rescue Operations and inspect API-submitted SOS records where the current role snapshot includes them.
 
 Show confidence components. Submit or load a second differently-worded synthetic report from the same school; inspect the duplicate suggestion, then manually accept/reject it. Show the silent-village indicator and “verify by safe means.” Review the boat priority breakdown and explicitly mention that a human approves any action.
 

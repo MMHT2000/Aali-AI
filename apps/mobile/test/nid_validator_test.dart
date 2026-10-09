@@ -60,6 +60,7 @@ void main() {
 
       final encoded = packet.encode();
       expect(encoded.startsWith('A1|S|wh0r8vy|05|E1C1M0T1|261009-2320|MOB1|'), isTrue);
+      expect(encoded, 'A1|S|wh0r8vy|05|E1C1M0T1|261009-2320|MOB1|07S4');
       expect(encoded.length, lessThan(60));
     });
 

@@ -1,4 +1,7 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, Optional } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { randomUUID } from 'crypto';
 import { AuditLog } from './entities/audit-log.entity';
 
 export interface RecordAuditParams {
@@ -17,9 +20,13 @@ export class AuditService {
   private readonly logger = new Logger(AuditService.name);
   private auditLogs: AuditLog[] = [];
 
-  record(params: RecordAuditParams): AuditLog {
+  constructor(
+    @Optional() @InjectRepository(AuditLog) private readonly repository?: Repository<AuditLog>,
+  ) {}
+
+  async record(params: RecordAuditParams): Promise<AuditLog> {
     const entry = new AuditLog();
-    entry.id = `audit-${Date.now().toString(36)}-${Math.random().toString(36).substring(2, 6)}`;
+    entry.id = randomUUID();
     entry.actor_user_id = params.actorUserId || null;
     entry.action = params.action;
     entry.entity_type = params.entityType;
@@ -30,11 +37,22 @@ export class AuditService {
     entry.after_summary = params.afterSummary || null;
     entry.request_id = params.requestId || null;
 
+    if (this.repository && process.env.NODE_ENV !== 'test') {
+      await this.repository.save(entry);
+    }
     this.auditLogs.unshift(entry);
     this.logger.log(
-      `[AUDIT] Action: ${entry.action} on ${entry.entity_type}:${entry.entity_id} by ${entry.actor_user_id || 'SYSTEM'}. Reason: ${entry.reason || 'None'}`,
+      `[AUDIT] Action: ${entry.action} on ${entry.entity_type}:${entry.entity_id} by ${entry.actor_user_id || 'SYSTEM'}`,
     );
     return entry;
+  }
+
+  async getPersistedLogs(filter?: { entityType?: string; entityId?: string }): Promise<AuditLog[]> {
+    if (!this.repository || process.env.NODE_ENV === 'test') return this.getLogs(filter);
+    const query = this.repository.createQueryBuilder('audit');
+    if (filter?.entityType) query.andWhere('audit.entity_type = :entityType', { entityType: filter.entityType });
+    if (filter?.entityId) query.andWhere('audit.entity_id = :entityId', { entityId: filter.entityId });
+    return query.orderBy('audit.occurred_at', 'DESC').take(500).getMany();
   }
 
   getLogs(filter?: { entityType?: string; entityId?: string }): AuditLog[] {

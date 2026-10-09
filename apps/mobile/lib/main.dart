@@ -1,4 +1,9 @@
+import 'dart:convert';
+import 'dart:io';
+import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'nid_validator.dart';
 import 'packet_encoder.dart';
 
@@ -36,12 +41,17 @@ class ResidentHomeScreen extends StatefulWidget {
 }
 
 class _ResidentHomeScreenState extends State<ResidentHomeScreen> {
+  static const String _apiBase = String.fromEnvironment('AALI_API_URL', defaultValue: 'http://10.0.2.2:3001/api/v1');
   // Onboarding / Identity State
   bool _isOnboarded = false;
   final TextEditingController _nameController = TextEditingController(text: 'আব্দুল কাদের');
   final TextEditingController _phoneController = TextEditingController(text: '01712345678');
   final TextEditingController _nidController = TextEditingController(text: '1984261829');
   String? _nidError;
+  String? _accessToken;
+  String? _pendingPayload;
+  bool _working = false;
+  String? _operationMessage;
 
   // 3-Step SOS State
   int _peopleCount = 4;
@@ -55,7 +65,41 @@ class _ResidentHomeScreenState extends State<ResidentHomeScreen> {
   String? _outboxPacket;
   String _sosState = 'IDLE'; // IDLE, QUEUED_OFFLINE, SENT_ONLINE, HANDED_OFF_SMS
 
-  void _handleOnboard() {
+  @override
+  void initState() {
+    super.initState();
+    _restoreLocalState();
+  }
+
+  Future<void> _restoreLocalState() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (!mounted) return;
+    setState(() {
+      _accessToken = prefs.getString('aali_resident_access_token');
+      _pendingPayload = prefs.getString('aali_pending_sos_payload');
+      _outboxPacket = prefs.getString('aali_pending_sos_packet');
+      _isOnboarded = _accessToken != null || prefs.getBool('aali_local_onboarded') == true;
+      if (_outboxPacket != null) _sosState = 'QUEUED_OFFLINE';
+    });
+  }
+
+  Future<Map<String, dynamic>> _postJson(String path, Map<String, dynamic> payload) async {
+    final client = HttpClient()..connectionTimeout = const Duration(seconds: 5);
+    try {
+      final request = await client.postUrl(Uri.parse('$_apiBase$path'));
+      request.headers.contentType = ContentType.json;
+      if (_accessToken != null) request.headers.set(HttpHeaders.authorizationHeader, 'Bearer $_accessToken');
+      request.write(jsonEncode(payload));
+      final response = await request.close();
+      final body = await response.transform(utf8.decoder).join();
+      final decoded = body.isEmpty ? <String, dynamic>{} : jsonDecode(body) as Map<String, dynamic>;
+      return {'statusCode': response.statusCode, 'body': decoded};
+    } finally {
+      client.close(force: true);
+    }
+  }
+
+  Future<void> _handleOnboard() async {
     final err = MockNidValidator.validate(_nidController.text);
     if (err != null) {
       setState(() {
@@ -64,13 +108,36 @@ class _ResidentHomeScreenState extends State<ResidentHomeScreen> {
       return;
     }
 
-    setState(() {
-      _nidError = null;
-      _isOnboarded = true;
-    });
+    setState(() { _working = true; _nidError = null; _operationMessage = null; });
+    try {
+      final result = await _postJson('/auth/resident-register', {
+        'fullName': _nameController.text.trim(),
+        'phoneNumber': _phoneController.text.trim(),
+        'mockNid': _nidController.text.trim(),
+      });
+      if (result['statusCode'] == 201 || result['statusCode'] == 200) {
+        _accessToken = result['body']['accessToken'] as String?;
+        final prefs = await SharedPreferences.getInstance();
+        if (_accessToken != null) await prefs.setString('aali_resident_access_token', _accessToken!);
+        await prefs.setBool('aali_local_onboarded', true);
+        if (mounted) setState(() { _isOnboarded = true; _operationMessage = 'Demo registration acknowledged by Aali API. This is not identity verification.'; });
+      } else {
+        final body = result['body'] as Map<String, dynamic>;
+        if (mounted) setState(() => _nidError = body['message']?.toString() ?? 'Registration was rejected (${result['statusCode']}).');
+      }
+    } on SocketException {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('aali_local_onboarded', true);
+      if (mounted) setState(() { _isOnboarded = true; _operationMessage = 'API unavailable. NID uniqueness is not checked offline; SOS will stay queued until submitted.'; });
+    } catch (_) {
+      if (mounted) setState(() => _nidError = 'Could not complete registration. Check the API address and try again.');
+    } finally {
+      if (mounted) setState(() => _working = false);
+      _nidController.clear();
+    }
   }
 
-  void _handleCreateSos() {
+  Future<void> _handleCreateSos() async {
     final now = DateTime.now();
     final yy = now.year.toString().substring(2);
     final mm = now.month.toString().padLeft(2, '0');
@@ -78,22 +145,65 @@ class _ResidentHomeScreenState extends State<ResidentHomeScreen> {
     final hh = now.hour.toString().padLeft(2, '0');
     final min = now.minute.toString().padLeft(2, '0');
 
+    final clientReportId = 'mobile-${now.microsecondsSinceEpoch}-${Random.secure().nextInt(0x7fffffff).toRadixString(36)}';
+    final isChitholia = _selectedVillage.contains('Chitholia');
     final packet = CompactDisasterPacket(
-      geohash7: _selectedVillage.contains('Chitholia') ? 'wh0r8vy' : 'wh0rc0z',
+      geohash7: isChitholia ? 'wh0xs4a' : 'wh0xsk0',
       peopleCount: _peopleCount,
       elderly: _flagElderly,
       child: _flagChild,
       medical: _flagMedical,
       trapped: _flagTrapped,
       timestamp: '$yy$mm$dd-$hh$min',
-      shortId: 'MOB1',
+      shortId: Random.secure().nextInt(1679616).toRadixString(36).toUpperCase().padLeft(4, '0'),
     );
 
     final encoded = packet.encode();
+    final payload = <String, dynamic>{
+      'clientReportId': clientReportId,
+      'eventId': '11111111-1111-1111-1111-111111111103',
+      'areaId': isChitholia ? '22222222-2222-2222-2222-222222222205' : '22222222-2222-2222-2222-222222222204',
+      'peopleCount': _peopleCount,
+      'elderlyCount': _flagElderly ? 1 : 0,
+      'hasChild': _flagChild,
+      'hasMedicalNeed': _flagMedical,
+      'isTrapped': _flagTrapped,
+      'sourceType': 'NEW_USER',
+      'packet': encoded,
+      'messageOriginal': 'Resident app packet submission',
+    };
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('aali_pending_sos_packet', encoded);
+    await prefs.setString('aali_pending_sos_payload', jsonEncode(payload));
     setState(() {
       _outboxPacket = encoded;
+      _pendingPayload = jsonEncode(payload);
       _sosState = 'QUEUED_OFFLINE';
     });
+    await _submitPendingSos();
+  }
+
+  Future<void> _submitPendingSos() async {
+    final rawPayload = _pendingPayload;
+    if (rawPayload == null) return;
+    setState(() { _working = true; _operationMessage = null; });
+    try {
+      final result = await _postJson('/sos', jsonDecode(rawPayload) as Map<String, dynamic>);
+      if (result['statusCode'] == 200 || result['statusCode'] == 201) {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.remove('aali_pending_sos_payload');
+        await prefs.remove('aali_pending_sos_packet');
+        if (mounted) setState(() { _pendingPayload = null; _sosState = 'API_ACKNOWLEDGED'; _operationMessage = 'API acknowledged the report. This does not mean rescue or SMS delivery.'; });
+      } else if (mounted) {
+        setState(() { _sosState = 'QUEUED_OFFLINE'; _operationMessage = 'API did not acknowledge the report (${result['statusCode']}); it remains in the local outbox.'; });
+      }
+    } on SocketException {
+      if (mounted) setState(() { _sosState = 'QUEUED_OFFLINE'; _operationMessage = 'No internet connection. SOS remains saved locally; SMS handoff is a separate user action.'; });
+    } catch (_) {
+      if (mounted) setState(() { _sosState = 'QUEUED_OFFLINE'; _operationMessage = 'Submission failed; the SOS remains saved locally for retry.'; });
+    } finally {
+      if (mounted) setState(() => _working = false);
+    }
   }
 
   @override
@@ -164,7 +274,7 @@ class _ResidentHomeScreenState extends State<ResidentHomeScreen> {
                       ),
                       const SizedBox(height: 16),
                       ElevatedButton(
-                        onPressed: _handleOnboard,
+                        onPressed: _working ? null : () => _handleOnboard(),
                         style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF0284C7)),
                         child: const Text('অনবোর্ড নিশ্চিত করুন (Save & Continue)'),
                       ),
@@ -243,7 +353,7 @@ class _ResidentHomeScreenState extends State<ResidentHomeScreen> {
                       ),
                       const SizedBox(height: 16),
                       ElevatedButton(
-                        onPressed: _handleCreateSos,
+                        onPressed: _working ? null : () => _handleCreateSos(),
                         style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFE11D48), padding: const EdgeInsets.symmetric(vertical: 12)),
                         child: const Text('🚨 এসওএস জেনারেট করুন (SUBMIT SOS)', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
                       ),
@@ -270,21 +380,25 @@ class _ResidentHomeScreenState extends State<ResidentHomeScreen> {
                           child: Text(_outboxPacket!, style: const TextStyle(fontFamily: 'monospace', color: Color(0xFF38BDF8))),
                         ),
                         const SizedBox(height: 8),
-                        Text('স্ট্যাটাস: $_sosState (Saved in durable local outbox)', style: const TextStyle(fontSize: 12, color: Color(0xFF4ADE80))),
+                        Text('স্ট্যাটাস: $_sosState', style: const TextStyle(fontSize: 12, color: Color(0xFF4ADE80))),
+                        if (_operationMessage != null) Padding(padding: const EdgeInsets.symmetric(vertical: 8), child: Text(_operationMessage!, style: const TextStyle(fontSize: 12, color: Color(0xFFFDE68A)))),
                         const SizedBox(height: 12),
                         Wrap(
                           spacing: 8,
                           children: [
                             ElevatedButton.icon(
-                              onPressed: () {
-                                setState(() => _sosState = 'HANDED_OFF_SMS');
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('অ্যান্ড্রয়েড এসএমএস কম্পোজার ওপেন হয়েছে (Explicit User Action)')),
-                                );
+                              onPressed: () async {
+                                final launched = await launchUrl(Uri(scheme: 'sms', path: '16604', queryParameters: {'body': _outboxPacket!}));
+                                if (mounted) setState(() { _sosState = launched ? 'SMS_COMPOSER_OPENED' : _sosState; _operationMessage = launched ? 'SMS composer opened by your action. The message has not been sent or acknowledged.' : 'Could not open an SMS composer on this device.'; });
                               },
                               icon: const Icon(Icons.sms),
                               label: const Text('এসএমএস কম্পোজার ওপেন করুন'),
                               style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF0284C7)),
+                            ),
+                            if (_pendingPayload != null) OutlinedButton.icon(
+                              onPressed: _working ? null : () => _submitPendingSos(),
+                              icon: const Icon(Icons.refresh),
+                              label: const Text('Retry API submission'),
                             ),
                           ],
                         ),

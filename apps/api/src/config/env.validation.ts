@@ -71,6 +71,11 @@ export class EnvironmentVariables {
   @IsOptional()
   JWT_EXPIRES_IN: string = '30m';
 
+  @IsString()
+  @MinLength(32, { message: 'NID_HASH_SECRET must be at least 32 characters' })
+  @IsOptional()
+  NID_HASH_SECRET: string = 'replace-with-a-long-random-local-nid-hash-secret';
+
   @IsEnum(AiProvider)
   @IsOptional()
   AI_PROVIDER: AiProvider = AiProvider.Mock;
