@@ -83,8 +83,9 @@ export class OperationsService {
   }
 
   private async getContextSnapshot(role: UserRole, query: OperationsSnapshotQueryDto) {
+    const targetDistrictCode = query.districtCode?.toUpperCase() || 'FENI_DIST';
     const mode = query.mode ?? OperationsMode.EXERCISE;
-    const context = this.resolveContext(mode, query.eventId);
+    const context = this.resolveContext(mode, query.eventId, targetDistrictCode);
     const isAuthority = role === UserRole.AUTHORITY;
     const isResponder = role === UserRole.RESPONDER;
     const canSeeRescueRecords = isAuthority || isResponder;
@@ -108,7 +109,6 @@ export class OperationsService {
     const isViewer = role === UserRole.VIEWER;
     const isAdmin = role === UserRole.ADMIN;
     const generatedAt = new Date().toISOString();
-    const targetDistrictCode = query.districtCode?.toUpperCase() || 'FENI_DIST';
     const districtArea = SYNTHETIC_FENI_SEEDS.areas.find((a) => a.code === targetDistrictCode && a.area_type === 'DISTRICT') ?? SYNTHETIC_FENI_SEEDS.areas[0];
     const allowedAreaIds = new Set<string>();
     if (districtArea) {
@@ -136,46 +136,103 @@ export class OperationsService {
       (area.name_en ?? '').toLowerCase().includes(name.split('/')[0].trim().toLowerCase()),
     );
     const isFieldOrSituationRole = isAuthority || isResponder || isVolunteer || isViewer;
-    const canSeeShelters = (isAuthority || isResponder || isRecovery || isViewer) && mode === OperationsMode.EXERCISE;
+    const canSeeShelters = (isAuthority || isResponder || isRecovery || isViewer) && (mode === OperationsMode.EXERCISE || mode === OperationsMode.HISTORICAL);
     const canSeeRescueResources = isAuthority || isResponder;
     const canSeeReports = canSeeRescueRecords;
     const mapLayers = {
       areas,
-      gauges: isFieldOrSituationRole && !isRecovery && mode === OperationsMode.EXERCISE && simulation
-        ? SYNTHETIC_FENI_SEEDS.gauges
-            .filter((gauge) => allowedAreaIds.size === 0 || allowedAreaIds.has(gauge.area_id!))
-            .map((gauge) => {
-              const area = SYNTHETIC_FENI_SEEDS.areas.find((item) => item.id === gauge.area_id);
-              return { id: gauge.id, name: gauge.name, latitude: area?.latitude, longitude: area?.longitude, valueM: simulation.sourceData.gauge.valueM, status: simulation.sourceData.gauge.available ? 'REPORTING' : 'STALE', provenance: OperationsProvenance.SYNTHETIC_SIMULATION };
-            }) : [],
+      gauges: isFieldOrSituationRole && !isRecovery
+        ? (mode === OperationsMode.EXERCISE && simulation
+            ? SYNTHETIC_FENI_SEEDS.gauges
+                .filter((gauge) => allowedAreaIds.size === 0 || allowedAreaIds.has(gauge.area_id!))
+                .map((gauge) => {
+                  const area = SYNTHETIC_FENI_SEEDS.areas.find((item) => item.id === gauge.area_id);
+                  return { id: gauge.id, name: gauge.name, latitude: area?.latitude, longitude: area?.longitude, valueM: simulation.sourceData.gauge.valueM, status: simulation.sourceData.gauge.available ? 'REPORTING' : 'STALE', provenance: OperationsProvenance.SYNTHETIC_SIMULATION };
+                })
+            : mode === OperationsMode.HISTORICAL
+              ? (targetDistrictCode === 'SYLHET_DIST'
+                  ? [{ id: 'gauge-sylhet-pt-hist', name: 'Surma River · Sylhet Point (BWDB)', latitude: 24.8949, longitude: 91.8687, valueM: 12.02, status: 'DANGER_SEVERED', provenance: OperationsProvenance.HISTORICAL_RECONSTRUCTION }]
+                  : [{ id: 'gauge-parshuram-hist', name: 'Muhuri River · Parshuram Gauge (BWDB)', latitude: 23.2325, longitude: 91.4361, valueM: 13.40, status: 'DANGER_SEVERED', provenance: OperationsProvenance.HISTORICAL_RECONSTRUCTION }])
+              : [])
+        : [],
       shelters: canSeeShelters ? SYNTHETIC_FENI_SEEDS.shelters
           .filter((shelter) => allowedAreaIds.size === 0 || allowedAreaIds.has(shelter.area_id!))
           .map((shelter) => ({
             id: shelter.id, name: shelter.name_en, latitude: shelter.latitude, longitude: shelter.longitude,
-            status: shelter.status, provenance: OperationsProvenance.SYNTHETIC_FIXTURE,
+            status: shelter.status, provenance: mode === OperationsMode.HISTORICAL ? OperationsProvenance.HISTORICAL_RECONSTRUCTION : OperationsProvenance.SYNTHETIC_FIXTURE,
           })) : [],
-      assets: canSeeRescueResources && mode === OperationsMode.EXERCISE ? SYNTHETIC_FENI_SEEDS.assets
-          .filter((asset) => allowedAreaIds.size === 0 || allowedAreaIds.has(asset.area_id!))
-          .map((asset) => ({
-            id: asset.id, name: asset.name, latitude: asset.latitude, longitude: asset.longitude,
-            status: asset.availability_status, provenance: OperationsProvenance.SYNTHETIC_FIXTURE,
-          })) : [],
-      incidents: canSeeRescueResources ? (targetDistrictCode === 'SYLHET_DIST'
-        ? [
-            {
-              id: 'sylhet-incident-01',
-              label: 'Companiganj Upazila Inundation & Breached Dyke',
-              latitude: 25.0805,
-              longitude: 91.7523,
-              status: 'IN_PROGRESS',
-              peopleCount: 19,
-              provenance: OperationsProvenance.SYNTHETIC_FIXTURE,
-            },
-          ]
-        : incidents.map((incident) => {
-            const area = areaFor(incident.areaName);
-            return { id: incident.id, label: incident.summary, latitude: area?.latitude, longitude: area?.longitude, status: incident.status, peopleCount: incident.peopleCount, provenance: OperationsProvenance.SYNTHETIC_FIXTURE };
-          })) : [],
+      assets: canSeeRescueResources
+        ? (mode === OperationsMode.EXERCISE
+            ? SYNTHETIC_FENI_SEEDS.assets
+                .filter((asset) => allowedAreaIds.size === 0 || allowedAreaIds.has(asset.area_id!))
+                .map((asset) => ({
+                  id: asset.id, name: asset.name, latitude: asset.latitude, longitude: asset.longitude,
+                  status: asset.availability_status, provenance: OperationsProvenance.SYNTHETIC_FIXTURE,
+                }))
+            : mode === OperationsMode.HISTORICAL
+              ? (targetDistrictCode === 'SYLHET_DIST'
+                  ? [{ id: 'asset-sylhet-army-01', name: 'Army Quick Reaction Craft QRC-01 (Companiganj)', latitude: 25.0805, longitude: 91.7523, status: 'DEPLOYED_HISTORICAL', provenance: OperationsProvenance.HISTORICAL_RECONSTRUCTION }]
+                  : [{ id: 'asset-feni-army-01', name: 'Army ZOD Speedboat 01 (Parshuram Ghat)', latitude: 23.2325, longitude: 91.4361, status: 'DEPLOYED_HISTORICAL', provenance: OperationsProvenance.HISTORICAL_RECONSTRUCTION }])
+              : [])
+        : [],
+      incidents: canSeeRescueResources ? (mode === OperationsMode.HISTORICAL
+        ? (targetDistrictCode === 'SYLHET_DIST'
+            ? [
+                {
+                  id: 'sylhet-hist-01',
+                  label: 'Companiganj Upazila Inundation & Breached Dyke (84% Submerged)',
+                  latitude: 25.0805,
+                  longitude: 91.7523,
+                  status: 'HISTORICAL_GROUND_TRUTH',
+                  peopleCount: 1200,
+                  provenance: OperationsProvenance.HISTORICAL_RECONSTRUCTION,
+                },
+                {
+                  id: 'sylhet-hist-02',
+                  label: 'Kumargaon 132/33kV Grid Substation Submerged (Power Outage)',
+                  latitude: 24.9080,
+                  longitude: 91.8310,
+                  status: 'HISTORICAL_GROUND_TRUTH',
+                  peopleCount: 0,
+                  provenance: OperationsProvenance.HISTORICAL_RECONSTRUCTION,
+                },
+              ]
+            : [
+                {
+                  id: 'feni-hist-01',
+                  label: 'Muhuri River Embankment Breach · North Boroitoli (350+ Stranded)',
+                  latitude: 23.2350,
+                  longitude: 91.4390,
+                  status: 'HISTORICAL_GROUND_TRUTH',
+                  peopleCount: 350,
+                  provenance: OperationsProvenance.HISTORICAL_RECONSTRUCTION,
+                },
+                {
+                  id: 'feni-hist-02',
+                  label: 'Fulgazi Town Power Substation & Highway Inundation',
+                  latitude: 23.1611,
+                  longitude: 91.4167,
+                  status: 'HISTORICAL_GROUND_TRUTH',
+                  peopleCount: 120,
+                  provenance: OperationsProvenance.HISTORICAL_RECONSTRUCTION,
+                },
+              ])
+        : (targetDistrictCode === 'SYLHET_DIST'
+            ? [
+                {
+                  id: 'sylhet-incident-01',
+                  label: 'Companiganj Upazila Inundation & Breached Dyke',
+                  latitude: 25.0805,
+                  longitude: 91.7523,
+                  status: 'IN_PROGRESS',
+                  peopleCount: 19,
+                  provenance: OperationsProvenance.SYNTHETIC_FIXTURE,
+                },
+              ]
+            : incidents.map((incident) => {
+                const area = areaFor(incident.areaName);
+                return { id: incident.id, label: incident.summary, latitude: area?.latitude, longitude: area?.longitude, status: incident.status, peopleCount: incident.peopleCount, provenance: OperationsProvenance.SYNTHETIC_FIXTURE };
+              }))) : [],
       sos: canSeeReports ? (() => {
         if (targetDistrictCode === 'SYLHET_DIST') {
           return [
@@ -314,14 +371,21 @@ export class OperationsService {
     };
   }
 
-  private resolveContext(mode: OperationsMode, eventId?: string) {
+  private resolveContext(mode: OperationsMode, eventId?: string, targetDistrictCode?: string) {
     if (mode === OperationsMode.LIVE) {
       if (eventId) throw new BadRequestException('Live source mode does not select a replay or exercise event.');
       return { event: null as (typeof SYNTHETIC_FENI_SEEDS.floodEvents)[number] | null };
     }
     const expectedMode = mode === OperationsMode.EXERCISE ? FloodEventMode.DEMO : FloodEventMode.REPLAY;
     const candidates = SYNTHETIC_FENI_SEEDS.floodEvents.filter((event) => event.mode === expectedMode);
-    const event = eventId ? candidates.find((candidate) => candidate.id === eventId) : candidates[0];
+    let event = eventId ? candidates.find((candidate) => candidate.id === eventId) : undefined;
+    if (!event && !eventId) {
+      if (targetDistrictCode === 'SYLHET_DIST') {
+        event = candidates.find((candidate) => candidate.region_code === 'SYLHET') ?? candidates[0];
+      } else {
+        event = candidates.find((candidate) => candidate.region_code === 'FENI') ?? candidates[0];
+      }
+    }
     if (!event) throw new BadRequestException(`Event is not available in ${mode.toLowerCase()} mode.`);
     return { event };
   }

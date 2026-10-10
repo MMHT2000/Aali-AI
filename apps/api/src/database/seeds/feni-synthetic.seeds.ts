@@ -105,6 +105,28 @@ export const SYNTHETIC_FENI_SEEDS: SeedData = {
       provenance_note: 'Live demonstration synthetic scenario.',
       is_reconstructed: false,
     },
+    {
+      id: '11111111-1111-1111-1111-111111111104',
+      name: 'Sylhet Megaflood June 2022 Replay',
+      region_code: 'SYLHET',
+      start_at: new Date('2022-06-15T00:00:00Z'),
+      end_at: new Date('2022-06-21T23:59:59Z'),
+      status: 'REPLAY',
+      mode: FloodEventMode.REPLAY,
+      provenance_note: 'Historical reconstruction of June 2022 Surma deluge from BWDB Sylhet Point & Cherrapunji IMD records.',
+      is_reconstructed: true,
+    },
+    {
+      id: '11111111-1111-1111-1111-111111111105',
+      name: 'Sylhet Flash Surge May 2024 Replay',
+      region_code: 'SYLHET',
+      start_at: new Date('2024-05-28T00:00:00Z'),
+      end_at: new Date('2024-05-31T23:59:59Z'),
+      status: 'REPLAY',
+      mode: FloodEventMode.REPLAY,
+      provenance_note: 'Reconstructed pre-monsoon deluge in Surma-Kushiyara basin triggered by Meghalaya upstream rainfall.',
+      is_reconstructed: true,
+    },
   ],
 
   areas: [

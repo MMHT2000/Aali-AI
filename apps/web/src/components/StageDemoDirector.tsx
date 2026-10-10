@@ -11,6 +11,7 @@ import {
   Waves,
 } from 'lucide-react';
 import { apiFetch } from '../lib/authenticated-fetch';
+import { sendSimulationControl, toggleGaugeBlackout } from '../lib/operations-client';
 
 interface StageDemoDirectorProps {
   onMomentTriggered?: (moment: number, title: string) => void;
@@ -49,6 +50,7 @@ export function StageDemoDirector({ onMomentTriggered, onRefresh }: StageDemoDir
       if (momentNum === 1) {
         playChime(440, 0.4);
         setStatusMessage('⚡ Moment 1 Active: Feni Cellular Blackout (616 of 653 towers severed by August 2024 floodwaters).');
+        await sendSimulationControl('connectivity', { internetAvailable: false }).catch(() => {});
         await apiFetch('/api/v1/operations/demo-moment', {
           method: 'POST',
           body: JSON.stringify({ moment: 1, title: 'Feni Cellular Blackout' }),
@@ -56,6 +58,7 @@ export function StageDemoDirector({ onMomentTriggered, onRefresh }: StageDemoDir
       } else if (momentNum === 2) {
         playChime(660, 0.35);
         setStatusMessage('🌊 Moment 2 Active: Blank-Gauge Escalation Rule triggered! Upstream gauge silent for 60m + 95mm rain -> Escalated to ACT (+8h lead time).');
+        await toggleGaugeBlackout(false).catch(() => {});
         await apiFetch('/api/v1/operations/demo-moment', {
           method: 'POST',
           body: JSON.stringify({ moment: 2, title: 'Blank-Gauge Rule Escalation' }),
@@ -64,7 +67,7 @@ export function StageDemoDirector({ onMomentTriggered, onRefresh }: StageDemoDir
         playChime(987, 0.3);
         setStatusMessage('📡 Moment 3 Active: Starlink D2C Wi-Fi 42-byte SOS packet injected! Gemini Dialect NLP parsing in progress...');
         const shortId = `D2C${Math.floor(Math.random() * 90 + 10)}`;
-        await fetch('/api/v1/sos', {
+        await apiFetch('/api/v1/sos', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

@@ -114,6 +114,12 @@ export function ControlRoom({ session, onLogout }: ControlRoomProps) {
               const district = e.target.value;
               const nextParams = new URLSearchParams(searchParams);
               nextParams.set('districtCode', district);
+              if (mode === 'HISTORICAL') {
+                const defaultEvent = district === 'SYLHET_DIST'
+                  ? '11111111-1111-1111-1111-111111111104'
+                  : '11111111-1111-1111-1111-111111111101';
+                nextParams.set('eventId', defaultEvent);
+              }
               setSearchParams(nextParams);
             }}
           >
@@ -122,9 +128,22 @@ export function ControlRoom({ session, onLogout }: ControlRoomProps) {
           </select>
         </label>
         {mode === 'HISTORICAL' && <label className="mode-select-label">Event
-          <select aria-label="Historical event" value={eventId ?? '11111111-1111-1111-1111-111111111101'} onChange={(event) => setOperatingContext('HISTORICAL', event.target.value)}>
-            <option value="11111111-1111-1111-1111-111111111101">August 2024 reconstruction</option>
-            <option value="11111111-1111-1111-1111-111111111102">July 2025 reconstruction</option>
+          <select
+            aria-label="Historical event"
+            value={eventId ?? (districtCode === 'SYLHET_DIST' ? '11111111-1111-1111-1111-111111111104' : '11111111-1111-1111-1111-111111111101')}
+            onChange={(event) => setOperatingContext('HISTORICAL', event.target.value)}
+          >
+            {districtCode === 'SYLHET_DIST' ? (
+              <>
+                <option value="11111111-1111-1111-1111-111111111104">June 2022 Megaflood (সুরমা-কুশিয়ারা প্লাবন)</option>
+                <option value="11111111-1111-1111-1111-111111111105">May 2024 Flash Surge (আগাম মেঘভাঙা ঢল)</option>
+              </>
+            ) : (
+              <>
+                <option value="11111111-1111-1111-1111-111111111101">August 2024 Flash Flood (৯২% টাওয়ার বিচ্ছিন্ন)</option>
+                <option value="11111111-1111-1111-1111-111111111102">July 2025 Sensor Blackout Demo</option>
+              </>
+            )}
           </select>
         </label>}
       </div>
