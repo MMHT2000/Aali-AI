@@ -237,8 +237,36 @@ export class OperationsService {
                 return { id: incident.id, label: incident.summary, latitude: area?.latitude, longitude: area?.longitude, status: incident.status, peopleCount: incident.peopleCount, provenance: OperationsProvenance.SYNTHETIC_FIXTURE };
               }))) : [],
       sos: canSeeReports ? (() => {
+        const liveDbReports = reports.map((report, idx) => {
+          let area = SYNTHETIC_FENI_SEEDS.areas.find((item) => item.id === report.area_id);
+          if (!area && report.geohash7) {
+            area = SYNTHETIC_FENI_SEEDS.areas.find((item) => item.geohash7 === report.geohash7);
+          }
+          const defaultLabel = targetDistrictCode === 'SYLHET_DIST' ? 'Sylhet District' : 'Feni District';
+          const areaLabel = area ? (area.name_bn || area.name_en) : defaultLabel;
+          const lat = report.location_lat ?? area?.latitude ?? (targetDistrictCode === 'SYLHET_DIST' ? (25.08 + ((idx * 7) % 20 - 10) * 0.003) : (23.015 + ((idx * 7) % 20 - 10) * 0.003));
+          const lng = report.location_lng ?? area?.longitude ?? (targetDistrictCode === 'SYLHET_DIST' ? (91.75 + ((idx * 13) % 20 - 10) * 0.003) : (91.397 + ((idx * 13) % 20 - 10) * 0.003));
+          return {
+            id: report.id,
+            shortId: report.packet_short_id,
+            name: area ? `${area.name_en} (${report.packet_short_id})` : `SOS ${report.packet_short_id ?? report.id.slice(0, 8)}`,
+            label: `${areaLabel} · ${report.people_count} people affected`,
+            latitude: Number(lat),
+            longitude: Number(lng),
+            status: report.review_status,
+            peopleCount: report.people_count,
+            hasChild: report.has_child,
+            hasMedicalNeed: report.has_medical_need,
+            isTrapped: report.is_trapped,
+            elderlyCount: report.elderly_count,
+            geohash7: report.geohash7,
+            receivedAt: report.received_at,
+            provenance: OperationsProvenance.API_SUBMITTED_REPORT,
+          };
+        });
+
         if (targetDistrictCode === 'SYLHET_DIST') {
-          return [
+          const syntheticSylhet = [
             {
               id: 'sylhet-sos-synthetic-01',
               shortId: 'SYL-01',
@@ -291,33 +319,9 @@ export class OperationsService {
               provenance: OperationsProvenance.API_SUBMITTED_REPORT,
             },
           ];
+          return [...liveDbReports, ...syntheticSylhet];
         }
-        return reports.map((report, idx) => {
-          let area = SYNTHETIC_FENI_SEEDS.areas.find((item) => item.id === report.area_id);
-          if (!area && report.geohash7) {
-            area = SYNTHETIC_FENI_SEEDS.areas.find((item) => item.geohash7 === report.geohash7);
-          }
-          const areaLabel = area ? (area.name_bn || area.name_en) : 'Feni District';
-          const lat = report.location_lat ?? area?.latitude ?? (23.015 + ((idx * 7) % 20 - 10) * 0.003);
-          const lng = report.location_lng ?? area?.longitude ?? (91.397 + ((idx * 13) % 20 - 10) * 0.003);
-          return {
-            id: report.id,
-            shortId: report.packet_short_id,
-            name: area ? `${area.name_en} (${report.packet_short_id})` : `SOS ${report.packet_short_id ?? report.id.slice(0, 8)}`,
-            label: `${areaLabel} · ${report.people_count} people affected`,
-            latitude: Number(lat),
-            longitude: Number(lng),
-            status: report.review_status,
-            peopleCount: report.people_count,
-            hasChild: report.has_child,
-            hasMedicalNeed: report.has_medical_need,
-            isTrapped: report.is_trapped,
-            elderlyCount: report.elderly_count,
-            geohash7: report.geohash7,
-            receivedAt: report.received_at,
-            provenance: OperationsProvenance.API_SUBMITTED_REPORT,
-          };
-        });
+        return liveDbReports;
       })() : [],
     };
     const bmdSnapshot = mode === OperationsMode.LIVE && this.bmdCapService

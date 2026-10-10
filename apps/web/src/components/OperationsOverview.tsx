@@ -168,11 +168,11 @@ export function OperationsOverview({
 
       const currentSos: OperationMapPoint[] = next.mapLayers?.sos ?? [];
       if (currentSos.length > 0) {
-        // Keep unreviewed reports visible after a reload; later polls alert on new IDs.
+        // Find latest candidate report needing review or new ID
         const candidate = isInitialMount.current
-          ? currentSos.find(isPending)
+          ? (currentSos.find(isPending) ?? currentSos[0])
           : currentSos.find((item) => !knownSosIds.current.has(item.id));
-        if (candidate) {
+        if (candidate && (!activeAlert || !knownSosIds.current.has(candidate.id))) {
           const flags: string[] = [];
           if (candidate.isTrapped) flags.push('Trapped');
           if (candidate.hasChild) flags.push('Child or infant');
@@ -197,7 +197,7 @@ export function OperationsOverview({
     } catch (failure) {
       setError(failure instanceof Error ? failure.message : 'Unable to reach operations API.');
     }
-  }, [eventId, mode, districtCode, soundEnabled]);
+  }, [eventId, mode, districtCode, soundEnabled, activeAlert]);
 
   useEffect(() => {
     void refresh();
@@ -211,6 +211,10 @@ export function OperationsOverview({
           const parsed = JSON.parse(event.data);
           if (parsed.type === 'NEW_SOS') {
             if (soundEnabled) playEmergencyBeep();
+            const transport = parsed.payload?.transportKind;
+            const transportLabel = transport === 'STARLINK_D2C_WIFI' || transport === 'APP_DIRECT'
+              ? 'STARLINK D2C'
+              : 'SMS 1090';
             setActiveAlert({
               id: parsed.payload?.reportId || `sse-${Date.now()}`,
               shortId: parsed.payload?.shortId || 'D2C',
@@ -220,7 +224,7 @@ export function OperationsOverview({
               flags: [
                 parsed.payload?.isTrapped ? 'Trapped' : '',
                 parsed.payload?.hasElderly ? 'Elderly' : '',
-                parsed.payload?.transportKind === 'APP_DIRECT' ? 'STARLINK D2C' : 'SMS 1090',
+                transportLabel,
               ].filter(Boolean),
               provenance: 'LIVE_SSE_STREAM · REAL-TIME INGESTION',
               receivedAt: parsed.timestamp || new Date().toISOString(),
