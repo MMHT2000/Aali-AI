@@ -141,7 +141,24 @@ async function runJudgeDemoSmoke() {
   const aiDialect = await request('/ai/understand-sos', 'POST', {
     text: 'ফুলগাজী স্কুলে পানি উঠতাছে, ৫ জন ছাদে আটকাইছি, একজন প্যারালাইজড বুড়া',
   }, authHeaders);
-  console.log(`✅ Dialect NLP Extracted: People: ${aiDialect.data.extracted.peopleCount}, Trapped: ${aiDialect.data.extracted.urgencyFlags.trapped}, Elderly: ${aiDialect.data.extracted.urgencyFlags.elderly}\n`);
+  console.log(`✅ Dialect NLP Extracted: People: ${aiDialect.data.extracted.peopleCount}, Trapped: ${aiDialect.data.extracted.urgencyFlags.trapped}, Elderly: ${aiDialect.data.extracted.urgencyFlags.elderly}`);
+
+  // Test Mobile App Starlink D2C Wi-Fi direct SOS transmission
+  const mobileRef = `SOS-D2C-${Math.floor(Math.random() * 9000 + 1000)}`;
+  const mobileSos = await request('/sos', 'POST', {
+    clientReportId: mobileRef,
+    village: 'Parshuram Bazar',
+    peopleCount: 4,
+    isTrapped: true,
+    hasElderly: true,
+    needsMedical: false,
+    residentPhone: '01711000000',
+    messageOriginal: 'Water rising in Parshuram Bazar, 4 trapped on roof',
+  }, { 'X-Transport-Type': 'STARLINK_D2C_WIFI' });
+  if (mobileSos.status !== 201 && mobileSos.status !== 200) {
+    throw new Error(`Mobile D2C SOS failed with status ${mobileSos.status}`);
+  }
+  console.log(`✅ Mobile Starlink D2C SOS Ingested: Ref ${mobileRef} via STARLINK_D2C_WIFI (Status: ${mobileSos.status})\n`);
 
   // Step 4: Moment 4 — DURING: Boat Priority & Human Authorization
   console.log('--- Moment 4 (2:30–3:30): DURING — Boat Priority & Human Review ---');
