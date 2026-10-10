@@ -846,3 +846,25 @@ Antigravity must append an entry after each completed phase. Do not pre-fill com
     3. Tapping `🔊 📢 মসজিদ/মাইক অডিও শুনুন` activates Android `MediaPlayer`, turns button to `⏹ ⏹ ঘোষণা থামান`, and outputs pre-recorded Bengali loudspeaker warning audio through the phone speaker.
     4. SOS Distress Wizard Step 3 provides dual tabs (`[ 📍 ফেনী (Feni) ]` and `[ 📍 সিলেট (Sylhet) ]`) with 11 distinct places for each district.
     5. Responder Desk renders triage cards and top app bar controls cleanly without redundant bottom navigation bar.
+
+### 2026-10-11 — Android 13+ Notification Permissions, Emergency Alert Dispatch & Starlink SOS Delivery Fix
+
+- **Goal:** Resolve why Starlink fallback SOS packets were being queued to the local outbox when connected to the local network, implement Android `POST_NOTIFICATIONS` runtime permissions, and dispatch native high-priority emergency heads-up notifications with vibration on civil warning broadcast.
+- **Root Cause & Fixes:**
+  - **Starlink SOS Queuing Bug**: When the mobile app submitted an SOS report with `'transport': 'STARLINK_D2C_WIFI'`, NestJS's global `ValidationPipe` with `forbidNonWhitelisted: true` rejected the request with `HTTP 400 Bad Request: property transport should not exist`. Because the response was not 2xx, the mobile app interpreted it as a network failure and saved the packet to the local offline outbox (`aali_outbox_queue`).
+    - Added `@ApiPropertyOptional() @IsString() @IsOptional() transport?: string;` to `CreateSosDto` in `apps/api/src/modules/sos/dto/sos.dto.ts`.
+    - Set `report.transport_kind = dto.transport ?? ...` in `apps/api/src/modules/sos/sos.service.ts`.
+    - Tested `POST /api/v1/sos` with `STARLINK_D2C_WIFI` via Node, confirming `status: 'success'` and `transport_status: 'DELIVERED'` (HTTP 201).
+  - **Android Notification Permissions & Heads-Up Alerts**:
+    - Declared `POST_NOTIFICATIONS`, `VIBRATE`, and `WAKE_LOCK` in `apps/mobile/android/app/src/main/AndroidManifest.xml`.
+    - Implemented `requestNotificationPermission`, `createNotificationChannel` (`aali_emergency_channel`, `IMPORTANCE_HIGH`), and `showEmergencyNotification` in `MainActivity.kt`.
+    - On mobile app launch, automatically requests notification permission from Android.
+    - When an approved DC warning broadcast is received via polling, triggers an OS-level high-priority heads-up emergency notification with vibration and warning icon.
+  - **LAN Probing Priority**:
+    - Placed laptop WiFi LAN IP (`http://192.168.0.101:3001/api/v1`) with 1500ms timeout in `_probeBestApiBase` so physical mobile devices on the same Wi-Fi immediately connect without USB tethering or adb reverse.
+- **Verification & Commands Run:**
+  - `npm --prefix apps/api test`: 113/113 passed (26 test suites green).
+  - `flutter test`: 16/16 passed (0 errors, 0 overflows).
+  - `npm --prefix apps/api run build`: Succeeded.
+  - API daemon restarted on port 3001 (`task-10446`).
+  - `flutter build apk --debug`: Succeeded in 63.1s (`app-debug.apk`).
