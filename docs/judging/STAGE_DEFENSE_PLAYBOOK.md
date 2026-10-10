@@ -77,3 +77,4 @@
   * **Answer:** *"The resident view features a massive, full-width high-contrast SOS emergency card with universal disaster iconography, large tactile buttons, and high-visibility red accents. Furthermore, our control room supports automated **Loudspeaker Audio Announcements** in clear regional Bangla via Web Speech and `/warnings/:id/loudspeaker-audio`, ensuring warnings are broadcast over mosque and union parishad loudspeakers to reach citizens who cannot read or operate smartphones."*
 * **Q: "Why didn't you use standard Google Maps?"**
   * **Answer:** *"Standard online maps fail when cellular towers collapse. We built a custom **Bounded Feni Vector Canvas Map** that is strictly constrained to Feni District (`22.80°N - 23.30°N, 91.20°E - 91.60°E`). It renders natively with zero external map tiles, showing Upazila borders, the Muhuri river channel, real-time flood inundation gradients, and pulsating SOS pins without dropping a single frame."*
+

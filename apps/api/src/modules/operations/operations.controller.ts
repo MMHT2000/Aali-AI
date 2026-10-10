@@ -1,5 +1,5 @@
 import { Body, Controller, Get, Patch, Post, Query, Request } from '@nestjs/common';
-import { ApiBearerAuth, ApiQuery, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { Roles } from '../../common/auth/roles.decorator';
 import { Public } from '../../common/auth/public.decorator';
 import { UserRole } from '../users/entities/user-role.enum';
@@ -8,12 +8,38 @@ import { CreateFieldReadingDto } from './field-reading.dto';
 import { OperationsService } from './operations.service';
 import { SetSimulationConnectivityDto, SetSimulationSpeedDto } from './simulation-controls.dto';
 import { OperationsSnapshotQueryDto } from './operations-snapshot-query.dto';
+import { OperationsStreamService } from '../../common/stream/operations-stream.service';
+import { Sse, MessageEvent } from '@nestjs/common';
+import { Observable } from 'rxjs';
 
 @ApiTags('Operations Control Room & Synthetic Simulation')
 @ApiBearerAuth()
 @Controller('api/v1')
 export class OperationsController {
-  constructor(private readonly operations: OperationsService, private readonly simulation: SimulationService) {}
+  constructor(
+    private readonly operations: OperationsService,
+    private readonly simulation: SimulationService,
+    private readonly streamService: OperationsStreamService,
+  ) {}
+
+  @Sse('operations/live-stream')
+  @Public()
+  @ApiOperation({ summary: 'Real-time Server-Sent Events stream for zero-latency crisis updates' })
+  streamEvents(): Observable<MessageEvent> {
+    return this.streamService.getStream();
+  }
+
+  @Post('operations/demo-moment')
+  @Public()
+  @ApiOperation({ summary: 'Broadcast a stage demo moment event across all connected dashboards' })
+  broadcastMoment(@Body() body: { moment: number; title: string; payload?: Record<string, unknown> }) {
+    this.streamService.emit('DEMO_MOMENT', {
+      moment: body.moment,
+      title: body.title,
+      payload: body.payload || {},
+    });
+    return { status: 'broadcasted', moment: body.moment, timestamp: new Date().toISOString() };
+  }
 
   @Get('operations/snapshot')
   @Roles(UserRole.AUTHORITY, UserRole.RESPONDER, UserRole.VOLUNTEER, UserRole.RECOVERY_COORDINATOR, UserRole.VIEWER, UserRole.ADMIN)

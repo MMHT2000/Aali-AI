@@ -9,6 +9,7 @@ import {
 import { CreateSosDto, DecodePacketDto } from './dto/sos.dto';
 import { SosReport, SosSourceType } from './entities/sos-report.entity';
 import { SYNTHETIC_FENI_SEEDS } from '../../database/seeds/feni-synthetic.seeds';
+import { OperationsStreamService } from '../../common/stream/operations-stream.service';
 
 @Injectable()
 export class SosService {
@@ -100,7 +101,18 @@ export class SosService {
     report.updated_at = now;
 
     try {
-      return { report: await this.reports.save(report), isDuplicate: false };
+      const savedReport = await this.reports.save(report);
+      OperationsStreamService.emitStatic('NEW_SOS', {
+        reportId: savedReport.id,
+        shortId: savedReport.packet_short_id,
+        village: dto.village || 'Feni Area',
+        peopleCount: savedReport.people_count,
+        isTrapped: savedReport.is_trapped,
+        hasElderly: Boolean(savedReport.elderly_count && savedReport.elderly_count > 0),
+        transportKind: savedReport.transport_kind,
+        receivedAt: savedReport.received_at,
+      });
+      return { report: savedReport, isDuplicate: false };
     } catch (error) {
       if (error instanceof QueryFailedError && (error as QueryFailedError & { driverError?: { code?: string } }).driverError?.code === 'ER_DUP_ENTRY') {
         const raced = await this.reports.findOneBy({ client_report_id: clientReportId });

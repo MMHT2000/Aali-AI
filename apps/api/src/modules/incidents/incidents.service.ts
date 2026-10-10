@@ -10,6 +10,7 @@ import { SosSourceType } from '../sos/entities/sos-report.entity';
 import { SosService } from '../sos/sos.service';
 import { Incident, DuplicateCandidate, IncidentStatus } from './entities/incident.entity';
 import { DispatchSuggestion } from '../assets/entities/asset.entity';
+import { OperationsStreamService } from '../../common/stream/operations-stream.service';
 
 export interface IncidentSummary {
   id: string;
@@ -263,6 +264,15 @@ export class IncidentsService implements OnModuleInit {
     });
 
     inc.suggestedBoat.status = nextStatus;
+
+    OperationsStreamService.emitStatic('BOAT_REVIEW', {
+      incidentId,
+      boatName: inc.suggestedBoat.name,
+      decision,
+      status: nextStatus,
+      fuelRangeKm: inc.suggestedBoat.fuelRangeKm,
+      nightSpotlightEquipped: inc.suggestedBoat.nightSpotlightEquipped,
+    });
 
     if (this.dispatchRepository) {
       try {

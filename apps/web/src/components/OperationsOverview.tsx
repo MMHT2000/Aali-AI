@@ -22,6 +22,9 @@ import {
   sendSimulationControl,
 } from '../lib/operations-client';
 import { OperationsMap } from './OperationsMap';
+import { MasterCrisisClock } from './MasterCrisisClock';
+import { MuhuriHydrographChart } from './MuhuriHydrographChart';
+import { StageDemoDirector } from './StageDemoDirector';
 
 interface SosAlertInfo {
   id: string;
@@ -139,8 +142,42 @@ export function OperationsOverview({ mode = 'EXERCISE', eventId }: { mode?: Oper
   useEffect(() => {
     void refresh();
     const timer = window.setInterval(() => void refresh(), 5000);
-    return () => window.clearInterval(timer);
-  }, [refresh]);
+
+    let es: EventSource | null = null;
+    try {
+      es = new EventSource('/api/v1/operations/live-stream');
+      es.onmessage = (event) => {
+        try {
+          const parsed = JSON.parse(event.data);
+          if (parsed.type === 'NEW_SOS') {
+            if (soundEnabled) playEmergencyBeep();
+            setActiveAlert({
+              id: parsed.payload?.reportId || `sse-${Date.now()}`,
+              shortId: parsed.payload?.shortId || 'D2C',
+              title: `Live SOS: ${parsed.payload?.village || 'Parshuram'}`,
+              location: parsed.payload?.village || 'Parshuram Area',
+              peopleCount: parsed.payload?.peopleCount || 1,
+              flags: [
+                parsed.payload?.isTrapped ? 'Trapped' : '',
+                parsed.payload?.hasElderly ? 'Elderly' : '',
+                parsed.payload?.transportKind === 'APP_DIRECT' ? 'STARLINK D2C' : 'SMS 1090',
+              ].filter(Boolean),
+              provenance: 'LIVE_SSE_STREAM · REAL-TIME INGESTION',
+              receivedAt: parsed.timestamp || new Date().toISOString(),
+            });
+            void refresh();
+          } else if (parsed.type === 'DEMO_MOMENT' || parsed.type === 'BOAT_REVIEW') {
+            void refresh();
+          }
+        } catch (_) {}
+      };
+    } catch (_) {}
+
+    return () => {
+      window.clearInterval(timer);
+      es?.close();
+    };
+  }, [refresh, soundEnabled]);
 
   const control = async (action: string, body?: unknown) => {
     setControlError(null);
@@ -218,24 +255,30 @@ export function OperationsOverview({ mode = 'EXERCISE', eventId }: { mode?: Oper
 
   if (mode !== 'EXERCISE') {
     const title = mode === 'LIVE' ? 'Live sources' : 'Historical reconstruction';
-    return <div className="situation-room">
-      {mode === 'LIVE' && snapshot.visibility.sos && activeAlert && <section className="sos-alert" role="alert" aria-live="assertive">
-        <div className="sos-alert__mark" aria-hidden="true">SOS</div>
-        <div className="sos-alert__main"><div className="sos-alert__heading"><strong>New API-submitted SOS report</strong><span>{activeAlert.shortId ? `Report ${activeAlert.shortId}` : activeAlert.id}</span></div>
-          <p>{activeAlert.location} · {activeAlert.peopleCount} people reported</p><small>{activeAlert.flags.join(' · ') || 'No additional needs selected'} · {activeAlert.provenance} · received {receivedTime(activeAlert.receivedAt)}</small></div>
-        <div className="sos-alert__actions"><Link to={{ pathname: '/control-room/responder', search: location.search }}>Open SOS triage</Link><button type="button" onClick={() => setActiveAlert(null)}>Dismiss alert</button></div>
-      </section>}
-      <header className="situation-heading">
-        <div><p className="situation-eyebrow">FENI DISTRICT <span>/</span> SHARED OPERATING PICTURE</p><h1>{title}</h1></div>
-        <div className="snapshot-time"><Clock3 size={15} /><span><small>SNAPSHOT · DHAKA TIME</small><strong>{formatDhakaTime(snapshot.generatedAt)} BST</strong></span></div>
-      </header>
-      <section className={`exercise-strip exercise-strip--${mode.toLowerCase()}`} aria-label="Selected data mode and source status">
-        <span className="exercise-strip__tag">{mode === 'LIVE' ? 'LIVE SOURCE STATUS' : 'HISTORICAL RECONSTRUCTION'}</span>
-        <strong>{snapshot.context.event?.name ?? 'Current API-submitted activity'}</strong>
-        <span className="exercise-strip__disclosure">{mode === 'LIVE' ? 'BMD CAP public advisories are separate from Aali rule alerts; other external feeds remain unavailable' : 'Fixture source citations and gaps are not yet verified'}</span>
-      </section>
-      <div className="situation-workspace">
-        <OperationsMap layers={snapshot.mapLayers} selectedPointId={selectedItem?.id} onSelectPoint={(point) => setSelectedItemId(point.id)} />
+    return (
+      <div className="situation-room">
+        <MasterCrisisClock />
+        <StageDemoDirector onMomentTriggered={() => void refresh()} onRefresh={() => void refresh()} />
+        {mode === 'LIVE' && snapshot.visibility.sos && activeAlert && <section className="sos-alert" role="alert" aria-live="assertive">
+          <div className="sos-alert__mark" aria-hidden="true">SOS</div>
+          <div className="sos-alert__main"><div className="sos-alert__heading"><strong>New API-submitted SOS report</strong><span>{activeAlert.shortId ? `Report ${activeAlert.shortId}` : activeAlert.id}</span></div>
+            <p>{activeAlert.location} · {activeAlert.peopleCount} people reported</p><small>{activeAlert.flags.join(' · ') || 'No additional needs selected'} · {activeAlert.provenance} · received {receivedTime(activeAlert.receivedAt)}</small></div>
+          <div className="sos-alert__actions"><Link to={{ pathname: '/control-room/responder', search: location.search }}>Open SOS triage</Link><button type="button" onClick={() => setActiveAlert(null)}>Dismiss alert</button></div>
+        </section>}
+        <header className="situation-heading">
+          <div><p className="situation-eyebrow">FENI DISTRICT <span>/</span> SHARED OPERATING PICTURE</p><h1>{title}</h1></div>
+          <div className="snapshot-time"><Clock3 size={15} /><span><small>SNAPSHOT · DHAKA TIME</small><strong>{formatDhakaTime(snapshot.generatedAt)} BST</strong></span></div>
+        </header>
+        <section className={`exercise-strip exercise-strip--${mode.toLowerCase()}`} aria-label="Selected data mode and source status">
+          <span className="exercise-strip__tag">{mode === 'LIVE' ? 'LIVE SOURCE STATUS' : 'HISTORICAL RECONSTRUCTION'}</span>
+          <strong>{snapshot.context.event?.name ?? 'Current API-submitted activity'}</strong>
+          <span className="exercise-strip__disclosure">{mode === 'LIVE' ? 'BMD CAP public advisories are separate from Aali rule alerts; other external feeds remain unavailable' : 'Fixture source citations and gaps are not yet verified'}</span>
+        </section>
+        <div className="situation-workspace">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', flex: 1, minWidth: 0 }}>
+            <OperationsMap layers={snapshot.mapLayers} selectedPointId={selectedItem?.id} onSelectPoint={(point) => setSelectedItemId(point.id)} />
+            <MuhuriHydrographChart />
+          </div>
         <aside className="operations-rail" aria-label="Data sources and authorized SOS activity">
           <section className="evidence-rail"><header className="rail-heading"><div><p className="situation-eyebrow">SOURCE REGISTER</p><h2>Availability and provenance</h2></div></header>
             {snapshot.context.sources.map((source) => <div className="evidence-line" key={source.id}><span>{source.label}</span><strong>{source.availability}</strong><small>{source.message}</small>{source.lastCheckedAt && <small>Checked {formatDhakaTime(source.lastCheckedAt)} BST</small>}{source.latestObservedAt && <small>Feed last published {formatDhakaTime(source.latestObservedAt)} BST · {source.ageSeconds == null ? 'age unknown' : `${Math.floor(source.ageSeconds / 3600)}h old`}</small>}</div>)}
@@ -260,8 +303,9 @@ export function OperationsOverview({ mode = 'EXERCISE', eventId }: { mode?: Oper
           {selectedItem && <section className="selected-record"><p className="situation-eyebrow">SELECTED RECORD</p><strong>{selectedItem.name ?? selectedItem.label ?? 'Map record'}</strong><dl><div><dt>Provenance</dt><dd>{selectedItem.provenance}</dd></div><div><dt>Coordinates</dt><dd>{selectedItem.latitude != null && selectedItem.longitude != null ? `${Number(selectedItem.latitude).toFixed(4)}, ${Number(selectedItem.longitude).toFixed(4)}` : 'Unknown · list only'}</dd></div></dl></section>}
         </aside>
       </div>
-    </div>;
-  }
+    </div>
+  );
+}
   if (!snapshot.simulation) return <section className="situation-state" role="alert">Exercise scenario state is unavailable.</section>;
 
   const { simulation, queue } = snapshot;
@@ -275,6 +319,8 @@ export function OperationsOverview({ mode = 'EXERCISE', eventId }: { mode?: Oper
 
   return (
     <div className="situation-room">
+      <MasterCrisisClock />
+      <StageDemoDirector onMomentTriggered={() => void refresh()} onRefresh={() => void refresh()} />
       {activeAlert && (
         <section className="sos-alert" role="alert" aria-live="assertive">
           <div className="sos-alert__mark" aria-hidden="true">SOS</div>
@@ -338,11 +384,14 @@ export function OperationsOverview({ mode = 'EXERCISE', eventId }: { mode?: Oper
       </section>
 
       <div className="situation-workspace">
-        <OperationsMap
-          layers={snapshot.mapLayers}
-          selectedPointId={selectedItem?.id}
-          onSelectPoint={(point) => setSelectedItemId(point.id)}
-        />
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', flex: 1, minWidth: 0 }}>
+          <OperationsMap
+            layers={snapshot.mapLayers}
+            selectedPointId={selectedItem?.id}
+            onSelectPoint={(point) => setSelectedItemId(point.id)}
+          />
+          <MuhuriHydrographChart />
+        </div>
 
         <aside className="operations-rail" aria-label="Priority reports and evidence">
           <section className="report-queue" aria-labelledby="report-queue-title">

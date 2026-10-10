@@ -17,6 +17,7 @@ import { REPLAY_SCENARIOS } from '../../domain/flood-alert/replay-scenarios';
 import { OperationsMode, OperationsProvenance, OperationsSourceStatus } from './operations-context';
 import { OperationsSnapshotQueryDto } from './operations-snapshot-query.dto';
 import { BmdCapService } from './bmd-cap.service';
+import { OperationsStreamService } from '../../common/stream/operations-stream.service';
 
 @Injectable()
 export class OperationsService {
@@ -63,6 +64,15 @@ export class OperationsService {
         levelM: dto.levelM,
         note: dto.note,
       },
+    });
+
+    OperationsStreamService.emitStatic('FIELD_READING', {
+      readingId: saved.id,
+      areaId: area.id,
+      areaName: area.name_en,
+      levelM: dto.levelM,
+      note: dto.note,
+      submittedBy,
     });
 
     return saved;
