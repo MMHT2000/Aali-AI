@@ -98,7 +98,10 @@ export function ControlRoom({ session, onLogout }: ControlRoomProps) {
           <select aria-label="Shared data mode" value={mode} onChange={(event) => {
             const selected = event.target.value;
             if (selected === 'LIVE' || selected === 'EXERCISE' || selected === 'HISTORICAL') {
-              setOperatingContext(selected, selected === 'HISTORICAL' ? '11111111-1111-1111-1111-111111111101' : undefined);
+              const defaultHistEvent = districtCode === 'SYLHET_DIST'
+                ? '11111111-1111-1111-1111-111111111104'
+                : '11111111-1111-1111-1111-111111111101';
+              setOperatingContext(selected, selected === 'HISTORICAL' ? defaultHistEvent : undefined);
             }
           }}>
             <option value="LIVE">Live sources</option>
@@ -172,14 +175,14 @@ export function ControlRoom({ session, onLogout }: ControlRoomProps) {
       <main className="control-content" id="main-content" tabIndex={-1} aria-label={`${activeRoute?.label ?? 'Operations'} workspace`}>
         <Routes>
         <Route path="/control-room/map" element={allowed('/control-room/map') ? <OperationsOverview mode={mode} eventId={eventId} districtCode={districtCode} /> : <Navigate to={{ pathname: fallback, search: location.search }} replace />} />
-        <Route path="/control-room/viewer" element={allowed('/control-room/viewer') ? <ViewerSituationSummary mode={mode} eventId={eventId} /> : <Navigate to={{ pathname: fallback, search: location.search }} replace />} />
-        <Route path="/control-room/responder" element={allowed('/control-room/responder') ? <ResponderDashboard mode={mode} eventId={eventId} /> : <Navigate to={{ pathname: fallback, search: location.search }} replace />} />
+        <Route path="/control-room/viewer" element={allowed('/control-room/viewer') ? <ViewerSituationSummary mode={mode} eventId={eventId} districtCode={districtCode} /> : <Navigate to={{ pathname: fallback, search: location.search }} replace />} />
+        <Route path="/control-room/responder" element={allowed('/control-room/responder') ? <ResponderDashboard mode={mode} eventId={eventId} districtCode={districtCode} /> : <Navigate to={{ pathname: fallback, search: location.search }} replace />} />
         <Route path="/control-room/alerts" element={allowed('/control-room/alerts') ? <FloodReplayWarning mode={mode} eventId={eventId} districtCode={districtCode} session={session} /> : <Navigate to={{ pathname: fallback, search: location.search }} replace />} />
         <Route path="/control-room/replay" element={allowed('/control-room/replay') ? <FloodReplayWarning mode={mode} eventId={eventId} districtCode={districtCode} session={session} /> : <Navigate to={{ pathname: fallback, search: location.search }} replace />} />
-        <Route path="/control-room/recovery" element={allowed('/control-room/recovery') ? <RecoveryLedger mode={mode} eventId={eventId} /> : <Navigate to={{ pathname: fallback, search: location.search }} replace />} />
-        <Route path="/control-room/field" element={session.role === 'VOLUNTEER' || session.role === 'ADMIN' ? <VolunteerRoute mode={mode} eventId={eventId} /> : <Navigate to={{ pathname: fallback, search: location.search }} replace />} />
-        <Route path="/control-room/simulator" element={allowed('/control-room/simulator') ? <><ResidentSimulator /><ThreeTapSos /><GatewaySimulator /></> : <Navigate to={{ pathname: fallback, search: location.search }} replace />} />
-        <Route path="/control-room/language" element={allowed('/control-room/language') ? <AiLanguageAssistant /> : <Navigate to={{ pathname: fallback, search: location.search }} replace />} />
+        <Route path="/control-room/recovery" element={allowed('/control-room/recovery') ? <RecoveryLedger mode={mode} eventId={eventId} districtCode={districtCode} /> : <Navigate to={{ pathname: fallback, search: location.search }} replace />} />
+        <Route path="/control-room/field" element={session.role === 'VOLUNTEER' || session.role === 'ADMIN' ? <VolunteerRoute mode={mode} eventId={eventId} districtCode={districtCode} /> : <Navigate to={{ pathname: fallback, search: location.search }} replace />} />
+        <Route path="/control-room/simulator" element={allowed('/control-room/simulator') ? <><ResidentSimulator districtCode={districtCode} /><ThreeTapSos districtCode={districtCode} /><GatewaySimulator districtCode={districtCode} /></> : <Navigate to={{ pathname: fallback, search: location.search }} replace />} />
+        <Route path="/control-room/language" element={allowed('/control-room/language') ? <AiLanguageAssistant districtCode={districtCode} /> : <Navigate to={{ pathname: fallback, search: location.search }} replace />} />
         <Route path="/control-room/audit" element={allowed('/control-room/audit') ? <AuditViewer /> : <Navigate to={{ pathname: fallback, search: location.search }} replace />} />
         <Route path="/control-room/settings" element={allowed('/control-room/settings') ? <SettingsPanel /> : <Navigate to={{ pathname: fallback, search: location.search }} replace />} />
         <Route path="*" element={<Navigate to={{ pathname: fallback, search: location.search }} replace />} />
@@ -188,21 +191,29 @@ export function ControlRoom({ session, onLogout }: ControlRoomProps) {
   </div>;
 }
 
-function VolunteerRoute({ mode, eventId }: { mode: OperationsMode; eventId?: string }) {
-  return <VolunteerFieldForm mode={mode} eventId={eventId} />;
+function VolunteerRoute({ mode, eventId, districtCode }: { mode: OperationsMode; eventId?: string; districtCode?: string }) {
+  return <VolunteerFieldForm mode={mode} eventId={eventId} districtCode={districtCode} />;
 }
 
-function VolunteerFieldForm({ mode, eventId }: { mode: OperationsMode; eventId?: string }) {
+function VolunteerFieldForm({ mode, eventId, districtCode }: { mode: OperationsMode; eventId?: string; districtCode?: string }) {
+  const isSylhet = districtCode === 'SYLHET_DIST';
   const [areas, setAreas] = useState<OperationMapPoint[]>([]);
   const [areaId, setAreaId] = useState('');
   const [levelM, setLevelM] = useState('');
   const [note, setNote] = useState('');
   const [message, setMessage] = useState('');
-  useEffect(() => { getOperationsSnapshot({ mode, eventId }).then((data) => { setAreas(data.mapLayers.areas); setAreaId(data.mapLayers.areas[0]?.id ?? ''); }).catch(() => setMessage('Could not load village list from API.')); }, [eventId, mode]);
+  useEffect(() => {
+    getOperationsSnapshot({ mode, eventId, districtCode })
+      .then((data) => {
+        setAreas(data.mapLayers.areas);
+        setAreaId(data.mapLayers.areas[0]?.id ?? '');
+      })
+      .catch(() => setMessage('Could not load village list from API.'));
+  }, [districtCode, eventId, mode]);
   const submit = async (event: FormEvent) => {
     event.preventDefault(); setMessage('');
     const response = await apiFetch('/api/v1/field-readings', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ areaId, levelM: Number(levelM), note }) });
     setMessage(response.ok ? 'Reading recorded by API.' : `Submission failed (${response.status}).`);
   };
-  return <section className="ops-panel field-desk"><span className="eyebrow">VOLUNTEER WORKSPACE · API SUBMISSION</span><h1>Field water reading</h1><p>Submit a synthetic exercise reading. It is stored as a volunteer report and does not establish an official gauge observation.</p><form onSubmit={(event) => void submit(event)}><label>Village<select required value={areaId} onChange={(event) => setAreaId(event.target.value)}>{areas.map((area) => <option key={area.id} value={area.id}>{area.name}</option>)}</select></label><label>Observed water level (metres)<input required type="number" min="0" max="20" step="0.01" value={levelM} onChange={(event) => setLevelM(event.target.value)} /></label><label>Field note<textarea maxLength={500} value={note} onChange={(event) => setNote(event.target.value)} /></label><button type="submit" disabled={!areaId || !levelM}>Submit reading</button>{message && <p role="status">{message}</p>}</form></section>;
+  return <section className="ops-panel field-desk"><span className="eyebrow">{isSylhet ? 'SYLHET SURMA BASIN · VOLUNTEER WORKSPACE' : 'FENI MUHURI BASIN · VOLUNTEER WORKSPACE'}</span><h1>Field water reading</h1><p>Submit a synthetic exercise reading. It is stored as a volunteer report and does not establish an official gauge observation.</p><form onSubmit={(event) => void submit(event)}><label>Village<select required value={areaId} onChange={(event) => setAreaId(event.target.value)}>{areas.map((area) => <option key={area.id} value={area.id}>{area.name}</option>)}</select></label><label>Observed water level (metres)<input required type="number" min="0" max="20" step="0.01" value={levelM} onChange={(event) => setLevelM(event.target.value)} /></label><label>Field note<textarea maxLength={500} value={note} onChange={(event) => setNote(event.target.value)} /></label><button type="submit" disabled={!areaId || !levelM}>Submit reading</button>{message && <p role="status">{message}</p>}</form></section>;
 }

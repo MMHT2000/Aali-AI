@@ -41,7 +41,15 @@ const flagLabels: Array<[keyof IncidentViewItem['urgencyFlags'], string]> = [
   ['trapped', 'Trapped'], ['medical', 'Medical need'], ['child', 'Child'], ['elderly', 'Older adult'],
 ];
 
-export function ResponderDashboard({ mode = 'EXERCISE', eventId }: { mode?: OperationsMode; eventId?: string }) {
+export function ResponderDashboard({
+  mode = 'EXERCISE',
+  eventId,
+  districtCode = 'FENI_DIST',
+}: {
+  mode?: OperationsMode;
+  eventId?: string;
+  districtCode?: string;
+}) {
   const [incidents, setIncidents] = useState<IncidentViewItem[]>([]);
   const [silentAreas, setSilentAreas] = useState<SilentVillageItem[]>([]);
   const [liveReports, setLiveReports] = useState<OperationMapPoint[]>([]);
@@ -55,7 +63,7 @@ export function ResponderDashboard({ mode = 'EXERCISE', eventId }: { mode?: Oper
     setLoadError(null);
     try {
       if (mode === 'LIVE') {
-        const snapshot = await getOperationsSnapshot({ mode });
+        const snapshot = await getOperationsSnapshot({ mode, districtCode });
         setLiveReports(snapshot.mapLayers.sos);
         setContextEventName('Current API-submitted activity');
         setIncidents([]);
@@ -63,7 +71,7 @@ export function ResponderDashboard({ mode = 'EXERCISE', eventId }: { mode?: Oper
         return;
       }
       if (mode === 'HISTORICAL') {
-        const snapshot = await getOperationsSnapshot({ mode, eventId });
+        const snapshot = await getOperationsSnapshot({ mode, eventId, districtCode });
         setContextEventName(snapshot.context.event?.name ?? 'Historical event');
         setLiveReports([]);
         setIncidents([]);
@@ -86,7 +94,7 @@ export function ResponderDashboard({ mode = 'EXERCISE', eventId }: { mode?: Oper
     }
   };
 
-  useEffect(() => { void fetchData(); }, [eventId, mode]);
+  useEffect(() => { void fetchData(); }, [eventId, mode, districtCode]);
 
   if (mode === 'LIVE' || mode === 'HISTORICAL') {
     return <section className="responder-workspace">

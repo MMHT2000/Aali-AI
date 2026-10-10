@@ -80,6 +80,13 @@ export function evaluateThreeSignalAlert(input: ThreeSignalAlertInput): ThreeSig
   let gaugeSilent60Min = false;
   const gaugeMins = input.signalA ? input.signalA.minutesSinceObservation : null;
 
+  const isSylhetBasin = (input.areaName ?? '').toLowerCase().includes('companiganj') ||
+    (input.areaName ?? '').toLowerCase().includes('sylhet') ||
+    (input.areaName ?? '').toLowerCase().includes('gowainghat') ||
+    (input.areaName ?? '').toLowerCase().includes('kanaighat') ||
+    (input.areaName ?? '').toLowerCase().includes('surma');
+  const riverName = isSylhetBasin ? 'সুরমা' : 'মুহুরী';
+
   if (input.signalA && !input.signalA.isBlanked) {
     if (input.signalA.minutesSinceObservation > 60) {
       gaugeSilent60Min = true;
@@ -87,7 +94,7 @@ export function evaluateThreeSignalAlert(input: ThreeSignalAlertInput): ThreeSig
       if (input.signalA.gaugeLevelM >= warningMark || input.signalA.rise3hCm >= 25.0) {
         signalAFired = true;
         reasonCodes.push('SIGNAL_A_GAUGE_CRITICAL');
-        reasonsBn.push(`মুহুরী নদীর পানির স্তর ${input.signalA.gaugeLevelM.toFixed(2)} মি (সতর্কসীমা ${warningMark} মি) বা ৩ ঘণ্টায় বৃদ্ধি ${input.signalA.rise3hCm} সেমি`);
+        reasonsBn.push(`${riverName} নদীর পানির স্তর ${input.signalA.gaugeLevelM.toFixed(2)} মি (সতর্কসীমা ${warningMark} মি) বা ৩ ঘণ্টায় বৃদ্ধি ${input.signalA.rise3hCm} সেমি`);
       }
     }
   } else if (!input.signalA || input.signalA.isBlanked) {

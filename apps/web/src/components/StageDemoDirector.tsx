@@ -14,11 +14,13 @@ import { apiFetch } from '../lib/authenticated-fetch';
 import { sendSimulationControl, toggleGaugeBlackout } from '../lib/operations-client';
 
 interface StageDemoDirectorProps {
+  districtCode?: string;
   onMomentTriggered?: (moment: number, title: string) => void;
   onRefresh?: () => void;
 }
 
-export function StageDemoDirector({ onMomentTriggered, onRefresh }: StageDemoDirectorProps) {
+export function StageDemoDirector({ districtCode = 'FENI_DIST', onMomentTriggered, onRefresh }: StageDemoDirectorProps) {
+  const isSylhet = districtCode === 'SYLHET_DIST';
   const [isOpen, setIsOpen] = useState(true);
   const [activeMoment, setActiveMoment] = useState<number | null>(null);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
@@ -49,22 +51,32 @@ export function StageDemoDirector({ onMomentTriggered, onRefresh }: StageDemoDir
     try {
       if (momentNum === 1) {
         playChime(440, 0.4);
-        setStatusMessage('⚡ Moment 1 Active: Feni Cellular Blackout (616 of 653 towers severed by August 2024 floodwaters).');
+        const m1Title = isSylhet ? 'Sylhet Cellular & Power Blackout' : 'Feni Cellular Blackout';
+        setStatusMessage(isSylhet 
+          ? '⚡ Moment 1 Active: Sylhet Cellular & Power Blackout (84% land inundated in Companiganj & Gowainghat, Kumargaon substation flooded).'
+          : '⚡ Moment 1 Active: Feni Cellular Blackout (616 of 653 towers severed by August 2024 floodwaters).');
         await sendSimulationControl('connectivity', { internetAvailable: false }).catch(() => {});
         await apiFetch('/api/v1/operations/demo-moment', {
           method: 'POST',
-          body: JSON.stringify({ moment: 1, title: 'Feni Cellular Blackout' }),
+          body: JSON.stringify({ moment: 1, title: m1Title }),
         }).catch(() => {});
       } else if (momentNum === 2) {
         playChime(660, 0.35);
-        setStatusMessage('🌊 Moment 2 Active: Blank-Gauge Escalation Rule triggered! Upstream gauge silent for 60m + 95mm rain -> Escalated to ACT (+8h lead time).');
+        const m2Title = isSylhet ? 'Surma Point Gauge Escalation' : 'Blank-Gauge Rule Escalation';
+        setStatusMessage(isSylhet
+          ? '🌊 Moment 2 Active: Surma Point Escalation Rule triggered! Upstream gauge silent for 60m + 160mm rain -> Escalated to ACT (+18h lead time).'
+          : '🌊 Moment 2 Active: Blank-Gauge Escalation Rule triggered! Upstream gauge silent for 60m + 95mm rain -> Escalated to ACT (+8h lead time).');
         await toggleGaugeBlackout(false).catch(() => {});
         await apiFetch('/api/v1/operations/demo-moment', {
           method: 'POST',
-          body: JSON.stringify({ moment: 2, title: 'Blank-Gauge Rule Escalation' }),
+          body: JSON.stringify({ moment: 2, title: m2Title }),
         }).catch(() => {});
       } else if (momentNum === 3) {
         playChime(987, 0.3);
+        const m3Village = isSylhet ? 'Companiganj Bazar' : 'Parshuram Bazar';
+        const m3Text = isSylhet 
+          ? 'কোম্পানীগঞ্জ বাজারে ৩ তলা ভবনে ৬ জন আটকা, বিদ্যুৎ নাই, পানি দ্রুত বাড়ছে'
+          : 'পরশুরাম বাজারে ৩ তলা ভবনে ৬ জন আটকা, বিদ্যুৎ নাই, পানি দ্রুত বাড়ছে';
         setStatusMessage('📡 Moment 3 Active: Starlink D2C Wi-Fi 42-byte SOS packet injected! Gemini Dialect NLP parsing in progress...');
         const shortId = `D2C${Math.floor(Math.random() * 90 + 10)}`;
         await apiFetch('/api/v1/sos', {
@@ -75,14 +87,14 @@ export function StageDemoDirector({ onMomentTriggered, onRefresh }: StageDemoDir
           },
           body: JSON.stringify({
             clientReportId: `SOS-STAGE-${shortId}-${Date.now().toString(36).toUpperCase()}`,
-            village: 'Parshuram Bazar',
+            village: m3Village,
             peopleCount: 6,
             isTrapped: true,
             hasElderly: true,
             hasChild: true,
             hasMedicalNeed: false,
             residentPhone: '01819000001',
-            messageOriginal: 'পরশুরাম বাজারে ৩ তলা ভবনে ৬ জন আটকা, বিদ্যুৎ নাই, পানি দ্রুত বাড়ছে',
+            messageOriginal: m3Text,
           }),
         }).catch(() => {});
       } else if (momentNum === 4) {

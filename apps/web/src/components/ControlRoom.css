@@ -214,9 +214,9 @@
 .map-record-button[aria-pressed="true"] { background: #233b3a; }
 .map-record-button span { overflow: hidden; font-size: 0.62rem; text-overflow: ellipsis; white-space: nowrap; }
 .map-record-button small { color: #a7b5ba; font-size: 0.56rem; }
-.situation-map .map-attribution-note { margin: 0; padding: 0.25rem 0.65rem 0.4rem; color: #8f9fa6; font-size: 0.55rem; }
 .operations-rail { display: flex; flex-direction: column; min-width: 0; min-height: 0; gap: 0.85rem; overflow-y: auto; max-height: calc(100vh - 160px); }
-.report-queue, .evidence-rail { display: flex; min-height: fit-content; flex-direction: column; overflow: visible; border: 1px solid var(--room-line); border-radius: 6px; background: var(--room-panel); margin-bottom: 0.5rem; }
+.operations-rail > section { flex-shrink: 0; }
+.report-queue, .evidence-rail { display: flex; min-height: fit-content; flex-direction: column; overflow: visible; border: 1px solid var(--room-line); border-radius: 6px; background: var(--room-panel); margin-bottom: 0.5rem; flex-shrink: 0; }
 .rail-heading { display: flex; align-items: center; justify-content: space-between; gap: 0.7rem; padding: 0.7rem 0.75rem 0.55rem; border-bottom: 1px solid var(--room-line); }
 .rail-heading h2 { margin: 0.12rem 0 0; color: var(--room-text); font-size: 0.87rem; }
 .queue-count { display: grid; width: 26px; height: 26px; place-items: center; border: 1px solid #804c3d; border-radius: 50%; background: #38251f; color: #ffb09b; font-size: 0.75rem; font-weight: 750; }

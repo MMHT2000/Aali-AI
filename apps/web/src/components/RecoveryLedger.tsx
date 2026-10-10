@@ -33,14 +33,25 @@ export interface AidDeliveryItem {
   idempotency_key: string;
 }
 
-export function RecoveryLedger({ mode = 'EXERCISE', eventId }: { mode?: OperationsMode; eventId?: string }) {
+export function RecoveryLedger({
+  mode = 'EXERCISE',
+  eventId,
+  districtCode = 'FENI_DIST',
+}: {
+  mode?: OperationsMode;
+  eventId?: string;
+  districtCode?: string;
+}) {
+  const isSylhet = districtCode === 'SYLHET_DIST';
   const [rankings, setRankings] = useState<VillageRankItem[]>([]);
   const [deliveries, setDeliveries] = useState<AidDeliveryItem[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [feedback, setFeedback] = useState<string | null>(null);
 
   // Form states for delivery entry
-  const [selectedVillageId, setSelectedVillageId] = useState<string>('22222222-2222-2222-2222-222222222205'); // Chitholia
+  const [selectedVillageId, setSelectedVillageId] = useState<string>(
+    isSylhet ? '22222222-2222-2222-2222-222222222204' : '22222222-2222-2222-2222-222222222205'
+  );
   const [orgLabel, setOrgLabel] = useState<string>('Bangladesh Red Crescent Society');
   const [itemCode, setItemCode] = useState<string>('CLEAN_WATER');
   const [quantity, setQuantity] = useState<number>(1000);
@@ -58,7 +69,10 @@ export function RecoveryLedger({ mode = 'EXERCISE', eventId }: { mode?: Operatio
       setLoading(false);
       return;
     }
-    const selectedEventId = eventId ?? '11111111-1111-1111-1111-111111111103';
+    const defaultEvent = isSylhet
+      ? '11111111-1111-1111-1111-111111111105'
+      : '11111111-1111-1111-1111-111111111103';
+    const selectedEventId = eventId ?? defaultEvent;
     setScopeNotice(mode === 'HISTORICAL' ? 'No recovery records are linked to this reconstructed event.' : null);
     try {
       const [sumRes, delRes] = await Promise.all([
@@ -81,7 +95,7 @@ export function RecoveryLedger({ mode = 'EXERCISE', eventId }: { mode?: Operatio
 
   useEffect(() => {
     void fetchData();
-  }, [eventId, mode]);
+  }, [eventId, mode, districtCode]);
 
   const handleRecordDelivery = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -184,31 +198,55 @@ export function RecoveryLedger({ mode = 'EXERCISE', eventId }: { mode?: Operatio
           <div style={{ background: '#091528', border: '1px dashed #38bdf8', borderRadius: '6px', padding: '0.8rem', marginBottom: '1rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
               <span style={{ fontSize: '0.85rem', color: '#38bdf8', fontWeight: 'bold' }}>
-                🛰️ সেন্টিনেল-১ এসএআর প্লাবন মানচিত্র / Sentinel-1 SAR Flood Inundation Footprint (Static Backdrop)
+                🛰️ সেন্টিনেল-১ এসএআর প্লাবন মানচিত্র / Sentinel-1 SAR Flood Inundation Footprint ({isSylhet ? 'Sylhet Basin' : 'Feni Basin'})
               </span>
               <span style={{ fontSize: '0.72rem', color: '#94a3b8', fontStyle: 'italic' }}>
                 * Static reconstructed backdrop fixture (No live satellite pipeline)
               </span>
             </div>
             <p style={{ fontSize: '0.78rem', color: '#94a3b8', margin: '0 0 0.5rem 0' }}>
-              Reference SAR observation: 21 August 2024 Feni Parshuram-Fulgazi flood crest. Blue highlighted regions indicate standing inundation extent.
+              {isSylhet
+                ? 'Reference SAR observation: June 2022 Sylhet Surma-Kushiyara flood crest. Blue highlighted regions indicate standing inundation extent across Companiganj and Gowainghat.'
+                : 'Reference SAR observation: 21 August 2024 Feni Parshuram-Fulgazi flood crest. Blue highlighted regions indicate standing inundation extent.'}
             </p>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.6rem' }}>
-              <div style={{ background: 'rgba(56, 189, 248, 0.1)', border: '1px solid #0284c7', borderRadius: '4px', padding: '0.5rem', textAlign: 'center' }}>
-                <span style={{ fontSize: '0.75rem', color: '#38bdf8' }}>চিথলিয়া ইউনিয়ন (Chitholia)</span>
-                <div style={{ fontSize: '0.85rem', fontWeight: 'bold', color: '#fca5a5' }}>৮২% প্লাবিত (82% Inundated)</div>
-                <span style={{ fontSize: '0.7rem', color: '#cbd5e1' }}>Lat: 23.235, Lng: 91.415</span>
-              </div>
-              <div style={{ background: 'rgba(56, 189, 248, 0.1)', border: '1px solid #0284c7', borderRadius: '4px', padding: '0.5rem', textAlign: 'center' }}>
-                <span style={{ fontSize: '0.75rem', color: '#38bdf8' }}>মির্জানগর ইউনিয়ন (Mirzanagar)</span>
-                <div style={{ fontSize: '0.85rem', fontWeight: 'bold', color: '#fef08a' }}>৬৪% প্লাবিত (64% Inundated)</div>
-                <span style={{ fontSize: '0.7rem', color: '#cbd5e1' }}>Lat: 23.218, Lng: 91.432</span>
-              </div>
-              <div style={{ background: 'rgba(56, 189, 248, 0.1)', border: '1px solid #0284c7', borderRadius: '4px', padding: '0.5rem', textAlign: 'center' }}>
-                <span style={{ fontSize: '0.75rem', color: '#38bdf8' }}>ফুলগাজী সদর (Fulgazi)</span>
-                <div style={{ fontSize: '0.85rem', fontWeight: 'bold', color: '#fef08a' }}>৪৯% প্লাবিত (49% Inundated)</div>
-                <span style={{ fontSize: '0.7rem', color: '#cbd5e1' }}>Lat: 23.165, Lng: 91.410</span>
-              </div>
+              {isSylhet ? (
+                <>
+                  <div style={{ background: 'rgba(56, 189, 248, 0.1)', border: '1px solid #0284c7', borderRadius: '4px', padding: '0.5rem', textAlign: 'center' }}>
+                    <span style={{ fontSize: '0.75rem', color: '#38bdf8' }}>কোম্পানীগঞ্জ (Companiganj)</span>
+                    <div style={{ fontSize: '0.85rem', fontWeight: 'bold', color: '#fca5a5' }}>৮৪% প্লাবিত (84% Inundated)</div>
+                    <span style={{ fontSize: '0.7rem', color: '#cbd5e1' }}>Lat: 25.080, Lng: 91.752</span>
+                  </div>
+                  <div style={{ background: 'rgba(56, 189, 248, 0.1)', border: '1px solid #0284c7', borderRadius: '4px', padding: '0.5rem', textAlign: 'center' }}>
+                    <span style={{ fontSize: '0.75rem', color: '#38bdf8' }}>গোয়াইনঘাট (Gowainghat)</span>
+                    <div style={{ fontSize: '0.85rem', fontWeight: 'bold', color: '#fca5a5' }}>৭৮% প্লাবিত (78% Inundated)</div>
+                    <span style={{ fontSize: '0.7rem', color: '#cbd5e1' }}>Lat: 25.056, Lng: 91.971</span>
+                  </div>
+                  <div style={{ background: 'rgba(56, 189, 248, 0.1)', border: '1px solid #0284c7', borderRadius: '4px', padding: '0.5rem', textAlign: 'center' }}>
+                    <span style={{ fontSize: '0.75rem', color: '#38bdf8' }}>কুমাড়গাঁও সাবস্টেশন (Kumargaon Grid)</span>
+                    <div style={{ fontSize: '0.85rem', fontWeight: 'bold', color: '#fef08a' }}>৬২% নিমজ্জিত (62% Submerged)</div>
+                    <span style={{ fontSize: '0.7rem', color: '#cbd5e1' }}>Lat: 24.908, Lng: 91.831</span>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div style={{ background: 'rgba(56, 189, 248, 0.1)', border: '1px solid #0284c7', borderRadius: '4px', padding: '0.5rem', textAlign: 'center' }}>
+                    <span style={{ fontSize: '0.75rem', color: '#38bdf8' }}>চিথলিয়া ইউনিয়ন (Chitholia)</span>
+                    <div style={{ fontSize: '0.85rem', fontWeight: 'bold', color: '#fca5a5' }}>৮২% প্লাবিত (82% Inundated)</div>
+                    <span style={{ fontSize: '0.7rem', color: '#cbd5e1' }}>Lat: 23.235, Lng: 91.415</span>
+                  </div>
+                  <div style={{ background: 'rgba(56, 189, 248, 0.1)', border: '1px solid #0284c7', borderRadius: '4px', padding: '0.5rem', textAlign: 'center' }}>
+                    <span style={{ fontSize: '0.75rem', color: '#38bdf8' }}>মির্জানগর ইউনিয়ন (Mirzanagar)</span>
+                    <div style={{ fontSize: '0.85rem', fontWeight: 'bold', color: '#fef08a' }}>৬৪% প্লাবিত (64% Inundated)</div>
+                    <span style={{ fontSize: '0.7rem', color: '#cbd5e1' }}>Lat: 23.218, Lng: 91.432</span>
+                  </div>
+                  <div style={{ background: 'rgba(56, 189, 248, 0.1)', border: '1px solid #0284c7', borderRadius: '4px', padding: '0.5rem', textAlign: 'center' }}>
+                    <span style={{ fontSize: '0.75rem', color: '#38bdf8' }}>ফুলগাজী সদর (Fulgazi)</span>
+                    <div style={{ fontSize: '0.85rem', fontWeight: 'bold', color: '#fef08a' }}>৪৯% প্লাবিত (49% Inundated)</div>
+                    <span style={{ fontSize: '0.7rem', color: '#cbd5e1' }}>Lat: 23.165, Lng: 91.410</span>
+                  </div>
+                </>
+              )}
             </div>
           </div>
         )}
@@ -294,9 +332,19 @@ export function RecoveryLedger({ mode = 'EXERCISE', eventId }: { mode?: Operatio
               onChange={(e) => setSelectedVillageId(e.target.value)}
               style={{ width: '100%', background: '#0f172a', color: '#f8fafc', border: '1px solid #475569', borderRadius: '4px', padding: '0.35rem' }}
             >
-              <option value="22222222-2222-2222-2222-222222222205">চিথলিয়া (Chitholia)</option>
-              <option value="22222222-2222-2222-2222-222222222204">মির্জানগর (Mirzanagar)</option>
-              <option value="22222222-2222-2222-2222-222222222203">ফুলগাজী (Fulgazi)</option>
+              {isSylhet ? (
+                <>
+                  <option value="22222222-2222-2222-2222-222222222204">কোম্পানীগঞ্জ (Companiganj)</option>
+                  <option value="22222222-2222-2222-2222-222222222205">গোয়াইনঘাট (Gowainghat)</option>
+                  <option value="22222222-2222-2222-2222-222222222206">রুস্তমপুর (Rustampur)</option>
+                </>
+              ) : (
+                <>
+                  <option value="22222222-2222-2222-2222-222222222205">চিথলিয়া (Chitholia)</option>
+                  <option value="22222222-2222-2222-2222-222222222204">মির্জানগর (Mirzanagar)</option>
+                  <option value="22222222-2222-2222-2222-222222222203">ফুলগাজী (Fulgazi)</option>
+                </>
+              )}
             </select>
           </div>
 

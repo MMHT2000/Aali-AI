@@ -2,14 +2,23 @@ import { useCallback, useEffect, useState } from 'react';
 import { OperationsMode, OperationsSnapshotBase, getOperationsSnapshot } from '../lib/operations-client';
 import { ThreeTapSos } from './ThreeTapSos';
 
-export function ViewerSituationSummary({ mode, eventId }: { mode: OperationsMode; eventId?: string }) {
+export function ViewerSituationSummary({
+  mode,
+  eventId,
+  districtCode = 'FENI_DIST',
+}: {
+  mode: OperationsMode;
+  eventId?: string;
+  districtCode?: string;
+}) {
+  const isSylhet = districtCode === 'SYLHET_DIST';
   const [snapshot, setSnapshot] = useState<OperationsSnapshotBase | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   const refresh = useCallback(async () => {
     try {
-      const result = await getOperationsSnapshot({ mode, eventId });
+      const result = await getOperationsSnapshot({ mode, eventId, districtCode });
       if (
         !result.visibility.aggregateOnly || result.mapLayers.sos.length > 0 ||
         result.mapLayers.incidents.length > 0 || result.mapLayers.assets.length > 0
@@ -24,7 +33,7 @@ export function ViewerSituationSummary({ mode, eventId }: { mode: OperationsMode
     } finally {
       setLoading(false);
     }
-  }, [eventId, mode]);
+  }, [districtCode, eventId, mode]);
 
   useEffect(() => {
     void refresh();
@@ -40,12 +49,12 @@ export function ViewerSituationSummary({ mode, eventId }: { mode: OperationsMode
   const activeSources = snapshot.context.sources.filter((source) => source.availability !== 'UNAVAILABLE').length;
   return <section className="viewer-summary" aria-labelledby="viewer-summary-title">
     <div style={{ marginBottom: '1.5rem' }}>
-      <ThreeTapSos />
+      <ThreeTapSos districtCode={districtCode} />
     </div>
 
     <header className="viewer-summary__header">
       <div><span className="viewer-summary__eyebrow">CITIZEN UPLINK & AGGREGATE SITUATION</span>
-        <h1 id="viewer-summary-title">Feni situation summary</h1>
+        <h1 id="viewer-summary-title">{isSylhet ? 'Sylhet situation summary' : 'Feni situation summary'}</h1>
         <p>{snapshot.context.event?.name ?? 'Current Aali API activity'} · {snapshot.context.mode}</p>
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'flex-end' }}>

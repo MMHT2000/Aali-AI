@@ -291,7 +291,7 @@ export function JudgeDemoRunner({ currentMode, onSetMode, districtCode = 'FENI_D
             primaryBtn: '🛰️ Open Disaster Packet & Dialect AI Inspector',
             onPrimary: () => setShowPacketModal(true),
             secondaryBtn: '📡 Open Citizen SOS Simulator',
-            onSecondary: () => navigate('/sos'),
+            onSecondary: () => navigate(`/control-room/simulator?districtCode=${targetDistrictCode}`),
           },
           4: {
             proves: 'PROVES TO JUDGES: Deterministic Boat Dispatch & Clustering — AI groups panic reports from flooded compounds into 1 incident; deterministic scoring elevates trapped children and elderly; Human Commander retains absolute dispatch approval authority.',
@@ -386,7 +386,7 @@ export function JudgeDemoRunner({ currentMode, onSetMode, districtCode = 'FENI_D
                 <div className="party-badge">PARTY 1</div>
                 <h3>Government (BTRC / DDM / FFWC)</h3>
                 <ul>
-                  <li><strong>Declares Emergency:</strong> Declares flood emergency for named upazilas (Fulgazi, Parshuram).</li>
+                  <li><strong>Declares Emergency:</strong> Declares flood emergency for named upazilas ({isSylhet ? 'Companiganj, Gowainghat, Kanaighat' : 'Fulgazi, Parshuram'}).</li>
                   <li><strong>Opens Data:</strong> Shares river gauge feeds, rain alerts, and audit logs.</li>
                   <li><strong>Human Control:</strong> Authorizes and signs off on every broadcast warning.</li>
                 </ul>
@@ -481,15 +481,15 @@ export function JudgeDemoRunner({ currentMode, onSetMode, districtCode = 'FENI_D
 
                 <div className="packet-breakdown-card">
                   <h4>Field Structure:</h4>
-                  <code>A1 | S | wh0r2q8 | 05 | E1M0 | 0821-1430 | 7Q2K</code>
+                  <code>{isSylhet ? 'A1 | S | wh1quuk | 06 | E1M1 | 0617-1500 | SY01' : 'A1 | S | wh0r2q8 | 05 | E1M0 | 0821-1430 | 7Q2K'}</code>
                   <ul className="packet-fields-list">
                     <li><code>A1</code>: Protocol Version 1</li>
                     <li><code>S</code>: Type = SOS (Distress)</li>
-                    <li><code>wh0r2q8</code>: 7-char Geohash (~150m accuracy in Fulgazi)</li>
-                    <li><code>05</code>: 5 people requiring rescue</li>
-                    <li><code>E1M0</code>: Urgent Flags (Elderly: 1, Medical: 0)</li>
-                    <li><code>0821-1430</code>: Timestamp 21 Aug, 14:30 BST</li>
-                    <li><code>7Q2K</code>: Integrity Checksum</li>
+                    <li><code>{isSylhet ? 'wh1quuk' : 'wh0r2q8'}</code>: 7-char Geohash (~150m accuracy in {isSylhet ? 'Companiganj' : 'Fulgazi'})</li>
+                    <li><code>{isSylhet ? '06' : '05'}</code>: {isSylhet ? '6' : '5'} people requiring rescue</li>
+                    <li><code>{isSylhet ? 'E1M1' : 'E1M0'}</code>: Urgent Flags (Elderly: 1, Medical: {isSylhet ? '1' : '0'})</li>
+                    <li><code>{isSylhet ? '0617-1500' : '0821-1430'}</code>: Timestamp {isSylhet ? '17 Jun, 15:00 BST' : '21 Aug, 14:30 BST'}</li>
+                    <li><code>{isSylhet ? 'SY01' : '7Q2K'}</code>: Integrity Checksum</li>
                   </ul>
                 </div>
 
@@ -498,7 +498,7 @@ export function JudgeDemoRunner({ currentMode, onSetMode, districtCode = 'FENI_D
                     <CheckCircle2 size={16} />
                     <div>
                       <strong>Packet Ingested Successfully!</strong>
-                      <p>Mapped to incident in Fulgazi. Server acknowledgement: {packetResult.reportId || 'ACK_ACCEPTED'}</p>
+                      <p>Mapped to incident in {isSylhet ? 'Companiganj' : 'Fulgazi'}. Server acknowledgement: {packetResult.reportId || 'ACK_ACCEPTED'}</p>
                     </div>
                   </div>
                 )}
@@ -511,15 +511,31 @@ export function JudgeDemoRunner({ currentMode, onSetMode, districtCode = 'FENI_D
 
                 <div className="dialect-presets">
                   <span>Presets:</span>
-                  <button type="button" onClick={() => handleTestDialect('ফুলগাজী স্কুলে পানি উঠতাছে, ৫ জন ছাদে আটকাইছি, একজন প্যারালাইজড বুড়া')}>
-                    Feni Dialect
-                  </button>
-                  <button type="button" onClick={() => handleTestDialect('মুহুরী বাঁধ ভাইঙ্গা গেছে, ৩ জন বাচ্চা সহ আটকা')}>
-                    Breach Alert
-                  </button>
-                  <button type="button" onClick={() => handleTestDialect('Basha dubey geche parshuram bazar er pash-e 4 jon rescue lagbe')}>
-                    Banglish
-                  </button>
+                  {isSylhet ? (
+                    <>
+                      <button type="button" onClick={() => handleTestDialect('কোম্পানীগঞ্জ বাজারে পানি উটি গেছে, ৬ জন আটকা রইছি, বাইচ্চা ও বুড়া মানুষ আছে')}>
+                        Sylhet Dialect
+                      </button>
+                      <button type="button" onClick={() => handleTestDialect('সুরমা নদীর পানি উপচাইয়া কোম্পানীগঞ্জ বাজার প্লাবিত, ৪ জন আটকা')}>
+                        Surma Surge
+                      </button>
+                      <button type="button" onClick={() => handleTestDialect('Companiganj Bholaganj road dubey geche 5 jon stranded rescue chai')}>
+                        Sylhet Banglish
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <button type="button" onClick={() => handleTestDialect('ফুলগাজী স্কুলে পানি উঠতাছে, ৫ জন ছাদে আটকাইছি, একজন প্যারালাইজড বুড়া')}>
+                        Feni Dialect
+                      </button>
+                      <button type="button" onClick={() => handleTestDialect('মুহুরী বাঁধ ভাইঙ্গা গেছে, ৩ জন বাচ্চা সহ আটকা')}>
+                        Breach Alert
+                      </button>
+                      <button type="button" onClick={() => handleTestDialect('Basha dubey geche parshuram bazar er pash-e 4 jon rescue lagbe')}>
+                        Banglish
+                      </button>
+                    </>
+                  )}
                 </div>
 
                 <div className="dialect-input-group">
@@ -559,7 +575,7 @@ export function JudgeDemoRunner({ currentMode, onSetMode, districtCode = 'FENI_D
                 className="action-btn-secondary"
                 onClick={() => {
                   setShowPacketModal(false);
-                  navigate('/control-room/responder');
+                  navigate(`/control-room/responder?districtCode=${targetDistrictCode}`);
                 }}
               >
                 Go to Responder Queue

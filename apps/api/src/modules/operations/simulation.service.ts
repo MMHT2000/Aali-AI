@@ -21,6 +21,14 @@ const TICKS: readonly SimulationTick[] = [
   { waterLevelM: 12.7, rainfallMm: 93, volunteerReading: true, incomingSos: 8, gaugeAvailable: true, connectivityAvailable: true },
 ];
 
+const SYLHET_TICKS: readonly SimulationTick[] = [
+  { waterLevelM: 9.8, rainfallMm: 35, volunteerReading: false, incomingSos: 0, gaugeAvailable: true, connectivityAvailable: true },
+  { waterLevelM: 10.4, rainfallMm: 95.0, volunteerReading: false, incomingSos: 2, gaugeAvailable: true, connectivityAvailable: true },
+  { waterLevelM: 10.95, rainfallMm: 160, volunteerReading: true, incomingSos: 5, gaugeAvailable: true, connectivityAvailable: true },
+  { waterLevelM: 11.8, rainfallMm: 220, volunteerReading: true, incomingSos: 10, gaugeAvailable: false, connectivityAvailable: false },
+  { waterLevelM: 11.3, rainfallMm: 140, volunteerReading: true, incomingSos: 12, gaugeAvailable: true, connectivityAvailable: true },
+];
+
 @Injectable()
 export class SimulationService implements OnApplicationBootstrap, OnModuleDestroy {
   private readonly logger = new Logger(SimulationService.name);
@@ -54,36 +62,46 @@ export class SimulationService implements OnApplicationBootstrap, OnModuleDestro
     this.stopTimer();
   }
 
-  getState() {
-    const tick = TICKS[this.tickIndex];
+  getState(districtCode: string = 'FENI_DIST') {
+    const isSylhet = districtCode === 'SYLHET_DIST';
+    const tickList = isSylhet ? SYLHET_TICKS : TICKS;
+    const tick = tickList[this.tickIndex] ?? tickList[0];
     const connectivityAvailable = this.internetOverride ?? tick.connectivityAvailable;
     const gaugeAvailable = this.gaugeOverride !== null ? this.gaugeOverride : tick.gaugeAvailable;
     const alert = evaluateThreeSignalAlert({
-      areaId: '22222222-2222-2222-2222-222222222202',
-      areaName: 'Parshuram',
-      reportedBreach: tick.waterLevelM >= 13,
+      areaId: isSylhet ? '22222222-2222-2222-2222-222222222207' : '22222222-2222-2222-2222-222222222202',
+      areaName: isSylhet ? 'Companiganj' : 'Parshuram',
+      dangerLevelM: isSylhet ? 11.25 : 13.0,
+      reportedBreach: isSylhet ? tick.waterLevelM >= 11.5 : tick.waterLevelM >= 13,
       signalA: {
         gaugeLevelM: tick.waterLevelM,
-        rise3hCm: [8, 28, 35, 45, 22][this.tickIndex],
+        rise3hCm: (isSylhet ? [12, 30, 42, 55, 25] : [8, 28, 35, 45, 22])[this.tickIndex],
+        warningLevelM: isSylhet ? 10.80 : 12.05,
         minutesSinceObservation: gaugeAvailable ? 5 : 75,
         isBlanked: !gaugeAvailable,
       },
-      signalB: { rainfallMm: tick.rainfallMm, windowMinutes: 180, minutesSinceObservation: 10 },
+      signalB: {
+        rainfallMm: tick.rainfallMm,
+        windowMinutes: 180,
+        thresholdMm: isSylhet ? 80.0 : 75.0,
+        minutesSinceObservation: 10,
+      },
       signalC: {
         levelM: tick.waterLevelM,
+        thresholdM: isSylhet ? 10.90 : 12.20,
         isRapidRiseReported: tick.volunteerReading,
         minutesSinceObservation: tick.volunteerReading ? 15 : 120,
       },
     });
 
     return {
-      scenarioId: 'feni-synthetic-rising-water-v1',
-      scenarioName: 'Feni Synthetic Rising Water Exercise',
+      scenarioId: isSylhet ? 'sylhet-synthetic-rising-water-v1' : 'feni-synthetic-rising-water-v1',
+      scenarioName: isSylhet ? 'Sylhet Synthetic Surma Rising Water Exercise' : 'Feni Synthetic Rising Water Exercise',
       provenance: 'SYNTHETIC_SCENARIO_FIXTURE',
       isReconstructed: false,
       mode: 'SIMULATION',
       tickIndex: this.tickIndex,
-      totalTicks: TICKS.length,
+      totalTicks: tickList.length,
       running: this.running,
       speed: this.speed,
       simulatedAt: new Date().toISOString(),

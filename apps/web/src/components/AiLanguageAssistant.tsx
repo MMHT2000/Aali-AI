@@ -60,10 +60,21 @@ export interface BenchmarkSample {
   expectedPeopleCount: number | null;
 }
 
-export function AiLanguageAssistant() {
+export function AiLanguageAssistant({ districtCode = 'FENI_DIST' }: { districtCode?: string } = {}) {
+  const isSylhet = districtCode === 'SYLHET_DIST';
   const [inputText, setInputText] = useState<string>(
-    'আমরা উত্তর চিথলিয়া প্রাইমারি স্কুলের ছাদে ৫ জন আটকে আছি। সাথে ১ জন বয়স্ক ও শিশু আছে। পানি খুব দ্রুত বাড়ছে।',
+    isSylhet
+      ? 'কোম্পানীগঞ্জ বাজারে পানি উটি গেছে, ৬ জন আটকা রইছি, সাথে ১ জন বাইচ্চা ও ১ জন বুড়া মানুষ আছে। পানি খুব দ্রুত বাড়ছে।'
+      : 'আমরা উত্তর চিথলিয়া প্রাইমারি স্কুলের ছাদে ৫ জন আটকে আছি। সাথে ১ জন বয়স্ক ও শিশু আছে। পানি খুব দ্রুত বাড়ছে।'
   );
+
+  useEffect(() => {
+    setInputText(
+      isSylhet
+        ? 'কোম্পানীগঞ্জ বাজারে পানি উটি গেছে, ৬ জন আটকা রইছি, সাথে ১ জন বাইচ্চা ও ১ জন বুড়া মানুষ আছে। পানি খুব দ্রুত বাড়ছে।'
+        : 'আমরা উত্তর চিথলিয়া প্রাইমারি স্কুলের ছাদে ৫ জন আটকে আছি। সাথে ১ জন বয়স্ক ও শিশু আছে। পানি খুব দ্রুত বাড়ছে।'
+    );
+  }, [isSylhet]);
   const [result, setResult] = useState<UnderstandSosResponse | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [isOutageSimulated, setIsOutageSimulated] = useState<boolean>(false);
@@ -332,7 +343,7 @@ export function AiLanguageAssistant() {
               📊 ১০০টি সিন্থেটিক বার্তার সম্প্রসারিত মূল্যায়ন ও ROC Curve / 100-Message Dialect Benchmark
             </h3>
             <p style={{ fontSize: '0.8rem', color: '#94a3b8', margin: '0.2rem 0 0' }}>
-              নোয়াখালী/ফেনী আঞ্চলিক উপভাষা (Colloquial Dialect), বাংলিশ এবং প্রমিত বাংলা দুর্যোগ বার্তার উপর স্বয়ংক্রিয় নিষ্কাশনের নির্ভুলতা ও বৈষম্যমূলক সূচক
+              নোয়াখালী/ফেনী ও সিলেট আঞ্চলিক উপভাষা (Colloquial Dialect), বাংলিশ এবং প্রমিত বাংলা দুর্যোগ বার্তার উপর স্বয়ংক্রিয় নিষ্কাশনের নির্ভুলতা ও বৈষম্যমূলক সূচক
             </p>
           </div>
           <button

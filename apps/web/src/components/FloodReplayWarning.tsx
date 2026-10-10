@@ -90,7 +90,11 @@ export function FloodReplayWarning({ mode, eventId, districtCode, session }: { m
     setEvaluation(null);
     setIsPlaying(false);
     if (!replayEnabled) return;
-    const targetEventId = eventId || '11111111-1111-1111-1111-111111111101';
+    const isDistrictSylhet = districtCode === 'SYLHET_DIST';
+    const defaultEvent = isDistrictSylhet
+      ? '11111111-1111-1111-1111-111111111104'
+      : '11111111-1111-1111-1111-111111111101';
+    const targetEventId = eventId || defaultEvent;
 
     fetch('/api/v1/replay/scenarios')
       .then((res) => (res.ok ? res.json() : []))
@@ -379,13 +383,15 @@ export function FloodReplayWarning({ mode, eventId, districtCode, session }: { m
       {mode === 'EXERCISE' && (
         <div style={{ background: '#1e293b', border: '1px solid #38bdf8', borderRadius: '8px', padding: '1.25rem', marginBottom: '1.5rem', textAlign: 'center' }}>
           <h3 style={{ color: '#38bdf8', margin: '0 0 0.5rem', fontSize: '1.1rem' }}>
-            🌊 Run Historical Flood Replay (ঐতিহাসিক বন্যা রিপ্লে চালু করুন)
+            🌊 Run Historical Flood Replay ({isSylhet ? 'সিলেট জুনের ঐতিহাসিক বন্যা রিপ্লে' : 'ফেনী আগস্টের ঐতিহাসিক বন্যা রিপ্লে'})
           </h3>
           <p style={{ color: '#94a3b8', fontSize: '0.85rem', margin: '0 0 1rem' }}>
-            You are currently in synthetic Exercise mode. To inspect and step through the full August 2024 or July 2025 Feni flood reconstruction with deterministic 3-signal rules, click below to load the scenario:
+            {isSylhet
+              ? 'You are currently in synthetic Exercise mode. To inspect and step through the June 2022 Sylhet megaflood reconstruction (Surma-Kushiyara deluge), click below:'
+              : 'You are currently in synthetic Exercise mode. To inspect and step through the full August 2024 or July 2025 Feni flood reconstruction with deterministic 3-signal rules, click below:'}
           </p>
           <a
-            href="?mode=HISTORICAL&eventId=11111111-1111-1111-1111-111111111101"
+            href={isSylhet ? '?mode=HISTORICAL&eventId=11111111-1111-1111-1111-111111111104&districtCode=SYLHET_DIST' : '?mode=HISTORICAL&eventId=11111111-1111-1111-1111-111111111101&districtCode=FENI_DIST'}
             style={{
               display: 'inline-block',
               background: '#0284c7',
@@ -398,7 +404,9 @@ export function FloodReplayWarning({ mode, eventId, districtCode, session }: { m
               boxShadow: '0 2px 8px rgba(2, 132, 199, 0.4)',
             }}
           >
-            ▶ Load August 2024 Feni Flood Replay / ঐতিহাসিক রিপ্লে লোড করুন →
+            {isSylhet
+              ? '▶ Load June 2022 Sylhet Megaflood Replay / সিলেট ঐতিহাসিক রিপ্লে লোড করুন →'
+              : '▶ Load August 2024 Feni Flood Replay / ফেনী ঐতিহাসিক রিপ্লে লোড করুন →'}
           </a>
         </div>
       )}

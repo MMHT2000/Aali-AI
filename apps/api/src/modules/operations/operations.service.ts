@@ -89,7 +89,7 @@ export class OperationsService {
     const isAuthority = role === UserRole.AUTHORITY;
     const isResponder = role === UserRole.RESPONDER;
     const canSeeRescueRecords = isAuthority || isResponder;
-    const simulation = mode === OperationsMode.EXERCISE ? this.simulation.getState() : undefined;
+    const simulation = mode === OperationsMode.EXERCISE ? this.simulation.getState(targetDistrictCode) : undefined;
     const shouldLoadReports = canSeeRescueRecords && (mode === OperationsMode.LIVE || mode === OperationsMode.EXERCISE);
     const shouldLoadIncidents = canSeeRescueRecords && mode === OperationsMode.EXERCISE;
     const [allIncidents, allReports] = await Promise.all([

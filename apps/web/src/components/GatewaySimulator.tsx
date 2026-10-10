@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { apiFetch as fetch } from '../lib/authenticated-fetch';
 
 interface GatewayResponse {
@@ -12,12 +12,17 @@ interface GatewayResponse {
   receivedAt: string;
 }
 
-export function GatewaySimulator() {
+export function GatewaySimulator({ districtCode = 'FENI_DIST' }: { districtCode?: string } = {}) {
+  const isSylhet = districtCode === 'SYLHET_DIST';
   const [packetInput, setPacketInput] = useState<string>('');
-  const [gatewayId, setGatewayId] = useState<string>('FENI-TOWER-GATEWAY-01');
+  const [gatewayId, setGatewayId] = useState<string>(isSylhet ? 'SYLHET-SURMA-GATEWAY-01' : 'FENI-TOWER-GATEWAY-01');
   const [loading, setLoading] = useState<boolean>(false);
   const [result, setResult] = useState<GatewayResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setGatewayId(isSylhet ? 'SYLHET-SURMA-GATEWAY-01' : 'FENI-TOWER-GATEWAY-01');
+  }, [isSylhet]);
 
   const handleSimulateForward = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -51,7 +56,11 @@ export function GatewaySimulator() {
 
   const loadExamplePacket = () => {
     // Example valid packet with verified CRC-16 checksum
-    setPacketInput('A1|S|wh0xs6m|05|E1C0M1T0|261009-1430|7Q2K|0GQS');
+    setPacketInput(
+      isSylhet
+        ? 'A1|S|wh1quuk|06|E1C1M1T0|260617-1500|SY01|0GQS'
+        : 'A1|S|wh0xs6m|05|E1C0M1T0|261009-1430|7Q2K|0GQS'
+    );
   };
 
   return (

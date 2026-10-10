@@ -53,9 +53,15 @@ function AutoRecenter({
 }) {
   const map = useMap();
   useEffect(() => {
-    map.setMaxBounds(bounds);
+    // Release previous boundary restriction so map can freely pan between Feni and Sylhet
+    map.setMaxBounds([[-90, -180], [90, 180]]);
     map.setView(center, 11, { animate: false });
-    map.invalidateSize();
+    // Apply new district bounds after centering
+    const timer = setTimeout(() => {
+      map.setMaxBounds(bounds);
+      map.invalidateSize();
+    }, 50);
+    return () => clearTimeout(timer);
   }, [center, bounds, districtCode, map]);
   return null;
 }

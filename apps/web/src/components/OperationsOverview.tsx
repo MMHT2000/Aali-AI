@@ -316,11 +316,12 @@ export function OperationsOverview({
       </section>
     );
   }
+  const isSylhet = districtCode === 'SYLHET_DIST';
+
   if (!snapshot) {
-    return <section className="situation-state" aria-live="polite"><Activity size={20} /> Loading the Feni operating picture…</section>;
+    return <section className="situation-state" aria-live="polite"><Activity size={20} /> Loading the {isSylhet ? 'Sylhet' : 'Feni'} operating picture…</section>;
   }
 
-  const isSylhet = districtCode === 'SYLHET_DIST';
   const defaultEventId = isSylhet ? '11111111-1111-1111-1111-111111111104' : '11111111-1111-1111-1111-111111111101';
   const snapshotMatchesContext = snapshot.context.mode === mode &&
     (mode !== 'HISTORICAL' || (!eventId && Boolean(snapshot.context.event?.id)) || snapshot.context.event?.id === (eventId ?? defaultEventId));
@@ -334,7 +335,7 @@ export function OperationsOverview({
     return (
       <div className="situation-room">
         <MasterCrisisClock />
-        <StageDemoDirector onMomentTriggered={() => void refresh()} onRefresh={() => void refresh()} />
+        <StageDemoDirector districtCode={districtCode} onMomentTriggered={() => void refresh()} onRefresh={() => void refresh()} />
         {snapshot.visibility.sos && activeAlert && <section className="sos-alert" role="alert" aria-live="assertive">
           <div className="sos-alert__mark" aria-hidden="true">SOS</div>
           <div className="sos-alert__main"><div className="sos-alert__heading"><strong>New API-submitted SOS report</strong><span>{activeAlert.shortId ? `Report ${activeAlert.shortId}` : activeAlert.id}</span></div>
@@ -782,7 +783,7 @@ export function OperationsOverview({
   return (
     <div className="situation-room">
       <MasterCrisisClock />
-      <StageDemoDirector onMomentTriggered={() => void refresh()} onRefresh={() => void refresh()} />
+      <StageDemoDirector districtCode={districtCode} onMomentTriggered={() => void refresh()} onRefresh={() => void refresh()} />
       {activeAlert && (
         <section className="sos-alert" role="alert" aria-live="assertive">
           <div className="sos-alert__mark" aria-hidden="true">SOS</div>

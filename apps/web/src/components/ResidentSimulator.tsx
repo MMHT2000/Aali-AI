@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { apiFetch as fetch } from '../lib/authenticated-fetch';
 import { buildClientDisasterPacket } from '../lib/packet';
 
@@ -12,9 +12,11 @@ export interface ResidentRegistrationResponse {
   disclaimer: string;
 }
 
-export function ResidentSimulator() {
+export function ResidentSimulator({ districtCode = 'FENI_DIST' }: { districtCode?: string } = {}) {
+  const isSylhet = districtCode === 'SYLHET_DIST';
+
   // Synthetic Identity State
-  const [fullName, setFullName] = useState('আব্দুর রহিম (Abdur Rahim)');
+  const [fullName, setFullName] = useState(isSylhet ? 'রহিম উদ্দিন (Rahim Uddin)' : 'আব্দুর রহিম (Abdur Rahim)');
   const [phoneNumber, setPhoneNumber] = useState('01711223344');
   const [mockNid, setMockNid] = useState('1984261829'); // 10 digits
   const [nidRegistered, setNidRegistered] = useState<ResidentRegistrationResponse | null>(null);
@@ -32,8 +34,20 @@ export function ResidentSimulator() {
     medical: false,
     trapped: true,
   });
-  const [selectedVillage, setSelectedVillage] = useState('চিথলিয়া (Chitholia)');
-  const [geohash, setGeohash] = useState('wh0r8vy');
+  const [selectedVillage, setSelectedVillage] = useState(
+    isSylhet ? 'কোম্পানীগঞ্জ সদর (Companiganj)' : 'চিথলিয়া (Chitholia)'
+  );
+  const [geohash, setGeohash] = useState(isSylhet ? 'wh1quuk' : 'wh0r8vy');
+
+  useEffect(() => {
+    if (isSylhet) {
+      setSelectedVillage('কোম্পানীগঞ্জ সদর (Companiganj)');
+      setGeohash('wh1quuk');
+    } else {
+      setSelectedVillage('চিথলিয়া (Chitholia)');
+      setGeohash('wh0r8vy');
+    }
+  }, [isSylhet]);
 
   // SOS Submission & Handoff State
   const [outboxPacket, setOutboxPacket] = useState<string | null>(null);
@@ -131,7 +145,7 @@ export function ResidentSimulator() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           packet: outboxPacket,
-          gatewayId: 'SIMULATOR-FENI-GW-01',
+          gatewayId: isSylhet ? 'SIMULATOR-SYLHET-GW-01' : 'SIMULATOR-FENI-GW-01',
         }),
       });
 
@@ -284,15 +298,33 @@ export function ResidentSimulator() {
                 value={selectedVillage}
                 onChange={(e) => {
                   setSelectedVillage(e.target.value);
-                  if (e.target.value.includes('Chitholia')) setGeohash('wh0r8vy');
-                  else if (e.target.value.includes('Mirzanagar')) setGeohash('wh0rc0z');
-                  else setGeohash('wh0pt3u');
+                  if (isSylhet) {
+                    if (e.target.value.includes('Companiganj')) setGeohash('wh1quuk');
+                    else if (e.target.value.includes('Gowainghat')) setGeohash('wh1r75k');
+                    else if (e.target.value.includes('Rustampur')) setGeohash('wh1qebg');
+                    else setGeohash('wh1qw2b');
+                  } else {
+                    if (e.target.value.includes('Chitholia')) setGeohash('wh0r8vy');
+                    else if (e.target.value.includes('Mirzanagar')) setGeohash('wh0rc0z');
+                    else setGeohash('wh0pt3u');
+                  }
                 }}
                 style={{ width: '100%', padding: '0.35rem', background: '#0f172a', border: '1px solid #475569', borderRadius: '4px', color: '#fff' }}
               >
-                <option value="চিথলিয়া (Chitholia)">চিথলিয়া (Chitholia, Parshuram)</option>
-                <option value="মির্জানগর (Mirzanagar)">মির্জানগর (Mirzanagar, Parshuram)</option>
-                <option value="ফুলগাজী সদর (Fulgazi)">ফুলগাজী সদর (Fulgazi)</option>
+                {isSylhet ? (
+                  <>
+                    <option value="কোম্পানীগঞ্জ সদর (Companiganj)">কোম্পানীগঞ্জ সদর (Companiganj)</option>
+                    <option value="গোয়াইনঘাট (Gowainghat)">গোয়াইনঘাট (Gowainghat)</option>
+                    <option value="রুস্তমপুর (Rustampur)">রুস্তমপুর (Rustampur)</option>
+                    <option value="ভোলাগঞ্জ (Bholaganj)">ভোলাগঞ্জ (Bholaganj)</option>
+                  </>
+                ) : (
+                  <>
+                    <option value="চিথলিয়া (Chitholia)">চিথলিয়া (Chitholia, Parshuram)</option>
+                    <option value="মির্জানগর (Mirzanagar)">মির্জানগর (Mirzanagar, Parshuram)</option>
+                    <option value="ফুলগাজী সদর (Fulgazi)">ফুলগাজী সদর (Fulgazi)</option>
+                  </>
+                )}
               </select>
             </div>
 

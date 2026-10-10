@@ -1,13 +1,15 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { apiFetch as fetch } from '../lib/authenticated-fetch';
 import { buildClientDisasterPacket } from '../lib/packet';
 import { OutboxSosItem, saveToOutbox, updateOutboxStatus } from '../lib/offline-outbox';
 
 interface ThreeTapSosProps {
   onReportCreated?: (item: OutboxSosItem) => void;
+  districtCode?: string;
 }
 
-export function ThreeTapSos({ onReportCreated }: ThreeTapSosProps) {
+export function ThreeTapSos({ onReportCreated, districtCode = 'FENI_DIST' }: ThreeTapSosProps) {
+  const isSylhet = districtCode === 'SYLHET_DIST';
   const [isBlackoutMode, setIsBlackoutMode] = useState<boolean>(false);
   const [step, setStep] = useState<number>(1);
   const [peopleCount, setPeopleCount] = useState<number>(1);
@@ -17,8 +19,14 @@ export function ThreeTapSos({ onReportCreated }: ThreeTapSosProps) {
   const [isTrapped, setIsTrapped] = useState<boolean>(false);
 
   const [gpsCoords, setGpsCoords] = useState<{ lat: number; lng: number } | null>(null);
-  const [selectedVillage, setSelectedVillage] = useState<string>('Parshuram / পরশুরাম');
+  const [selectedVillage, setSelectedVillage] = useState<string>(
+    isSylhet ? 'Companiganj / কোম্পানীগঞ্জ' : 'Parshuram / পরশুরাম'
+  );
   const [gpsStatus, setGpsStatus] = useState<string>('Not requested');
+
+  useEffect(() => {
+    setSelectedVillage(isSylhet ? 'Companiganj / কোম্পানীগঞ্জ' : 'Parshuram / পরশুরাম');
+  }, [districtCode]);
 
   const [submitting, setSubmitting] = useState<boolean>(false);
   const [createdItem, setCreatedItem] = useState<OutboxSosItem | null>(null);
@@ -282,11 +290,24 @@ export function ThreeTapSos({ onReportCreated }: ThreeTapSosProps) {
                   }}
                   style={{ width: '100%', padding: '0.5rem', background: '#0f172a', color: 'white', border: '1px solid #475569', borderRadius: '4px' }}
                 >
-                  <option value="Parshuram / পরশুরাম">Parshuram / পরশুরাম</option>
-                  <option value="Chitholia / চিথলিয়া">Chitholia / চিথলিয়া</option>
-                  <option value="Mirzanagar / মির্জানগর">Mirzanagar / মির্জানগর</option>
-                  <option value="Fulgazi / ফুলগাজী">Fulgazi / ফুলগাজী</option>
-                  <option value="Munshirhat / মুন্সিরহাট">Munshirhat / মুন্সিরহাট</option>
+                  {isSylhet ? (
+                    <>
+                      <option value="Companiganj / কোম্পানীগঞ্জ">Companiganj / কোম্পানীগঞ্জ</option>
+                      <option value="Gowainghat / গোয়াইনঘাট">Gowainghat / গোয়াইনঘাট</option>
+                      <option value="Rustampur / রুস্তমপুর">Rustampur / রুস্তমপুর</option>
+                      <option value="Bholaganj / ভোলাগঞ্জ">Bholaganj / ভোলাগঞ্জ</option>
+                      <option value="Jaflong / জাফলং">Jaflong / জাফলং</option>
+                      <option value="Kanaighat / কানাইঘাট">Kanaighat / কানাইঘাট</option>
+                    </>
+                  ) : (
+                    <>
+                      <option value="Parshuram / পরশুরাম">Parshuram / পরশুরাম</option>
+                      <option value="Chitholia / চিথলিয়া">Chitholia / চিথলিয়া</option>
+                      <option value="Mirzanagar / মির্জানগর">Mirzanagar / মির্জানগর</option>
+                      <option value="Fulgazi / ফুলগাজী">Fulgazi / ফুলগাজী</option>
+                      <option value="Munshirhat / মুন্সিরহাট">Munshirhat / মুন্সিরহাট</option>
+                    </>
+                  )}
                 </select>
               </div>
 
