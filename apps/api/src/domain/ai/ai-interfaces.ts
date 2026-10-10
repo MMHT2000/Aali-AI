@@ -61,6 +61,12 @@ export interface SyntheticBenchmarkItem {
   category: 'BANGLA_FORMAL' | 'BANGLA_COLLOQUIAL' | 'BANGLISH';
 }
 
+export interface RocPoint {
+  fpr: number;
+  tpr: number;
+  threshold: number;
+}
+
 export interface BenchmarkReport {
   totalMessages: number;
   peopleCountAccuracy: number; // percentage
@@ -68,6 +74,8 @@ export interface BenchmarkReport {
   waterTrendAccuracy: number; // percentage
   overallAccuracy: number; // percentage
   fallbackSuccessRate: number; // percentage
+  rocCurve?: RocPoint[];
+  aucScore?: number;
   evaluatedAt: string;
 }
 

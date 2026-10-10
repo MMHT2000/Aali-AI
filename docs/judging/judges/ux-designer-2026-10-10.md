@@ -21,3 +21,4 @@ Evidence sources used: `rescore_evidence_log.md`, `00_claims_register.md`, web d
 
 ## Re-Score Assessment
 The addition of disaster lifecycle sectioning (BEFORE, DURING, AFTER) transforms the command room navigation from a simple list of software screens into an operational protocol directly aligned with standard emergency management workflows. An incident controller can immediately locate the relevant tools depending on the event's lifecycle phase.
+

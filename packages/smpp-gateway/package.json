@@ -1,0 +1,13 @@
+{
+  "name": "@aali/smpp-gateway",
+  "version": "1.0.0",
+  "description": "Telecom SMPP v3.4 Ingestion Gateway Container for Aali AI",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test:pdu": "node test-pdu.js"
+  },
+  "keywords": ["smpp", "telecom", "disaster-packet", "sms", "satellite"],
+  "author": "Aali AI Team",
+  "license": "UNLICENSED"
+}

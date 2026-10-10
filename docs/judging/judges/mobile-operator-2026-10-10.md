@@ -21,3 +21,4 @@ Evidence sources used: `rescore_evidence_log.md`, `00_claims_register.md`, Disas
 
 ## Re-Score Assessment
 The implementation of ACT-05 addresses a key physical reality of 1.9–2.1 GHz MSS / D2C satellite links: direct line-of-sight to orbit is essential. Advising flood victims on their handset screen to move away from tin and corrugated metal roofs toward an open window or clearing significantly reduces packet transmission failures.
+

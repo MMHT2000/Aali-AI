@@ -21,3 +21,4 @@ Evidence sources used: `rescore_evidence_log.md`, `00_claims_register.md`, web r
 
 ## Re-Score Assessment
 The addition of wet-hand tactile steppers and BWDB threshold preset buttons in the Flutter volunteer screen is a game changer for field adoption. Responders standing in torrential rain on small wooden engine boats cannot accurately tap small touch keyboard keys; tactile buttons with visual instant feedback ensure reliable hydrologic field observations reach the control room.
+

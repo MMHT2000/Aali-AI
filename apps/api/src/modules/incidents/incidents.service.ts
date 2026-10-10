@@ -41,6 +41,10 @@ export interface IncidentSummary {
     capacity: number;
     suitability: string;
     status: 'PROPOSED' | 'ACCEPTED' | 'REJECTED';
+    fuelRangeKm?: number;
+    nightSpotlightEquipped?: boolean;
+    daylightOnlyRequired?: boolean;
+    currentSpeedKts?: number;
   };
 }
 
@@ -140,6 +144,10 @@ export class IncidentsService implements OnModuleInit {
           capacity: 12,
           suitability: 'SHALLOW_DRAFT',
           status: 'PROPOSED',
+          fuelRangeKm: 22,
+          nightSpotlightEquipped: true,
+          daylightOnlyRequired: false,
+          currentSpeedKts: 6,
         },
       },
       {
@@ -161,6 +169,10 @@ export class IncidentsService implements OnModuleInit {
           capacity: 8,
           suitability: 'SWIFT_WATER',
           status: 'PROPOSED',
+          fuelRangeKm: 14,
+          nightSpotlightEquipped: false,
+          daylightOnlyRequired: true,
+          currentSpeedKts: 10,
         },
       },
     ];

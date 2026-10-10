@@ -17,7 +17,17 @@ export interface IncidentViewItem {
   reportsCount: number;
   linkedReportIds: string[];
   duplicateCandidate?: { candidateId: string; similarityScore: number; reasons: string[]; status: string };
-  suggestedBoat?: { assetId: string; name: string; capacity: number; suitability: string; status?: string };
+  suggestedBoat?: {
+    assetId: string;
+    name: string;
+    capacity: number;
+    suitability: string;
+    status?: string;
+    fuelRangeKm?: number;
+    nightSpotlightEquipped?: boolean;
+    daylightOnlyRequired?: boolean;
+    currentSpeedKts?: number;
+  };
 }
 
 export interface SilentVillageItem {
@@ -135,7 +145,7 @@ export function ResponderDashboard({ mode = 'EXERCISE', eventId }: { mode?: Oper
         <div className="responder-score-row"><span><strong>Priority {(incident.priorityScore * 100).toFixed(0)}%</strong><small>{incident.priorityReasons.join(' · ') || 'Rule-based score; evidence unavailable'}</small></span><span><strong>Confidence {(incident.confidence * 100).toFixed(0)}%</strong><small>{incident.confidenceReasons.join(' · ') || 'Confidence evidence unavailable'}</small></span></div>
         <div className="responder-flags" aria-label="Reported urgency needs">{flagLabels.filter(([key]) => incident.urgencyFlags[key]).map(([, label]) => <span key={label}>{label}</span>)}{!Object.values(incident.urgencyFlags).some(Boolean) && <span>No additional urgency flags</span>}</div>
         {incident.duplicateCandidate && <section className="responder-review-card"><div><p className="responder-eyebrow">HUMAN REVIEW REQUIRED / DUPLICATE SUGGESTION</p><h4>Possible match · {(incident.duplicateCandidate.similarityScore * 100).toFixed(0)}% similarity</h4><p>{incident.duplicateCandidate.reasons.join(' · ')}</p><small>Status: {incident.duplicateCandidate.status}</small></div>{incident.duplicateCandidate.status === 'PENDING' && <div className="responder-actions"><button type="button" onClick={() => void handleDuplicateReview(incident.id, incident.duplicateCandidate!.candidateId, 'ACCEPT')}><Check size={14} /> Accept merge</button><button type="button" onClick={() => void handleDuplicateReview(incident.id, incident.duplicateCandidate!.candidateId, 'REJECT')}>Keep separate</button></div>}</section>}
-        {incident.suggestedBoat && <section className="responder-asset-card"><div><p className="responder-eyebrow">ASSET SUGGESTION / NOT A DISPATCH</p><strong>{incident.suggestedBoat.name}</strong><p>Capacity {incident.suggestedBoat.capacity} · {incident.suggestedBoat.suitability.replaceAll('_', ' ')} · {incident.suggestedBoat.status ?? 'Proposed'}</p></div>{(!incident.suggestedBoat.status || incident.suggestedBoat.status === 'PROPOSED') && <div className="responder-actions"><button type="button" onClick={() => void handleBoatReview(incident.id, 'ACCEPT')}>Accept suggestion</button><button type="button" onClick={() => void handleBoatReview(incident.id, 'REJECT')}>Reject</button></div>}<small>Human review is recorded. This does not contact or dispatch an asset.</small></section>}
+        {incident.suggestedBoat && <section className="responder-asset-card"><div><p className="responder-eyebrow">ASSET SUGGESTION / NOT A DISPATCH</p><strong>{incident.suggestedBoat.name}</strong><p>Capacity {incident.suggestedBoat.capacity} · {incident.suggestedBoat.suitability.replaceAll('_', ' ')} · {incident.suggestedBoat.status ?? 'Proposed'}</p><div className="responder-asset-constraints" style={{ display: 'flex', gap: '0.75rem', marginTop: '0.35rem', fontSize: '0.8rem' }}><span style={{ color: '#4ade80' }}>⛽ Fuel Range: {incident.suggestedBoat.fuelRangeKm ?? 20} km</span>{incident.suggestedBoat.nightSpotlightEquipped ? <span style={{ color: '#38bdf8' }}>🔦 Night Spotlight Equipped</span> : <span style={{ color: '#facc15' }}>⚠️ Daylight Only (No spotlight)</span>}</div></div>{(!incident.suggestedBoat.status || incident.suggestedBoat.status === 'PROPOSED') && <div className="responder-actions"><button type="button" onClick={() => void handleBoatReview(incident.id, 'ACCEPT')}>Accept suggestion</button><button type="button" onClick={() => void handleBoatReview(incident.id, 'REJECT')}>Reject</button></div>}<small>Human review is recorded. This does not contact or dispatch an asset.</small></section>}
         {incident.linkedReportIds.length > 1 && <details className="responder-split"><summary>Separate a report from this incident</summary><div>{incident.linkedReportIds.map((reportId) => <button key={reportId} type="button" onClick={() => void handleSplitReport(incident.id, reportId)}>Separate report {reportId}</button>)}</div></details>}
       </article>)}</div>}
     </section>

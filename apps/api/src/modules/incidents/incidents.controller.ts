@@ -79,7 +79,7 @@ export class IncidentsController {
   }
 
   @Post(':id/boat-recommendation/review')
-  @Roles(UserRole.RESPONDER)
+  @Roles(UserRole.RESPONDER, UserRole.AUTHORITY)
   @ApiOperation({ summary: 'Operator human review for suggested boat dispatch (ACCEPT or REJECT, no auto-dispatch)' })
   async reviewBoatRecommendation(
     @Param('id') incidentId: string,

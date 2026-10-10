@@ -44,3 +44,4 @@ The 2024 and 2025 Muhuri river flash floods disproportionately inundated norther
 2. **Vulnerability Profiles:** With female representation at 52.8% and household dependency ratios in rural Parshuram/Fulgazi elevated by expatriate remittance labor patterns (where many adult males work in the Gulf and households are head-of-household female/elderly/child), Aali AI's deterministic boat priority formula explicitly weights vulnerable members:
    $$\text{Priority} = 0.30 \cdot P_{\text{people}} + 0.25 \cdot V_{\text{vulnerable}} + 0.20 \cdot C_{\text{confidence}} + 0.15 \cdot W_{\text{water}} + 0.10 \cdot T_{\text{wait}}$$
    where $V_{\text{vulnerable}}$ directly operationalizes BBS findings regarding household composition.
+

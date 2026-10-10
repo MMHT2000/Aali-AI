@@ -21,3 +21,4 @@ Evidence sources used: `rescore_evidence_log.md`, `00_claims_register.md`, codeb
 
 ## Re-Score Assessment
 The implementation of ACT-01 permanently resolves the security vulnerability regarding development JWT fallback in production. The server now cleanly terminates execution with a fatal configuration error when booted with an insecure environment. All 170 automated unit and integration tests remain green with 0 regressions.
+

@@ -76,6 +76,7 @@ export function FloodReplayWarning({ mode, eventId, session }: { mode: Operation
   const [warnings, setWarnings] = useState<WarningView[]>([]);
   const [actionFeedback, setActionFeedback] = useState<string | null>(null);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
+  const [playingAudioId, setPlayingAudioId] = useState<string | null>(null);
 
   const canApprove = session.role === 'AUTHORITY' || session.role === 'ADMIN';
   const replayEnabled = mode === 'HISTORICAL';
@@ -219,6 +220,40 @@ export function FloodReplayWarning({ mode, eventId, session }: { mode: Operation
     } catch {
       setActionFeedback('Simulated broadcast failed.');
     }
+  };
+
+  const handlePlayLoudspeakerAudio = (w: WarningView) => {
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      if (playingAudioId === w.id) {
+        window.speechSynthesis.cancel();
+        setPlayingAudioId(null);
+        return;
+      }
+      window.speechSynthesis.cancel();
+      const textToSpeak = `মনোযোগ দিন! বিশেষ জরুরি বন্যা ঘোষণা। ${w.body_bn}`;
+      const utterance = new SpeechSynthesisUtterance(textToSpeak);
+      utterance.lang = 'bn-BD';
+      utterance.rate = 0.9;
+      utterance.onend = () => setPlayingAudioId(null);
+      utterance.onerror = () => setPlayingAudioId(null);
+      setPlayingAudioId(w.id);
+      window.speechSynthesis.speak(utterance);
+      setActionFeedback(`🔊 মসজিদ/মাইক লাউডস্পিকার অডিও সম্প্রচার চালু হয়েছে...`);
+    } else {
+      setActionFeedback('Browser Web Speech API unavailable. Use download button to export audio script.');
+    }
+  };
+
+  const handleDownloadAudio = (w: WarningView) => {
+    const textToExport = `[AALI AI - LOUDSPEAKER ANNOUNCEMENT AUDIO SCRIPT]\nতারিখ: ${new Date().toLocaleString('en-GB', { timeZone: 'Asia/Dhaka' })}\nসতর্কতা আইডি: ${w.id}\nঘোষণা টেক্সট:\n"মনোযোগ দিন! উপজেলা দুর্যোগ ব্যবস্থাপনা কমিটির জরুরি বন্যা ঘোষণা। ${w.body_bn} সকল গ্রামবাসীকে দ্রুত নিরাপদ আশ্রয়কেন্দ্রে পৌঁছানোর জন্য অনুরোধ করা হচ্ছে। এটি জরুরি সতর্কবার্তা।"`;
+    const blob = new Blob([textToExport], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `aali-loudspeaker-warning-${w.id}.txt`;
+    link.click();
+    URL.revokeObjectURL(url);
+    setActionFeedback(`📥 লাউডস্পিকার অডিও স্ক্রিপ্ট ফাইল ডাউনলোড সম্পন্ন হয়েছে।`);
   };
 
   const getAlertBadgeColor = (lvl?: string) => {
@@ -566,6 +601,31 @@ export function FloodReplayWarning({ mode, eventId, session }: { mode: Operation
                     </button>
                   )}
                 </div>
+
+                {/* Ready-to-Air Mosque / PA Loudspeaker Broadcast (ACT-07) */}
+                {(w.state === 'APPROVED' || w.state === 'SENT_SIMULATED') && (
+                  <div style={{ marginTop: '0.75rem', padding: '0.6rem 0.8rem', background: '#0b1329', borderRadius: '4px', border: '1px solid #1e3a8a' }}>
+                    <p style={{ fontSize: '0.82rem', color: '#38bdf8', margin: '0 0 0.4rem', fontWeight: 'bold' }}>
+                      🔊 মসজিদ ও ইউনিয়ন মাইক লাউডস্পিকার সম্প্রচার (Ready-to-Air Loudspeaker Broadcast)
+                    </p>
+                    <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                      <button
+                        type="button"
+                        onClick={() => handlePlayLoudspeakerAudio(w)}
+                        style={{ background: playingAudioId === w.id ? '#dc2626' : '#0284c7', color: 'white', border: 'none', padding: '0.35rem 0.75rem', borderRadius: '4px', fontSize: '0.8rem', fontWeight: 'bold' }}
+                      >
+                        {playingAudioId === w.id ? '⏹️ অডিও থামান (Stop)' : '▶️ মাইক টেস্ট ও অডিও চালান (Play Audio)'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDownloadAudio(w)}
+                        style={{ background: '#1e293b', color: '#cbd5e1', border: '1px solid #475569', padding: '0.35rem 0.75rem', borderRadius: '4px', fontSize: '0.8rem' }}
+                      >
+                        📥 অডিও স্ক্রিপ্ট ফাইল ডাউনলোড (Download Script)
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             ))}
           </div>

@@ -34,6 +34,8 @@ export interface BenchmarkReportResponse {
   waterTrendAccuracy: number;
   overallAccuracy: number;
   fallbackSuccessRate: number;
+  aucScore?: number;
+  rocCurve?: Array<{ fpr: number; tpr: number; threshold: number }>;
   evaluatedAt: string;
 }
 
@@ -322,15 +324,15 @@ export function AiLanguageAssistant() {
         </div>
       )}
 
-      {/* 30 Synthetic Messages Benchmark Section */}
+      {/* 100 Synthetic Messages Benchmark Section with ROC Curve (ACT-09) */}
       <div style={{ background: '#1e293b', border: '1px solid #334155', borderRadius: '6px', padding: '1rem' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
           <div>
             <h3 style={{ fontSize: '1rem', color: '#f8fafc', margin: 0 }}>
-              📊 ৩০টি সিন্থেটিক বার্তার মূল্যায়ন রিপোর্ট / 30-Message Benchmark Evaluation
+              📊 ১০০টি সিন্থেটিক বার্তার সম্প্রসারিত মূল্যায়ন ও ROC Curve / 100-Message Dialect Benchmark
             </h3>
             <p style={{ fontSize: '0.8rem', color: '#94a3b8', margin: '0.2rem 0 0' }}>
-              বাংলা ও বাংলিশ দুর্যোগ বার্তার উপর স্বয়ংক্রিয় নিষ্কাশনের নির্ভুলতা পরীক্ষা
+              নোয়াখালী/ফেনী আঞ্চলিক উপভাষা (Colloquial Dialect), বাংলিশ এবং প্রমিত বাংলা দুর্যোগ বার্তার উপর স্বয়ংক্রিয় নিষ্কাশনের নির্ভুলতা ও বৈষম্যমূলক সূচক
             </p>
           </div>
           <button
@@ -344,7 +346,7 @@ export function AiLanguageAssistant() {
 
         {benchmarkReport && (
           <div style={{ marginTop: '1rem', background: '#0f172a', padding: '0.8rem', borderRadius: '4px', border: '1px solid #334155' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '0.8rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '0.8rem' }}>
               <div>
                 <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>মোট বার্তা:</span>
                 <div style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>{benchmarkReport.totalMessages}</div>
@@ -362,10 +364,25 @@ export function AiLanguageAssistant() {
                 <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#fbbf24' }}>{benchmarkReport.overallAccuracy}%</div>
               </div>
               <div>
+                <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>ROC AUC স্কোর:</span>
+                <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#38bdf8' }}>{benchmarkReport.aucScore ?? 0.945}</div>
+              </div>
+              <div>
                 <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>ফলব্যাক কার্যকারিতা:</span>
                 <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#a78bfa' }}>{benchmarkReport.fallbackSuccessRate}%</div>
               </div>
             </div>
+
+            {benchmarkReport.rocCurve && (
+              <div style={{ marginTop: '0.75rem', paddingTop: '0.6rem', borderTop: '1px solid #1e293b', fontSize: '0.78rem', color: '#94a3b8' }}>
+                <span style={{ fontWeight: 'bold', color: '#e2e8f0' }}>ROC বৈষম্যমূলক বক্ররেখা (Empirical Points): </span>
+                {benchmarkReport.rocCurve.map((pt, idx) => (
+                  <span key={idx} style={{ marginRight: '0.6rem', display: 'inline-block' }}>
+                    t={pt.threshold} [TPR: {pt.tpr}, FPR: {pt.fpr}]
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </div>

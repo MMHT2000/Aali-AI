@@ -29,6 +29,18 @@ export class GatewayController {
     return this.gatewayService.ingestSimulatedPacket(dto);
   }
 
+  @Post('sms')
+  @Roles(UserRole.AUTHORITY, UserRole.RESPONDER)
+  @ApiOperation({ summary: 'SMS / Telecom Short-Code Gateway Ingestion Endpoint' })
+  async ingestSmsPacket(@Body() body: any): Promise<SmsGatewayIngestResult> {
+    const packet = body.packet || body.rawMessage || body.rawPacket || '';
+    return this.gatewayService.ingestSimulatedPacket({
+      packet,
+      gatewayId: body.gatewayId || body.operator || 'TELECOM_SMS_GW',
+      receivedAt: body.receivedAt,
+    });
+  }
+
   @Get('simulated/traces')
   @Roles(UserRole.AUTHORITY, UserRole.RESPONDER)
   @ApiOperation({ summary: 'List recent simulated gateway transmission traces' })

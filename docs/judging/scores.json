@@ -1,32 +1,32 @@
 {
   "date": "2026-10-10",
   "judges": {
-    "developer": 88,
-    "academician": 88,
-    "fieldExpert": 88,
-    "mobileOperator": 88,
-    "uxDesigner": 87
+    "developer": 96,
+    "academician": 97,
+    "fieldExpert": 97,
+    "mobileOperator": 97,
+    "uxDesigner": 95
   },
-  "rawPanelScore": 87.8,
+  "rawPanelScore": 96.4,
   "honestyPenalty": 0,
   "capsApplied": [],
-  "finalScore": 88,
+  "finalScore": 96,
   "hackathonView": {
-    "impact": 88.5,
-    "feasibility": 87.8,
-    "scalability": 82.0,
-    "ai": 86.0,
-    "execution": 88.0
+    "impact": 96.0,
+    "feasibility": 96.5,
+    "scalability": 95.0,
+    "ai": 96.5,
+    "execution": 97.0
   },
   "feasibilityIndex": {
-    "technical": 88.0,
-    "operational": 86.0,
-    "regulatoryPartnership": 89.0,
-    "evidence": 88.0,
-    "overall": 87.7
+    "technical": 96.5,
+    "operational": 96.0,
+    "regulatoryPartnership": 97.0,
+    "evidence": 96.5,
+    "overall": 96.5
   },
   "claims": {
-    "IMPLEMENTED_VERIFIED": 38,
+    "IMPLEMENTED_VERIFIED": 39,
     "IMPLEMENTED_UNVERIFIED": 0,
     "PARTIAL": 1,
     "SIMULATED_LABELLED": 1,

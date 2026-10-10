@@ -109,5 +109,12 @@ export class AlertsController {
   simulateBroadcast(@Param('id') id: string) {
     return this.alertsService.simulateBroadcast(id);
   }
+
+  @ApiOperation({ summary: 'Get ready-to-air loudspeaker audio announcement script and metadata for mosque broadcast' })
+  @Get('warnings/:id/loudspeaker-audio')
+  @Roles(UserRole.AUTHORITY, UserRole.RESPONDER, UserRole.ADMIN, UserRole.VIEWER)
+  getLoudspeakerAudio(@Param('id') id: string) {
+    return this.alertsService.getLoudspeakerAudio(id);
+  }
 }
 

@@ -68,5 +68,25 @@ services:
       retries: 5
       start_period: 10s
 
+  smpp-gateway:
+    image: node:20-alpine
+    container_name: aali-ai-smpp-gateway
+    restart: unless-stopped
+    working_dir: /app
+    volumes:
+      - ./packages/smpp-gateway:/app
+    environment:
+      SMPP_PORT: 2775
+      HTTP_ADMIN_PORT: 2776
+      API_ENDPOINT: http://api:3001/api/v1/gateway/sms
+      EMERGENCY_SHORTCODE: "1090"
+    ports:
+      - "2775:2775"
+      - "2776:2776"
+    command: ["node", "server.js"]
+    depends_on:
+      api:
+        condition: service_healthy
+
 volumes:
   aali_mysql_data:

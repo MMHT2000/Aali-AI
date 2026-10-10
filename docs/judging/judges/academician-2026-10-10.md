@@ -21,3 +21,4 @@ Evidence sources used: `rescore_evidence_log.md`, `00_claims_register.md`, `docs
 
 ## Re-Score Assessment
 The addition of `DEMOGRAPHIC_CITATION_BBS2022.md` grounds the ~1.65M Feni population claim with official Bangladesh Bureau of Statistics 2022 census documentation, including the precise gender ratios, household numbers, and upazila distributions that justify the weighting factors in Aali AI's boat priority algorithm. Claim S-10 is now fully verified.
+

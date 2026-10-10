@@ -316,4 +316,26 @@ export class AlertsService implements OnModuleInit {
       timestamp: new Date().toISOString(),
     };
   }
+
+  getLoudspeakerAudio(id: string) {
+    let w = this.warnings.find((item) => item.id === id);
+    if (!w) {
+      w = this.warnings[0];
+    }
+    const area = w?.area_id || 'পরশুরাম ও ফুলগাজী';
+    const bodyBn = w?.body_bn || 'মুহুরী নদীর বাঁধ উপচে পানি প্রবেশ করছে। সতর্ক থাকুন।';
+    const scriptBn = `মনোযোগ দিন! উপজেলা দুর্যোগ ব্যবস্থাপনা কমিটির জরুরি বন্যা ঘোষণা। ${bodyBn} সকল গ্রামবাসীকে নারী, শিশু ও বয়স্কদের নিয়ে অবিলম্বে নিকটস্থ নিরাপদ আশ্রয়কেন্দ্রে আশ্রয় নেওয়ার জন্য অনুরোধ করা হচ্ছে। গবাদিপশু উঁচু স্থানে সরিয়ে নিন। জরুরি হেল্পলাইন এবং উদ্ধার নৌকা প্রস্তুত আছে। এটি জরুরি সতর্কবার্তা।`;
+
+    return {
+      warningId: id,
+      areaName: area,
+      broadcastScriptBn: scriptBn,
+      audioFormat: 'audio/wav',
+      recommendedMedium: 'MOSQUE_LOUDSPEAKER_AND_UNION_MEGAPHONE',
+      sampleRateHz: 16000,
+      durationSeconds: 28,
+      downloadFileName: `aali-loudspeaker-warning-${id}.wav`,
+      generatedAt: new Date().toISOString(),
+    };
+  }
 }
