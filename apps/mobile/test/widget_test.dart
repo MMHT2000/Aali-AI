@@ -101,4 +101,36 @@ void main() {
     await tester.ensureVisible(find.text('Tower blackout active · Starlink D2C satellite fallback'));
     expect(find.text('Tower blackout active · Starlink D2C satellite fallback'), findsOneWidget);
   });
+
+  testWidgets('Responder Desk toggles bounded Feni District Vector Map view',
+      (WidgetTester tester) async {
+    tester.view.physicalSize = const Size(360, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(const AaliResidentApp());
+    await tester.pumpAndSettle();
+
+    // Navigate to Responder Desk
+    await tester.ensureVisible(find.byKey(const Key('responder-sign-in')));
+    await tester.tap(find.byKey(const Key('responder-sign-in')));
+    await tester.pumpAndSettle();
+
+    // Find and tap Map Toggle icon button
+    expect(find.byIcon(Icons.map), findsOneWidget);
+    await tester.tap(find.byIcon(Icons.map));
+    await tester.pumpAndSettle();
+
+    // Verify Feni District GIS map canvas and bounded badge are active
+    expect(find.textContaining('Feni District GIS'), findsOneWidget);
+    expect(find.text('LOCKED BOUNDS'), findsOneWidget);
+    expect(find.text('Muhuri River'), findsOneWidget);
+
+    // Toggle back to list view
+    expect(find.byIcon(Icons.format_list_bulleted), findsOneWidget);
+    await tester.tap(find.byIcon(Icons.format_list_bulleted));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('SOS-7K4M'), findsOneWidget);
+  });
 }
