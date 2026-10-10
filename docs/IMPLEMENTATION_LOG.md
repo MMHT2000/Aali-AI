@@ -767,3 +767,29 @@ Antigravity must append an entry after each completed phase. Do not pre-fill com
 - **Simulated or unverified integrations:** Exercise incidents and operational fixtures remain synthetic. Asset review does not dispatch. Historical records remain reconstructed; no new source data was introduced.
 - **Open issues:** Browser screenshot review is outstanding, including all-role visibility/access and small-screen layouts. Stitch's source screens themselves contain unsupported sample claims and are not product evidence. No Android reference was provided.
 - **Next phase:** Complete screenshot-based role-by-role and responsive UI acceptance, then address the verified highest-impact cross-role gaps; keep API record-ownership and external-source gaps tracked independently.
+
+### 2026-10-11 — Multi-District Tenant Decoupling and Broadcast Warning Audit
+
+- **Goal:** Exhaustive audit to eliminate cross-district contamination between Feni (Muhuri basin) and Sylhet (Surma-Kushiyara basin), resolve cross-district broadcast leakage, and synchronize telemetry thresholds and basin semantics across backend and frontend.
+- **Root Cause of Contamination:**
+  - `OperationsOverview.tsx` fetched `/api/v1/warnings` without district or event filtering, binding the first approved/broadcast warning indiscriminately. Approving a Sylhet warning caused it to overwrite Feni views.
+  - SSE stream handler `ALERT_CHANGE` lacked district checks, emitting payloads across all active tabs regardless of current tenant.
+  - `alerts.service.ts` evaluated replay scenarios with hardcoded `areaName: 'Parshuram'`, causing Sylhet replays to generate Feni reasoning and Muhuri river notices.
+  - Signal A threshold in `OperationsOverview.tsx` hardcoded `Warning: 12.05m · Danger: 13.00m` regardless of whether Surma (10.80m / 11.25m) was active.
+  - `FloodReplayWarning.tsx` hardcoded Signal A warning threshold (12.05m) and Signal B basin source (Tripura) in UI labels, and omitted `districtCode` from effect dependencies.
+- **Files changed:**
+  - `apps/api/src/modules/warnings/alerts.service.ts`: District-aware `evaluateTick` (Companiganj vs Parshuram), district- and event-filtered `getWarnings`, Sylhet-aware `getLoudspeakerAudio` script generation, and eventId/areaId in `ALERT_CHANGE` stream emission.
+  - `apps/api/src/modules/warnings/alerts.controller.ts`: Added `@Query('eventId')` and `@Query('districtCode')` to `GET /warnings`, widened role decorator for public emergency warning visibility.
+  - `apps/api/src/modules/operations/operations.service.ts`: Sylhet-aware `recordFieldReading` (Surma at Sylhet Point vs Muhuri at Parshuram), strict tenant event resolution in `resolveContext`.
+  - `apps/web/src/components/OperationsOverview.tsx`: District- and event-filtered warning query, district-verified `ALERT_CHANGE` stream receiver with automatic state reset on tenant mismatch, dynamic Signal A threshold (10.80m/11.25m vs 12.05m/13.00m), and dynamic Signal B basin label (Meghalaya-Cherrapunji vs Tripura).
+  - `apps/web/src/components/FloodReplayWarning.tsx`: Added `districtCode` dependency to replay loader, dynamic `areaId`/`areaName` in `evaluate` call, dynamic gauge thresholds, and dynamic GSMaP basin source labels.
+  - `apps/web/src/components/ControlRoom.tsx`: Dynamic top-bar branding (`Sylhet district coordination` vs `Feni district coordination`).
+  - `apps/web/src/components/ResponderDashboard.tsx`: Dynamic eyebrow text (`SYLHET DISTRICT` vs `FENI DISTRICT`).
+- **Verification:**
+  - API unit tests: 113/113 passed (26 test suites)
+  - Web unit tests: 48/48 passed (13 test files)
+  - Flutter mobile tests: 16/16 passed
+  - NestJS API compilation: 0 errors; daemon restarted on port 3001
+  - Web production build (`tsc && vite build`): 0 errors
+- **Git status:** Committed and pushed to `main` (`31664ef`).
+
