@@ -24,6 +24,7 @@ import { RecoveryModule } from './modules/recovery/recovery.module';
 import { AuditModule } from './modules/audit/audit.module';
 import { JwtAuthGuard } from './common/auth/jwt-auth.guard';
 import { RolesGuard } from './common/auth/roles.guard';
+import { RateLimitGuard } from './common/auth/rate-limit.guard';
 
 @Module({
   imports: [
@@ -65,6 +66,7 @@ import { RolesGuard } from './common/auth/roles.guard';
   providers: [
     { provide: APP_GUARD, useClass: JwtAuthGuard },
     { provide: APP_GUARD, useClass: RolesGuard },
+    { provide: APP_GUARD, useClass: RateLimitGuard },
     DatabaseLifecycleService,
   ],
 })

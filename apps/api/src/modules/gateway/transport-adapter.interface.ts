@@ -36,6 +36,16 @@ export interface SmsGatewayIngestResult {
   isIdempotentDuplicate: boolean;
   status: 'ACCEPTED' | 'DUPLICATE_IGNORED' | 'PARSE_FAILED';
   receivedAt: string;
+  signatureVerified?: boolean;
+  authMethod?: 'HMAC_SHA256' | 'DEMO_TRUSTED_PEER';
   failureReason?: string;
+  outboundReceipt?: {
+    recipientPhone?: string;
+    messageTextBn: string;
+    messageTextEn: string;
+    sentAt: string;
+    shortCode: string;
+    channel: 'SMS_TRANSACTIONAL_1090';
+  };
 }
 

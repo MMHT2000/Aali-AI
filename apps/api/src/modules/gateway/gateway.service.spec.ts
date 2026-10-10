@@ -51,6 +51,9 @@ describe('GatewayService (Simulation & Deduplication)', () => {
     expect(result.isIdempotentDuplicate).toBe(false);
     expect(result.reportId).toBeDefined();
     expect(result.packetChecksum).toBeDefined();
+    expect(result.outboundReceipt).toBeDefined();
+    expect(result.outboundReceipt?.shortCode).toBe('1090');
+    expect(result.outboundReceipt?.messageTextBn).toContain('জরুরি এসওএস গৃহীত');
   });
 
   it('should idempotently ignore identical packet resubmission and not duplicate reports', async () => {
@@ -76,6 +79,31 @@ describe('GatewayService (Simulation & Deduplication)', () => {
         packet: tamperedPacket,
       }),
     ).rejects.toThrow(BadRequestException);
+  });
+
+  it('should verify valid X-Carrier-Signature HMAC-SHA256 and accept packet', async () => {
+    const crypto = await import('crypto');
+    const secret = process.env.CARRIER_HMAC_SECRET || 'aali-carrier-secret-key-2026';
+    const validSignature = crypto.createHmac('sha256', secret).update(validPacket).digest('hex');
+
+    const result = await gatewayService.ingestSimulatedPacket(
+      { packet: validPacket, gatewayId: 'HMAC-SECURE-GW' },
+      validSignature,
+    );
+
+    expect(result.signatureVerified).toBe(true);
+    expect(result.authMethod).toBe('HMAC_SHA256');
+  });
+
+  it('should reject forged or invalid X-Carrier-Signature with UnauthorizedException (401)', async () => {
+    const forgedSignature = 'deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef';
+
+    await expect(
+      gatewayService.ingestSimulatedPacket(
+        { packet: validPacket, gatewayId: 'FORGED-GW' },
+        forgedSignature,
+      ),
+    ).rejects.toThrow();
   });
 });
 

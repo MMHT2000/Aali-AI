@@ -66,10 +66,10 @@ describe('AI Language Layer & Fallback Provider', () => {
     expect(draft.sourceRecordIds).toEqual(['rec-101', 'rec-102']);
   });
 
-  it('runs benchmark across 100 synthetic flood messages with >85% accuracy and ROC curve', () => {
+  it('runs benchmark across synthetic flood messages with >85% accuracy and ROC curve', () => {
     const report = provider.evaluateBenchmark();
 
-    expect(report.totalMessages).toBe(100);
+    expect(report.totalMessages).toBeGreaterThanOrEqual(250);
     expect(report.peopleCountAccuracy).toBeGreaterThanOrEqual(85.0);
     expect(report.vulnerabilityAccuracy).toBeGreaterThanOrEqual(85.0);
     expect(report.waterTrendAccuracy).toBeGreaterThanOrEqual(80.0);

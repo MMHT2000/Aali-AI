@@ -12,6 +12,7 @@ import { CreateSosDto, DecodePacketDto } from './dto/sos.dto';
 import { SosService } from './sos.service';
 import { Public } from '../../common/auth/public.decorator';
 import { Roles } from '../../common/auth/roles.decorator';
+import { RateLimit } from '../../common/auth/rate-limit.guard';
 import { UserRole } from '../users/entities/user-role.enum';
 
 @ApiTags('SOS & Disaster Packets')
@@ -21,7 +22,8 @@ export class SosController {
 
   @Post('sos')
   @Public()
-  @ApiOperation({ summary: 'Submit an emergency SOS report (idempotent)' })
+  @RateLimit(60, 60)
+  @ApiOperation({ summary: 'Submit an emergency SOS report (idempotent, rate-limited)' })
   @ApiResponse({ status: 201, description: 'SOS report created or existing idempotent record returned' })
   async createSos(@Body() dto: CreateSosDto, @Request() req: { user?: { id?: string } }) {
     const result = await this.sosService.createSos(dto, req.user?.id);

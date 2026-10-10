@@ -1,4 +1,5 @@
-import { BadRequestException, Injectable, Logger } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger, UnauthorizedException } from '@nestjs/common';
+import * as crypto from 'crypto';
 import { parseDisasterPacket } from '../../common/packet/disaster-packet';
 import { SosSourceType } from '../sos/entities/sos-report.entity';
 import { SosService } from '../sos/sos.service';
@@ -19,10 +20,43 @@ export class GatewayService {
 
   constructor(private readonly sosService: SosService) {}
 
-  async ingestSimulatedPacket(dto: SimulatedGatewayIngestDto): Promise<SmsGatewayIngestResult> {
+  async ingestSimulatedPacket(dto: SimulatedGatewayIngestDto, signatureHeader?: string): Promise<SmsGatewayIngestResult> {
     const rawPacket = dto.packet.trim();
     const gatewayId = dto.gatewayId || 'GATEWAY_SIMULATOR_DEFAULT';
     const receivedAt = dto.receivedAt || new Date().toISOString();
+    const carrierSecret = process.env.CARRIER_HMAC_SECRET || 'aali-carrier-secret-key-2026';
+    const requireSignature = process.env.CARRIER_REQUIRE_SIGNATURE === 'true';
+
+    let signatureVerified = false;
+    let authMethod: 'HMAC_SHA256' | 'DEMO_TRUSTED_PEER' = 'DEMO_TRUSTED_PEER';
+
+    // 0. Cryptographic HMAC verification
+    if (signatureHeader) {
+      const expectedSignature = crypto
+        .createHmac('sha256', carrierSecret)
+        .update(rawPacket)
+        .digest('hex');
+
+      const sigBuf = Buffer.from(signatureHeader.trim().toLowerCase());
+      const expBuf = Buffer.from(expectedSignature.toLowerCase());
+
+      if (sigBuf.length !== expBuf.length || !crypto.timingSafeEqual(sigBuf, expBuf)) {
+        this.logger.warn(`Invalid carrier HMAC signature rejected for gatewayId=${gatewayId}`);
+        throw new UnauthorizedException({
+          statusCode: 401,
+          error: 'Unauthorized',
+          message: 'Invalid X-Carrier-Signature HMAC',
+        });
+      }
+      signatureVerified = true;
+      authMethod = 'HMAC_SHA256';
+    } else if (requireSignature) {
+      throw new UnauthorizedException({
+        statusCode: 401,
+        error: 'Unauthorized',
+        message: 'Missing required X-Carrier-Signature header',
+      });
+    }
 
     // 1. Validate packet checksum and schema
     const parseOutcome = parseDisasterPacket(rawPacket);
@@ -43,6 +77,15 @@ export class GatewayService {
     const existingTrace = this.gatewayTraces.get(checksum);
     if (existingTrace) {
       this.logger.log(`Duplicate gateway packet received with checksum=${checksum}. Idempotently ignoring duplicate ingest.`);
+      const existingReceipt = {
+        recipientPhone: undefined,
+        messageTextBn: `আলি কন্ট্রোল: আপনার এসওএস ইতিপূর্বে রেকর্ড করা হয়েছে (আইডি: ${existingTrace.clientReportId})। উদ্ধার কার্যক্রম প্রক্রিয়াধীন।`,
+        messageTextEn: `Aali Control: Prior SOS already on record (ID: ${existingTrace.clientReportId}). Response queue active.`,
+        sentAt: new Date().toISOString(),
+        shortCode: '1090',
+        channel: 'SMS_TRANSACTIONAL_1090' as const,
+      };
+
       return {
         simulation: true,
         gatewayId,
@@ -52,6 +95,9 @@ export class GatewayService {
         isIdempotentDuplicate: true,
         status: 'DUPLICATE_IGNORED',
         receivedAt,
+        signatureVerified,
+        authMethod,
+        outboundReceipt: existingReceipt,
       };
     }
 
@@ -79,6 +125,15 @@ export class GatewayService {
 
     this.logger.log(`Successfully ingested simulated gateway packet checksum=${checksum} -> reportId=${report.id}`);
 
+    const outboundReceipt = {
+      recipientPhone: undefined,
+      messageTextBn: `আলি কন্ট্রোল: আপনার জরুরি এসওএস গৃহীত হয়েছে (আইডি: ${data.shortId})। উদ্ধারকারী দলকে অবহিত করা হচ্ছে। পানি বৃদ্ধি পেলে নিরাপদ উঁচু স্থান বা ছাদে অবস্থান নিন।`,
+      messageTextEn: `Aali Control: Emergency SOS received (ID: ${data.shortId}). Rescue units notified. Seek higher ground if water rises.`,
+      sentAt: new Date().toISOString(),
+      shortCode: '1090',
+      channel: 'SMS_TRANSACTIONAL_1090' as const,
+    };
+
     return {
       simulation: true,
       gatewayId,
@@ -88,6 +143,9 @@ export class GatewayService {
       isIdempotentDuplicate: false,
       status: 'ACCEPTED',
       receivedAt,
+      signatureVerified,
+      authMethod,
+      outboundReceipt,
     };
   }
 

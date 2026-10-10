@@ -97,7 +97,7 @@ export function Login({ onLoginSuccess }: LoginProps) {
         style={{
           width: '100%',
           padding: '0.75rem',
-          marginBottom: '1.25rem',
+          marginBottom: '0.75rem',
           background: 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)',
           color: '#ffffff',
           border: '1px solid #38bdf8',
@@ -114,6 +114,41 @@ export function Login({ onLoginSuccess }: LoginProps) {
       >
         <span>⚡</span>
         <span>সরাসরি অপারেশন্স রুমে প্রবেশ (Enter Situation Room as DC Feni)</span>
+      </button>
+
+      <button
+        type="button"
+        onClick={() => {
+          // Instant PWA Citizen Uplink without login credentials
+          const guestSession: UserSession = {
+            id: 'citizen-pwa-guest',
+            username: 'citizen_guest',
+            displayName: 'Stranded Resident (PWA Direct)',
+            role: 'VIEWER',
+            accessToken: '',
+          };
+          onLoginSuccess(guestSession);
+        }}
+        style={{
+          width: '100%',
+          padding: '0.75rem',
+          marginBottom: '1.25rem',
+          background: 'linear-gradient(135deg, #dc2626 0%, #991b1b 100%)',
+          color: '#ffffff',
+          border: '1px solid #f87171',
+          borderRadius: '6px',
+          fontWeight: 'bold',
+          fontSize: '0.92rem',
+          cursor: 'pointer',
+          boxShadow: '0 4px 12px rgba(220, 38, 38, 0.35)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '8px',
+        }}
+      >
+        <span>🚨</span>
+        <span>জিরো-ইনস্টল জরুরি এসওএস (Zero-Install Emergency SOS PWA)</span>
       </button>
 
       <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '0.9rem' }}>

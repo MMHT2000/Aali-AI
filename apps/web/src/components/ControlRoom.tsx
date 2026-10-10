@@ -105,6 +105,21 @@ export function ControlRoom({ session, onLogout }: ControlRoomProps) {
             <option value="HISTORICAL">Historical</option>
           </select>
         </label>
+        <label className="mode-select-label">District Tenant
+          <select
+            aria-label="District Tenant"
+            defaultValue="FENI_DIST"
+            onChange={(e) => {
+              const district = e.target.value;
+              const nextParams = new URLSearchParams(searchParams);
+              nextParams.set('districtCode', district);
+              setSearchParams(nextParams);
+            }}
+          >
+            <option value="FENI_DIST">Feni (ফেনী)</option>
+            <option value="SYLHET_DIST">Sylhet (সিলেট)</option>
+          </select>
+        </label>
         {mode === 'HISTORICAL' && <label className="mode-select-label">Event
           <select aria-label="Historical event" value={eventId ?? '11111111-1111-1111-1111-111111111101'} onChange={(event) => setOperatingContext('HISTORICAL', event.target.value)}>
             <option value="11111111-1111-1111-1111-111111111101">August 2024 reconstruction</option>

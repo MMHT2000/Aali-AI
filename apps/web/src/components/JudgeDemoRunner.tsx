@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Play, 
@@ -25,6 +25,7 @@ export function JudgeDemoRunner({ currentMode, onSetMode }: JudgeDemoRunnerProps
   const [activeStep, setActiveStep] = useState<number | null>(null);
   const [showCompactModal, setShowCompactModal] = useState(false);
   const [showPacketModal, setShowPacketModal] = useState(false);
+  const [isAutoPlaying, setIsAutoPlaying] = useState(false);
 
   // Packet & Dialect Tester State
   const [packetInput, setPacketInput] = useState('A1|S|wh0r2q8|05|E1M0|0821-1430|7Q2K');
@@ -133,6 +134,21 @@ export function JudgeDemoRunner({ currentMode, onSetMode }: JudgeDemoRunnerProps
     }
   };
 
+  useEffect(() => {
+    if (!isAutoPlaying) return;
+    const timer = setInterval(() => {
+      setActiveStep((prev) => {
+        const next = (prev === null || prev >= 5) ? 1 : prev + 1;
+        steps[next - 1].action();
+        if (next === 5) {
+          setIsAutoPlaying(false);
+        }
+        return next;
+      });
+    }, 6000);
+    return () => clearInterval(timer);
+  }, [isAutoPlaying]);
+
   return (
     <div className="judge-demo-bar" role="region" aria-label="Hackathon Judge Demo Tour">
       <div className="judge-bar-header">
@@ -141,6 +157,36 @@ export function JudgeDemoRunner({ currentMode, onSetMode }: JudgeDemoRunnerProps
           <span><strong>5-MINUTE DEMO RUNNER</strong> · Hack for Humanity 2026 ({currentMode})</span>
         </div>
         <div className="judge-actions-right">
+          <button
+            type="button"
+            className={`auto-tour-btn ${isAutoPlaying ? 'is-playing' : ''}`}
+            onClick={() => {
+              if (isAutoPlaying) {
+                setIsAutoPlaying(false);
+              } else {
+                setIsAutoPlaying(true);
+                setActiveStep(1);
+                steps[0].action();
+              }
+            }}
+            aria-pressed={isAutoPlaying}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '6px 12px',
+              borderRadius: '6px',
+              backgroundColor: isAutoPlaying ? '#e02424' : '#1e40af',
+              color: '#ffffff',
+              border: 'none',
+              fontWeight: 600,
+              fontSize: '12px',
+              cursor: 'pointer'
+            }}
+          >
+            <Sparkles size={14} />
+            <span>{isAutoPlaying ? 'Pause Tour' : 'Auto-Play Demo Tour'}</span>
+          </button>
           <button 
             type="button" 
             className="compact-open-btn"

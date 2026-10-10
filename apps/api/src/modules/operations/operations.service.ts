@@ -108,8 +108,19 @@ export class OperationsService {
     const isViewer = role === UserRole.VIEWER;
     const isAdmin = role === UserRole.ADMIN;
     const generatedAt = new Date().toISOString();
+    const targetDistrictCode = query.districtCode?.toUpperCase() || 'FENI_DIST';
+    const districtArea = SYNTHETIC_FENI_SEEDS.areas.find((a) => a.code === targetDistrictCode && a.area_type === 'DISTRICT') ?? SYNTHETIC_FENI_SEEDS.areas[0];
+    const allowedAreaIds = new Set<string>();
+    if (districtArea) {
+      allowedAreaIds.add(districtArea.id!);
+      SYNTHETIC_FENI_SEEDS.areas.filter((a) => a.parent_id === districtArea.id).forEach((a) => {
+        allowedAreaIds.add(a.id!);
+        SYNTHETIC_FENI_SEEDS.areas.filter((v) => v.parent_id === a.id).forEach((v) => allowedAreaIds.add(v.id!));
+      });
+    }
+
     const areas = SYNTHETIC_FENI_SEEDS.areas
-      .filter((area) => !isAdmin && (!(isVolunteer || isRecovery) || area.area_type === 'VILLAGE'))
+      .filter((area) => (allowedAreaIds.size === 0 || allowedAreaIds.has(area.id!)) && !isAdmin && (!(isVolunteer || isRecovery) || area.area_type === 'VILLAGE'))
       .map((area) => ({
         id: area.id,
         name: area.name_en,

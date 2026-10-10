@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import { Body, Controller, Get, Headers, Post } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { SimulatedGatewayIngestDto } from './dto/gateway-ingest.dto';
 import { GatewayService } from './gateway.service';
@@ -16,29 +16,34 @@ export class GatewayController {
   @ApiOperation({
     summary: 'Demo only: Ingest an ASCII Disaster Packet through simulated carrier SMS gateway',
     description:
-      'Accepts an ASCII disaster packet, verifies checksum/schema, avoids duplicate report creation on retry, and returns explicit simulation: true label.',
+      'Accepts an ASCII disaster packet, verifies optional HMAC-SHA256 signature (X-Carrier-Signature), checksum/schema, avoids duplicate report creation on retry, and returns explicit simulation: true label.',
   })
   @ApiResponse({
     status: 201,
     description: 'Packet accepted or existing idempotent report returned with simulation: true',
   })
   @ApiResponse({ status: 400, description: 'Packet malformed or checksum mismatch' })
+  @ApiResponse({ status: 401, description: 'Invalid or missing carrier HMAC signature' })
   async ingestSimulatedPacket(
     @Body() dto: SimulatedGatewayIngestDto,
+    @Headers('x-carrier-signature') signature?: string,
   ): Promise<SmsGatewayIngestResult> {
-    return this.gatewayService.ingestSimulatedPacket(dto);
+    return this.gatewayService.ingestSimulatedPacket(dto, signature);
   }
 
   @Post('sms')
   @Roles(UserRole.AUTHORITY, UserRole.RESPONDER)
   @ApiOperation({ summary: 'SMS / Telecom Short-Code Gateway Ingestion Endpoint' })
-  async ingestSmsPacket(@Body() body: any): Promise<SmsGatewayIngestResult> {
+  async ingestSmsPacket(
+    @Body() body: any,
+    @Headers('x-carrier-signature') signature?: string,
+  ): Promise<SmsGatewayIngestResult> {
     const packet = body.packet || body.rawMessage || body.rawPacket || '';
     return this.gatewayService.ingestSimulatedPacket({
       packet,
       gatewayId: body.gatewayId || body.operator || 'TELECOM_SMS_GW',
       receivedAt: body.receivedAt,
-    });
+    }, signature);
   }
 
   @Get('simulated/traces')

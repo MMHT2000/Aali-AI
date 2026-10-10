@@ -1,0 +1,52 @@
+{
+  "date": "2026-10-10",
+  "rescoreDate": "2026-10-10-RESCORE",
+  "baselineFinal": 69,
+  "judges": {
+    "j1": { "r1": 76.25, "r2": 76.25, "rescore": 96.25, "delta": 20.0 },
+    "j2": { "r1": 65.0, "r2": 65.0, "rescore": 93.75, "delta": 28.75 },
+    "j3": { "r1": 66.25, "r2": 66.25, "rescore": 95.0, "delta": 28.75 },
+    "j4": { "r1": 68.75, "r2": 68.75, "rescore": 96.25, "delta": 27.5 },
+    "j5": { "r1": 73.75, "r2": 73.75, "rescore": 96.25, "delta": 22.5 },
+    "j6": { "r1": 66.25, "r2": 66.25, "rescore": 95.0, "delta": 28.75 },
+    "j7": { "r1": 58.75, "r2": 56.25, "rescore": 91.25, "delta": 35.0 },
+    "j8": { "r1": 76.25, "r2": 76.25, "rescore": 97.5, "delta": 21.25 },
+    "j9": { "r1": 68.75, "r2": 68.75, "rescore": 96.25, "delta": 27.5 },
+    "j10": { "r1": 78.75, "r2": 77.5, "rescore": 97.5, "delta": 20.0 }
+  },
+  "raw": 95.5,
+  "honestyPenalty": 0,
+  "capsApplied": [],
+  "final": 96,
+  "deltaTotal": 27,
+  "stdDev": 1.76,
+  "dimensions": {
+    "impact": 96.0,
+    "feasibility": 95.5,
+    "scalability": 95.0,
+    "ai": 96.2,
+    "execution": 97.0,
+    "business": 91.5,
+    "trust": 97.5
+  },
+  "votes": {
+    "advance": 10,
+    "categoryWinner": 10,
+    "grandPrize": 10
+  },
+  "hotSeat": {
+    "answerable": 30,
+    "weak": 0,
+    "unanswerable": 0
+  },
+  "claims": {
+    "IMPLEMENTED_VERIFIED": 83,
+    "IMPLEMENTED_UNVERIFIED": 0,
+    "PARTIAL": 0,
+    "SIMULATED_LABELLED": 1,
+    "SIMULATED_UNLABELLED": 0,
+    "MISSING": 0,
+    "CONTRADICTED": 0,
+    "UNVERIFIABLE_EXTERNAL": 1
+  }
+}

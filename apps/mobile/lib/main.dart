@@ -240,6 +240,39 @@ class _AppRootControllerState extends State<AppRootController> {
       _residentNid = prefs.getString('aali_resident_nid') ?? '';
       _isProfileSaved = _residentNid.isNotEmpty;
     });
+    _syncPendingOutbox();
+  }
+
+  Future<void> _syncPendingOutbox() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final queue = prefs.getStringList('aali_outbox_queue') ?? [];
+      if (queue.isEmpty) return;
+
+      final remaining = <String>[];
+      for (final itemStr in queue) {
+        try {
+          final item = jsonDecode(itemStr) as Map<String, dynamic>;
+          final client = HttpClient()..connectionTimeout = const Duration(seconds: 3);
+          final req = await client.postUrl(Uri.parse('$_apiBase/sos'));
+          req.headers.contentType = ContentType.json;
+          req.write(jsonEncode({
+            'clientReportId': item['clientReportId'],
+            'village': item['village'] ?? 'Feni',
+            'peopleCount': item['peopleCount'] ?? 1,
+            'packet': item['packet'],
+            'transport': 'DURABLE_OUTBOX_SYNC',
+          }));
+          final resp = await req.close();
+          if (resp.statusCode < 200 || resp.statusCode >= 300) {
+            remaining.add(itemStr);
+          }
+        } catch (_) {
+          remaining.add(itemStr);
+        }
+      }
+      await prefs.setStringList('aali_outbox_queue', remaining);
+    } catch (_) {}
   }
 
   Future<void> _saveProfile(String name, String phone, String nid) async {
@@ -622,6 +655,21 @@ class _AppRootControllerState extends State<AppRootController> {
       }
     } catch (_) {
       onlineDelivered = false;
+    }
+
+    if (!onlineDelivered) {
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        final queue = prefs.getStringList('aali_outbox_queue') ?? [];
+        queue.add(jsonEncode({
+          'clientReportId': reference,
+          'packet': encodedPacket,
+          'village': _selectedVillage,
+          'peopleCount': _peopleCount,
+          'createdAt': DateTime.now().toIso8601String(),
+        }));
+        await prefs.setStringList('aali_outbox_queue', queue);
+      } catch (_) {}
     }
 
     setState(() {

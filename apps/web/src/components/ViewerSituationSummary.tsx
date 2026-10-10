@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { OperationsMode, OperationsSnapshotBase, getOperationsSnapshot } from '../lib/operations-client';
+import { ThreeTapSos } from './ThreeTapSos';
 
 export function ViewerSituationSummary({ mode, eventId }: { mode: OperationsMode; eventId?: string }) {
   const [snapshot, setSnapshot] = useState<OperationsSnapshotBase | null>(null);
@@ -38,12 +39,19 @@ export function ViewerSituationSummary({ mode, eventId }: { mode: OperationsMode
   const layers = snapshot.mapLayers;
   const activeSources = snapshot.context.sources.filter((source) => source.availability !== 'UNAVAILABLE').length;
   return <section className="viewer-summary" aria-labelledby="viewer-summary-title">
+    <div style={{ marginBottom: '1.5rem' }}>
+      <ThreeTapSos />
+    </div>
+
     <header className="viewer-summary__header">
-      <div><span className="viewer-summary__eyebrow">READ-ONLY · AGGREGATE VIEW</span>
+      <div><span className="viewer-summary__eyebrow">CITIZEN UPLINK & AGGREGATE SITUATION</span>
         <h1 id="viewer-summary-title">Feni situation summary</h1>
         <p>{snapshot.context.event?.name ?? 'Current Aali API activity'} · {snapshot.context.mode}</p>
       </div>
-      <span className="viewer-summary__badge">No individual SOS or rescue records</span>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'flex-end' }}>
+        <span className="viewer-summary__badge">Zero-Install Citizen PWA Active</span>
+        <span className="viewer-summary__badge">No individual SOS or rescue records</span>
+      </div>
     </header>
     <dl className="viewer-summary__metrics" aria-label="Aggregate reference counts">
       <div><dt>Reference areas</dt><dd>{layers.areas.length}</dd></div>

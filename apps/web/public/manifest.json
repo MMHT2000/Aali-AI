@@ -1,0 +1,19 @@
+{
+  "name": "Aali AI — Flood Relief & Crisis Uplink",
+  "short_name": "Aali AI",
+  "description": "Zero-Install Offline Disaster Uplink & Crisis Decision Support",
+  "start_url": "/?pwa=citizen",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0f172a",
+  "theme_color": "#0284c7",
+  "icons": [
+    {
+      "src": "/vite.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
+
