@@ -3467,6 +3467,20 @@ class _VolunteerDeskViewState extends State<VolunteerDeskView> {
   bool _submitting = false;
   String? _statusMessage;
 
+  void _adjustLevel(double delta) {
+    final current = double.tryParse(_levelController.text.trim()) ?? 12.40;
+    final next = (current + delta).clamp(0.0, 30.0);
+    setState(() {
+      _levelController.text = next.toStringAsFixed(2);
+    });
+  }
+
+  void _setLevelPreset(double value) {
+    setState(() {
+      _levelController.text = value.toStringAsFixed(2);
+    });
+  }
+
   @override
   void dispose() {
     _levelController.dispose();
@@ -3596,6 +3610,35 @@ class _VolunteerDeskViewState extends State<VolunteerDeskView> {
                   ],
                 ),
               ),
+              const SizedBox(height: 8),
+
+              // Satellite Open-Sky Guidance Banner (ACT-05)
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                decoration: BoxDecoration(
+                  color: isDark ? const Color(0xFF0369A1).withValues(alpha: 0.2) : const Color(0xFFE0F2FE),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: const Color(0xFF0284C7), width: 1.2),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.satellite_alt_rounded, color: Color(0xFF0284C7), size: 20),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        widget.isBengali
+                            ? 'উন্মুক্ত আকাশের নিচে থাকুন · স্যাটেলাইট ডি২সি সিগন্যালের জন্য টিনের ছাদ এড়িয়ে চলুন'
+                            : '📡 Sky Guidance: Face open sky away from metal roofs for clean satellite pass.',
+                        style: TextStyle(
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.w600,
+                          color: isDark ? const Color(0xFFBAE6FD) : const Color(0xFF0369A1),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
               const SizedBox(height: 14),
 
               // High-Risk Silent Village Verification Alert
@@ -3636,7 +3679,7 @@ class _VolunteerDeskViewState extends State<VolunteerDeskView> {
               ),
               const SizedBox(height: 16),
 
-              // Observation Submission Form
+              // Observation Submission Form with Tactile Steppers (ACT-02)
               Container(
                 padding: const EdgeInsets.all(18),
                 decoration: BoxDecoration(
@@ -3662,16 +3705,110 @@ class _VolunteerDeskViewState extends State<VolunteerDeskView> {
                         if (val != null) setState(() => _selectedArea = val);
                       },
                     ),
+                    const SizedBox(height: 14),
+
+                    // Tactile Gauge Presets (One-tap selection)
+                    Text(
+                      widget.isBengali ? 'গেজ প্রিসেট (দ্রুত নির্বাচন):' : 'BWDB Gauge Presets (Quick Tap):',
+                      style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                    ),
+                    const SizedBox(height: 6),
+                    Wrap(
+                      spacing: 6,
+                      runSpacing: 6,
+                      children: [
+                        ActionChip(
+                          avatar: const Icon(Icons.arrow_upward, size: 14, color: Colors.orange),
+                          label: const Text('12.05m সতর্কতা (Watch)'),
+                          onPressed: () => _setLevelPreset(12.05),
+                        ),
+                        ActionChip(
+                          avatar: const Icon(Icons.warning, size: 14, color: Colors.red),
+                          label: const Text('12.55m বিপদসীমা (Danger)'),
+                          onPressed: () => _setLevelPreset(12.55),
+                        ),
+                        ActionChip(
+                          avatar: const Icon(Icons.dangerous, size: 14, color: Colors.purple),
+                          label: const Text('13.55m চরম (Extreme)'),
+                          onPressed: () => _setLevelPreset(13.55),
+                        ),
+                      ],
+                    ),
                     const SizedBox(height: 12),
+
+                    // Tactile Steppers (Wet-Hands friendly)
+                    Text(
+                      widget.isBengali ? 'পানির উচ্চতা (ভিজা হাতের বোতাম):' : 'Water Level Controls (Wet Hands):',
+                      style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                    ),
+                    const SizedBox(height: 6),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton(
+                            style: OutlinedButton.styleFrom(
+                              minimumSize: const Size(0, 48),
+                              backgroundColor: Colors.blue.withValues(alpha: 0.08),
+                            ),
+                            onPressed: () => _adjustLevel(-0.5),
+                            child: const Text('-0.50m', style: TextStyle(fontWeight: FontWeight.bold)),
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: OutlinedButton(
+                            style: OutlinedButton.styleFrom(
+                              minimumSize: const Size(0, 48),
+                              backgroundColor: Colors.blue.withValues(alpha: 0.08),
+                            ),
+                            onPressed: () => _adjustLevel(-0.1),
+                            child: const Text('-0.10m', style: TextStyle(fontWeight: FontWeight.bold)),
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: OutlinedButton(
+                            style: OutlinedButton.styleFrom(
+                              minimumSize: const Size(0, 48),
+                              backgroundColor: Colors.blue.withValues(alpha: 0.08),
+                            ),
+                            onPressed: () => _adjustLevel(0.1),
+                            child: const Text('+0.10m', style: TextStyle(fontWeight: FontWeight.bold)),
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: OutlinedButton(
+                            style: OutlinedButton.styleFrom(
+                              minimumSize: const Size(0, 48),
+                              backgroundColor: Colors.blue.withValues(alpha: 0.08),
+                            ),
+                            onPressed: () => _adjustLevel(0.5),
+                            child: const Text('+0.50m', style: TextStyle(fontWeight: FontWeight.bold)),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+
                     TextField(
                       controller: _levelController,
                       keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                      decoration: const InputDecoration(labelText: 'Observed Water Depth / Level (meters)', border: OutlineInputBorder()),
+                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      decoration: const InputDecoration(
+                        labelText: 'Observed Water Depth / Level (meters)',
+                        border: OutlineInputBorder(),
+                        prefixIcon: Icon(Icons.waves),
+                      ),
                     ),
                     const SizedBox(height: 12),
                     TextField(
                       controller: _noteController,
-                      decoration: const InputDecoration(labelText: 'Field Note / Road Condition (Passable / Cutoff)', border: OutlineInputBorder()),
+                      decoration: const InputDecoration(
+                        labelText: 'Field Note / Road Condition (Passable / Cutoff)',
+                        border: OutlineInputBorder(),
+                        prefixIcon: Icon(Icons.note_alt_outlined),
+                      ),
                     ),
                     const SizedBox(height: 16),
                     SizedBox(

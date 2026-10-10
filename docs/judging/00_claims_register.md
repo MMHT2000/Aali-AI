@@ -16,7 +16,7 @@ Source documents converted:
 | S-07 | 70,415 houses submerged and Tk 533.59 crore lost in 2024 | Proposal p.1; Rev3 Sec. 3.3 | number | IMPLEMENTED_VERIFIED | Daily Star / UNB Sept 2024 | Reflected in recovery baseline numbers |
 | S-08 | Precedent: Liberty Caribbean activated Starlink D2C for Jamaica after Hurricane Melissa | Proposal p.2; Rev3 Sec. 4 | fact | IMPLEMENTED_VERIFIED | Liberty Latin America Oct 2025 | Basis for emergency regulatory access |
 | S-09 | Banglalink has ~37.95 M of 188.45 M mobile subs (1 in 5) | Proposal p.2; Rev3 Sec. 4 | number | IMPLEMENTED_VERIFIED | BTRC June 2025 data | Justification for all-operator emergency roaming |
-| S-10 | ~1.7 million residents of Feni affected stakeholders | Proposal p.2; Rev3 Sec. 8 | number | UNVERIFIABLE_EXTERNAL | BBS Feni Census | External demographic figure |
+| S-10 | ~1.7 million residents of Feni affected stakeholders | Proposal p.2; Rev3 Sec. 8 | number | IMPLEMENTED_VERIFIED | `docs/proposal/DEMOGRAPHIC_CITATION_BBS2022.md`, BBS 2022 Census (1,648,896) | Formally documented and cited |
 | S-11 | 10–12 districts lost towers in 2024 disaster | Rev3 Sec. 8 | number | IMPLEMENTED_VERIFIED | BTRC press release 2024 | Basis for regional scalability |
 | S-12 | BWDB SW212 Parshuram: Warning 12.05m, Danger 12.55m, Extreme 13.55m | Rev3 Sec. 3.1 | number | IMPLEMENTED_VERIFIED | `three-signal-alert.service.ts:44` | Exact threshold variables in domain rule |
 | S-20 | Three-signal alert: gauge rate-of-rise, satellite rainfall, volunteer staff-gauge SMS | Proposal p.1; Rev3 Sec. 3.1 | feature | IMPLEMENTED_VERIFIED | `three-signal-alert.service.ts:25-90` | Evaluated in backend unit test suite |
@@ -51,10 +51,11 @@ Source documents converted:
 
 ## Summary
 - **Total Claims Extracted:** 40 material claims
-- **IMPLEMENTED_VERIFIED:** 37
+- **IMPLEMENTED_VERIFIED:** 38
 - **SIMULATED_LABELLED:** 1 (`S-35` - Gateway phone stand-in, transparently labelled)
 - **PARTIAL:** 1 (`S-38` - Optional river-rise baseline model)
-- **UNVERIFIABLE_EXTERNAL:** 1 (`S-10` - 1.7 million residents census figure)
+- **UNVERIFIABLE_EXTERNAL:** 0
 - **CONTRADICTED:** 0
 - **SIMULATED_UNLABELLED:** 0
 - **MISSING:** 0
+

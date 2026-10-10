@@ -12,6 +12,20 @@ async function bootstrap() {
   });
 
   const configService = app.get(ConfigService);
+  const nodeEnv = configService.get<string>('NODE_ENV', 'development');
+  const jwtSecret = configService.get<string>('JWT_SECRET', '');
+  if (
+    nodeEnv === 'production' &&
+    (!jwtSecret ||
+      jwtSecret === 'replace-with-a-long-random-local-development-secret' ||
+      jwtSecret === 'aali-insecure-dev-secret-do-not-use-in-production')
+  ) {
+    logger.error(
+      'FATAL CONFIGURATION ERROR: Server refuses to start in production without a secure JWT_SECRET environment variable configured.',
+    );
+    throw new Error('FATAL: Refusing to start in production without a secure JWT_SECRET.');
+  }
+
   const port = configService.get<number>('API_PORT', 3001);
   const webOrigin = configService.get<string>('WEB_ORIGIN', 'http://localhost:5173');
 

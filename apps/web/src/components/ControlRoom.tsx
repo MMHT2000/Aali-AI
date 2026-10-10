@@ -22,17 +22,22 @@ import './ControlRoom.css';
 
 interface ControlRoomProps { session: UserSession; onLogout: () => void }
 const routes = [
-  { path: '/control-room/map', label: 'Situation room', group: 'OPERATIONS', icon: Map },
-  { path: '/control-room/viewer', label: 'Situation summary', group: 'OPERATIONS', icon: Activity },
-  { path: '/control-room/responder', label: 'SOS & incidents', group: 'RESPONSE', icon: Radio },
-  { path: '/control-room/field', label: 'Field reports', group: 'RESPONSE', icon: ClipboardList },
-  { path: '/control-room/alerts', label: 'Warnings & approvals', group: 'PREPAREDNESS', icon: AlertTriangle },
-  { path: '/control-room/replay', label: 'Replay & exercise', group: 'PREPAREDNESS', icon: Activity },
-  { path: '/control-room/simulator', label: 'Resident simulator', group: 'DEMO TOOLS', icon: Users },
-  { path: '/control-room/recovery', label: 'Recovery needs', group: 'RECOVERY', icon: Truck },
-  { path: '/control-room/language', label: 'Language support', group: 'OVERSIGHT', icon: Waves },
-  { path: '/control-room/audit', label: 'Audit log', group: 'OVERSIGHT', icon: ShieldCheck },
-  { path: '/control-room/settings', label: 'Configuration', group: 'OVERSIGHT', icon: Settings },
+  // BEFORE · PREPAREDNESS & WARNINGS
+  { path: '/control-room/map', label: 'Situation room', group: 'BEFORE · PREPAREDNESS', icon: Map },
+  { path: '/control-room/viewer', label: 'Situation summary', group: 'BEFORE · PREPAREDNESS', icon: Activity },
+  { path: '/control-room/alerts', label: 'Warnings & approvals', group: 'BEFORE · PREPAREDNESS', icon: AlertTriangle },
+  { path: '/control-room/replay', label: 'Replay & exercise', group: 'BEFORE · PREPAREDNESS', icon: Activity },
+
+  // DURING · RESPONSE & RESCUE
+  { path: '/control-room/responder', label: 'SOS & incidents', group: 'DURING · RESPONSE & RESCUE', icon: Radio },
+  { path: '/control-room/field', label: 'Field reports', group: 'DURING · RESPONSE & RESCUE', icon: ClipboardList },
+  { path: '/control-room/language', label: 'Language & AI support', group: 'DURING · RESPONSE & RESCUE', icon: Waves },
+  { path: '/control-room/simulator', label: 'Resident simulator', group: 'DURING · RESPONSE & RESCUE', icon: Users },
+
+  // AFTER · RECOVERY & OVERSIGHT
+  { path: '/control-room/recovery', label: 'Recovery needs', group: 'AFTER · RECOVERY & OVERSIGHT', icon: Truck },
+  { path: '/control-room/audit', label: 'Audit log', group: 'AFTER · RECOVERY & OVERSIGHT', icon: ShieldCheck },
+  { path: '/control-room/settings', label: 'Configuration', group: 'AFTER · RECOVERY & OVERSIGHT', icon: Settings },
 ];
 
 export function ControlRoom({ session, onLogout }: ControlRoomProps) {
