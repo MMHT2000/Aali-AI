@@ -142,48 +142,123 @@ export class OperationsService {
     const mapLayers = {
       areas,
       gauges: isFieldOrSituationRole && !isRecovery && mode === OperationsMode.EXERCISE && simulation
-        ? SYNTHETIC_FENI_SEEDS.gauges.map((gauge) => {
-          const area = SYNTHETIC_FENI_SEEDS.areas.find((item) => item.id === gauge.area_id);
-          return { id: gauge.id, name: gauge.name, latitude: area?.latitude, longitude: area?.longitude, valueM: simulation.sourceData.gauge.valueM, status: simulation.sourceData.gauge.available ? 'REPORTING' : 'STALE', provenance: OperationsProvenance.SYNTHETIC_SIMULATION };
-        }) : [],
-      shelters: canSeeShelters ? SYNTHETIC_FENI_SEEDS.shelters.map((shelter) => ({
-        id: shelter.id, name: shelter.name_en, latitude: shelter.latitude, longitude: shelter.longitude,
-        status: shelter.status, provenance: OperationsProvenance.SYNTHETIC_FIXTURE,
-      })) : [],
-      assets: canSeeRescueResources && mode === OperationsMode.EXERCISE ? SYNTHETIC_FENI_SEEDS.assets.map((asset) => ({
-        id: asset.id, name: asset.name, latitude: asset.latitude, longitude: asset.longitude,
-        status: asset.availability_status, provenance: OperationsProvenance.SYNTHETIC_FIXTURE,
-      })) : [],
-      incidents: canSeeRescueResources ? incidents.map((incident) => {
-        const area = areaFor(incident.areaName);
-        return { id: incident.id, label: incident.summary, latitude: area?.latitude, longitude: area?.longitude, status: incident.status, peopleCount: incident.peopleCount, provenance: OperationsProvenance.SYNTHETIC_FIXTURE };
-      }) : [],
-      sos: canSeeReports ? reports.map((report, idx) => {
-        let area = SYNTHETIC_FENI_SEEDS.areas.find((item) => item.id === report.area_id);
-        if (!area && report.geohash7) {
-          area = SYNTHETIC_FENI_SEEDS.areas.find((item) => item.geohash7 === report.geohash7);
+        ? SYNTHETIC_FENI_SEEDS.gauges
+            .filter((gauge) => allowedAreaIds.size === 0 || allowedAreaIds.has(gauge.area_id!))
+            .map((gauge) => {
+              const area = SYNTHETIC_FENI_SEEDS.areas.find((item) => item.id === gauge.area_id);
+              return { id: gauge.id, name: gauge.name, latitude: area?.latitude, longitude: area?.longitude, valueM: simulation.sourceData.gauge.valueM, status: simulation.sourceData.gauge.available ? 'REPORTING' : 'STALE', provenance: OperationsProvenance.SYNTHETIC_SIMULATION };
+            }) : [],
+      shelters: canSeeShelters ? SYNTHETIC_FENI_SEEDS.shelters
+          .filter((shelter) => allowedAreaIds.size === 0 || allowedAreaIds.has(shelter.area_id!))
+          .map((shelter) => ({
+            id: shelter.id, name: shelter.name_en, latitude: shelter.latitude, longitude: shelter.longitude,
+            status: shelter.status, provenance: OperationsProvenance.SYNTHETIC_FIXTURE,
+          })) : [],
+      assets: canSeeRescueResources && mode === OperationsMode.EXERCISE ? SYNTHETIC_FENI_SEEDS.assets
+          .filter((asset) => allowedAreaIds.size === 0 || allowedAreaIds.has(asset.area_id!))
+          .map((asset) => ({
+            id: asset.id, name: asset.name, latitude: asset.latitude, longitude: asset.longitude,
+            status: asset.availability_status, provenance: OperationsProvenance.SYNTHETIC_FIXTURE,
+          })) : [],
+      incidents: canSeeRescueResources ? (targetDistrictCode === 'SYLHET_DIST'
+        ? [
+            {
+              id: 'sylhet-incident-01',
+              label: 'Companiganj Upazila Inundation & Breached Dyke',
+              latitude: 25.0805,
+              longitude: 91.7523,
+              status: 'IN_PROGRESS',
+              peopleCount: 19,
+              provenance: OperationsProvenance.SYNTHETIC_FIXTURE,
+            },
+          ]
+        : incidents.map((incident) => {
+            const area = areaFor(incident.areaName);
+            return { id: incident.id, label: incident.summary, latitude: area?.latitude, longitude: area?.longitude, status: incident.status, peopleCount: incident.peopleCount, provenance: OperationsProvenance.SYNTHETIC_FIXTURE };
+          })) : [],
+      sos: canSeeReports ? (() => {
+        if (targetDistrictCode === 'SYLHET_DIST') {
+          return [
+            {
+              id: 'sylhet-sos-synthetic-01',
+              shortId: 'SYL-01',
+              name: 'Rustampur Village Compound (SYL-01)',
+              label: 'রুস্তমপুর গ্রাম · ৭ জন পানিবন্দি',
+              latitude: 25.092,
+              longitude: 91.785,
+              status: 'NEEDS_REVIEW',
+              peopleCount: 7,
+              hasChild: true,
+              hasMedicalNeed: false,
+              isTrapped: true,
+              elderlyCount: 2,
+              geohash7: 'wh1quuk',
+              receivedAt: new Date(Date.now() - 12 * 60000).toISOString(),
+              provenance: OperationsProvenance.API_SUBMITTED_REPORT,
+            },
+            {
+              id: 'sylhet-sos-synthetic-02',
+              shortId: 'SYL-02',
+              name: 'Companiganj BNSB High School Point (SYL-02)',
+              label: 'কোম্পানীগঞ্জ বাজার · ১২ জন আশ্রয়প্রার্থী',
+              latitude: 25.0815,
+              longitude: 91.7535,
+              status: 'NEEDS_REVIEW',
+              peopleCount: 12,
+              hasChild: true,
+              hasMedicalNeed: true,
+              isTrapped: false,
+              elderlyCount: 3,
+              geohash7: 'wh1qu1m',
+              receivedAt: new Date(Date.now() - 25 * 60000).toISOString(),
+              provenance: OperationsProvenance.API_SUBMITTED_REPORT,
+            },
+            {
+              id: 'sylhet-sos-synthetic-03',
+              shortId: 'SYL-03',
+              name: 'Gowainghat River Bank (SYL-03)',
+              label: 'গোয়াইনঘাট বাঁধঘাট · ৪ জন বয়স্ক',
+              latitude: 25.0565,
+              longitude: 91.9715,
+              status: 'ASSIGNED',
+              peopleCount: 4,
+              hasChild: false,
+              hasMedicalNeed: true,
+              isTrapped: true,
+              elderlyCount: 4,
+              geohash7: 'wh1rp6w',
+              receivedAt: new Date(Date.now() - 40 * 60000).toISOString(),
+              provenance: OperationsProvenance.API_SUBMITTED_REPORT,
+            },
+          ];
         }
-        const areaLabel = area ? (area.name_bn || area.name_en) : 'Feni District';
-        const lat = report.location_lat ?? area?.latitude ?? (23.015 + ((idx * 7) % 20 - 10) * 0.003);
-        const lng = report.location_lng ?? area?.longitude ?? (91.397 + ((idx * 13) % 20 - 10) * 0.003);
-        return {
-          id: report.id,
-          shortId: report.packet_short_id,
-          name: area ? `${area.name_en} (${report.packet_short_id})` : `SOS ${report.packet_short_id ?? report.id.slice(0, 8)}`,
-          label: `${areaLabel} · ${report.people_count} people affected`,
-          latitude: Number(lat),
-          longitude: Number(lng),
-          status: report.review_status,
-          peopleCount: report.people_count,
-          hasChild: report.has_child,
-          hasMedicalNeed: report.has_medical_need,
-          isTrapped: report.is_trapped,
-          elderlyCount: report.elderly_count,
-          geohash7: report.geohash7,
-          receivedAt: report.received_at,
-          provenance: OperationsProvenance.API_SUBMITTED_REPORT,
-        };
-      }) : [],
+        return reports.map((report, idx) => {
+          let area = SYNTHETIC_FENI_SEEDS.areas.find((item) => item.id === report.area_id);
+          if (!area && report.geohash7) {
+            area = SYNTHETIC_FENI_SEEDS.areas.find((item) => item.geohash7 === report.geohash7);
+          }
+          const areaLabel = area ? (area.name_bn || area.name_en) : 'Feni District';
+          const lat = report.location_lat ?? area?.latitude ?? (23.015 + ((idx * 7) % 20 - 10) * 0.003);
+          const lng = report.location_lng ?? area?.longitude ?? (91.397 + ((idx * 13) % 20 - 10) * 0.003);
+          return {
+            id: report.id,
+            shortId: report.packet_short_id,
+            name: area ? `${area.name_en} (${report.packet_short_id})` : `SOS ${report.packet_short_id ?? report.id.slice(0, 8)}`,
+            label: `${areaLabel} · ${report.people_count} people affected`,
+            latitude: Number(lat),
+            longitude: Number(lng),
+            status: report.review_status,
+            peopleCount: report.people_count,
+            hasChild: report.has_child,
+            hasMedicalNeed: report.has_medical_need,
+            isTrapped: report.is_trapped,
+            elderlyCount: report.elderly_count,
+            geohash7: report.geohash7,
+            receivedAt: report.received_at,
+            provenance: OperationsProvenance.API_SUBMITTED_REPORT,
+          };
+        });
+      })() : [],
     };
     const bmdSnapshot = mode === OperationsMode.LIVE && this.bmdCapService
       ? await this.bmdCapService.getSnapshot()

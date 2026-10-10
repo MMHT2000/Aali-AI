@@ -48,6 +48,7 @@ export function ControlRoom({ session, onLogout }: ControlRoomProps) {
   const modeValue = searchParams.get('mode');
   const mode: OperationsMode = modeValue === 'LIVE' || modeValue === 'HISTORICAL' ? modeValue : 'EXERCISE';
   const eventId = mode === 'HISTORICAL' ? searchParams.get('eventId') ?? undefined : undefined;
+  const districtCode = searchParams.get('districtCode') || 'FENI_DIST';
   const setOperatingContext = (nextMode: OperationsMode, nextEventId?: string) => {
     const nextParams = new URLSearchParams(searchParams);
     if (nextMode === 'EXERCISE') nextParams.delete('mode'); else nextParams.set('mode', nextMode);
@@ -108,7 +109,7 @@ export function ControlRoom({ session, onLogout }: ControlRoomProps) {
         <label className="mode-select-label">District Tenant
           <select
             aria-label="District Tenant"
-            defaultValue="FENI_DIST"
+            value={districtCode}
             onChange={(e) => {
               const district = e.target.value;
               const nextParams = new URLSearchParams(searchParams);
@@ -116,8 +117,8 @@ export function ControlRoom({ session, onLogout }: ControlRoomProps) {
               setSearchParams(nextParams);
             }}
           >
-            <option value="FENI_DIST">Feni (ফেনী)</option>
-            <option value="SYLHET_DIST">Sylhet (সিলেট)</option>
+            <option value="FENI_DIST">Feni (ফেনী - মুহুরী অববাহিকা)</option>
+            <option value="SYLHET_DIST">Sylhet (সিলেট - সুরমা অববাহিকা)</option>
           </select>
         </label>
         {mode === 'HISTORICAL' && <label className="mode-select-label">Event
@@ -151,7 +152,7 @@ export function ControlRoom({ session, onLogout }: ControlRoomProps) {
       </aside>
       <main className="control-content" id="main-content" tabIndex={-1} aria-label={`${activeRoute?.label ?? 'Operations'} workspace`}>
         <Routes>
-        <Route path="/control-room/map" element={allowed('/control-room/map') ? <OperationsOverview mode={mode} eventId={eventId} /> : <Navigate to={{ pathname: fallback, search: location.search }} replace />} />
+        <Route path="/control-room/map" element={allowed('/control-room/map') ? <OperationsOverview mode={mode} eventId={eventId} districtCode={districtCode} /> : <Navigate to={{ pathname: fallback, search: location.search }} replace />} />
         <Route path="/control-room/viewer" element={allowed('/control-room/viewer') ? <ViewerSituationSummary mode={mode} eventId={eventId} /> : <Navigate to={{ pathname: fallback, search: location.search }} replace />} />
         <Route path="/control-room/responder" element={allowed('/control-room/responder') ? <ResponderDashboard mode={mode} eventId={eventId} /> : <Navigate to={{ pathname: fallback, search: location.search }} replace />} />
         <Route path="/control-room/alerts" element={allowed('/control-room/alerts') ? <FloodReplayWarning mode={mode} eventId={eventId} session={session} /> : <Navigate to={{ pathname: fallback, search: location.search }} replace />} />

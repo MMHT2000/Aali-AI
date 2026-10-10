@@ -232,6 +232,109 @@ export function JudgeDemoRunner({ currentMode, onSetMode }: JudgeDemoRunnerProps
         })}
       </div>
 
+      {/* ACTIVE MOMENT DIRECTOR CALLOUT BAR */}
+      {(() => {
+        const step = steps.find((s) => s.num === (activeStep || 1)) || steps[0];
+        const momentDetails: Record<number, { proves: string; primaryBtn: string; onPrimary: () => void; secondaryBtn?: string; onSecondary?: () => void }> = {
+          1: {
+            proves: 'PROVES TO JUDGES: August 2024 Blackout Replay — 92% cell towers flooded, civilian calls stopped. Silence ≠ Safety; systems showing "no reports" failed residents.',
+            primaryBtn: '🚨 Replay August 2024 Blackout',
+            onPrimary: () => {
+              onSetMode('HISTORICAL', '11111111-1111-1111-1111-111111111101');
+              navigate('/control-room/replay?mode=HISTORICAL&eventId=11111111-1111-1111-1111-111111111101');
+            },
+            secondaryBtn: '🗺️ View Crisis Map',
+            onSecondary: () => {
+              onSetMode('HISTORICAL', '11111111-1111-1111-1111-111111111101');
+              navigate('/control-room/map?mode=HISTORICAL&eventId=11111111-1111-1111-1111-111111111101');
+            },
+          },
+          2: {
+            proves: 'PROVES TO JUDGES: Deterministic 3-Signal Early Warning — When automated Muhuri river gauge went blank at midnight, deterministic safety rule evaluated satellite rain + volunteer readings and escalated to ACT (evacuation). AI was NOT allowed to guess.',
+            primaryBtn: '⚡ Open 3-Signal Hydrograph & Rule',
+            onPrimary: () => {
+              onSetMode('HISTORICAL', '11111111-1111-1111-1111-111111111101');
+              navigate('/control-room/replay?mode=HISTORICAL&eventId=11111111-1111-1111-1111-111111111101');
+            },
+            secondaryBtn: '🚨 Test Live Sensor Blackout in Situation Room',
+            onSecondary: () => {
+              onSetMode('EXERCISE');
+              navigate('/control-room/overview');
+            },
+          },
+          3: {
+            proves: 'PROVES TO JUDGES: Blackout Transport Resilience — Under zero internet, an 80-byte SMS packet (A1|S|wh0r2q8|...) delivers exact geolocation and trapped status via satellite D2C/carrier emergency roaming. Natural dialects are decoded by local AI without data leaking off-device.',
+            primaryBtn: '🛰️ Open Disaster Packet & Dialect AI Inspector',
+            onPrimary: () => setShowPacketModal(true),
+            secondaryBtn: '📡 Open Citizen SOS Simulator',
+            onSecondary: () => navigate('/sos'),
+          },
+          4: {
+            proves: 'PROVES TO JUDGES: Deterministic Boat Dispatch & Clustering — AI groups 4 panic reports from the same flooded compound into 1 incident; deterministic scoring elevates trapped children and elderly; Human Commander retains absolute dispatch approval authority.',
+            primaryBtn: '🚤 Open Responder Dispatch Queue',
+            onPrimary: () => {
+              onSetMode('EXERCISE');
+              navigate('/control-room/responder');
+            },
+            secondaryBtn: '⚙️ View Multi-District Sylhet / Feni Operations',
+            onSecondary: () => {
+              onSetMode('EXERCISE');
+              navigate('/control-room/overview');
+            },
+          },
+          5: {
+            proves: 'PROVES TO JUDGES: Post-Disaster Equity & Verification — Tube well contamination recovery board prevents cholera outbreaks; aid allocation uses deterministic poverty vulnerability indices rather than arbitrary grants. Human officer sign-off required.',
+            primaryBtn: '💧 Open Tube Well Recovery Board',
+            onPrimary: () => {
+              onSetMode('EXERCISE');
+              navigate('/control-room/recovery');
+            },
+            secondaryBtn: '📜 View The Aali Tri-Party Compact',
+            onSecondary: () => setShowCompactModal(true),
+          },
+        };
+
+        const currentDetail = momentDetails[step.num];
+        const Icon = step.icon;
+
+        return (
+          <div className="judge-moment-callout" role="status" aria-live="polite">
+            <div className="moment-callout-left">
+              <div className="moment-callout-icon">
+                <Icon size={20} />
+              </div>
+              <div className="moment-callout-text">
+                <h4>
+                  <span>MOMENT {step.num}: {step.title}</span>
+                  <span className="moment-window-tag">{step.tag}</span>
+                </h4>
+                <p className="moment-proves">
+                  {currentDetail.proves}
+                </p>
+              </div>
+            </div>
+            <div className="moment-callout-actions">
+              <button
+                type="button"
+                className="moment-action-btn"
+                onClick={currentDetail.onPrimary}
+              >
+                {currentDetail.primaryBtn}
+              </button>
+              {currentDetail.secondaryBtn && (
+                <button
+                  type="button"
+                  className="moment-action-btn moment-action-btn--secondary"
+                  onClick={currentDetail.onSecondary}
+                >
+                  {currentDetail.secondaryBtn}
+                </button>
+              )}
+            </div>
+          </div>
+        );
+      })()}
+
       {/* MODAL 1: The Aali Compact Framework */}
       {showCompactModal && (
         <div className="judge-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="compact-modal-title">

@@ -28,6 +28,7 @@ export class SimulationService implements OnApplicationBootstrap, OnModuleDestro
   private running = false;
   private speed = 1;
   private internetOverride: boolean | null = null;
+  private gaugeOverride: boolean | null = null;
   private timer?: NodeJS.Timeout;
 
   constructor(@Optional() @InjectRepository(SimulationRunState) private readonly runRepository?: Repository<SimulationRunState>) {}
@@ -56,6 +57,7 @@ export class SimulationService implements OnApplicationBootstrap, OnModuleDestro
   getState() {
     const tick = TICKS[this.tickIndex];
     const connectivityAvailable = this.internetOverride ?? tick.connectivityAvailable;
+    const gaugeAvailable = this.gaugeOverride !== null ? this.gaugeOverride : tick.gaugeAvailable;
     const alert = evaluateThreeSignalAlert({
       areaId: '22222222-2222-2222-2222-222222222202',
       areaName: 'Parshuram',
@@ -63,8 +65,8 @@ export class SimulationService implements OnApplicationBootstrap, OnModuleDestro
       signalA: {
         gaugeLevelM: tick.waterLevelM,
         rise3hCm: [8, 28, 35, 45, 22][this.tickIndex],
-        minutesSinceObservation: tick.gaugeAvailable ? 5 : 75,
-        isBlanked: !tick.gaugeAvailable,
+        minutesSinceObservation: gaugeAvailable ? 5 : 75,
+        isBlanked: !gaugeAvailable,
       },
       signalB: { rainfallMm: tick.rainfallMm, windowMinutes: 180, minutesSinceObservation: 10 },
       signalC: {
@@ -86,7 +88,7 @@ export class SimulationService implements OnApplicationBootstrap, OnModuleDestro
       speed: this.speed,
       simulatedAt: new Date().toISOString(),
       sourceData: {
-        gauge: { valueM: tick.waterLevelM, available: tick.gaugeAvailable, source: 'SYNTHETIC_GAUGE_FIXTURE' },
+        gauge: { valueM: tick.waterLevelM, available: gaugeAvailable, source: 'SYNTHETIC_GAUGE_FIXTURE' },
         rainfall: { valueMm: tick.rainfallMm, available: true, source: 'SYNTHETIC_RAINFALL_FIXTURE' },
         volunteerReading: { available: tick.volunteerReading, source: 'SYNTHETIC_VOLUNTEER_FIXTURE' },
       },
@@ -116,6 +118,25 @@ export class SimulationService implements OnApplicationBootstrap, OnModuleDestro
     return this.getState();
   }
 
+  async setTick(tickIndex: number) {
+    if (tickIndex < 0 || tickIndex >= TICKS.length) throw new BadRequestException(`Tick must be between 0 and ${TICKS.length - 1}.`);
+    this.tickIndex = tickIndex;
+    this.gaugeOverride = null;
+    await this.persistState();
+    return this.getState();
+  }
+
+  async toggleGauge(available?: boolean) {
+    if (typeof available === 'boolean') {
+      this.gaugeOverride = available;
+    } else {
+      const current = this.gaugeOverride !== null ? this.gaugeOverride : TICKS[this.tickIndex].gaugeAvailable;
+      this.gaugeOverride = !current;
+    }
+    await this.persistState();
+    return this.getState();
+  }
+
   async setSpeed(speed: number) {
     if (![1, 2, 4].includes(speed)) throw new BadRequestException('Speed must be 1, 2, or 4.');
     this.speed = speed;
@@ -136,6 +157,7 @@ export class SimulationService implements OnApplicationBootstrap, OnModuleDestro
     this.tickIndex = 0;
     this.speed = 1;
     this.internetOverride = null;
+    this.gaugeOverride = null;
     await this.persistState();
     return this.getState();
   }

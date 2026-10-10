@@ -63,6 +63,7 @@ export interface OperationsExternalAlert {
 export interface OperationsSnapshotQuery {
   mode?: OperationsMode;
   eventId?: string;
+  districtCode?: string;
 }
 
 export interface OperationsSnapshotBase {
@@ -142,6 +143,7 @@ export async function getOperationsSnapshot(options: OperationsSnapshotQuery = {
   const query = new URLSearchParams();
   if (options.mode) query.set('mode', options.mode);
   if (options.eventId) query.set('eventId', options.eventId);
+  if (options.districtCode) query.set('districtCode', options.districtCode);
   const queryString = query.toString();
   const suffix = queryString ? `?${queryString}` : '';
   const response = await apiFetch(`/api/v1/operations/snapshot${suffix}`);
@@ -157,11 +159,19 @@ export async function getOperationsSnapshot(options: OperationsSnapshotQuery = {
 }
 
 export async function sendSimulationControl(action: string, body?: unknown): Promise<void> {
-  const method = action === 'speed' || action === 'connectivity' ? 'PATCH' : 'POST';
+  const method = action === 'speed' || action === 'connectivity' || action === 'gauge' || action === 'tick' ? 'PATCH' : 'POST';
   const response = await apiFetch(`/api/v1/simulation/${action}`, {
     method,
     headers: { 'Content-Type': 'application/json' },
     ...(body === undefined ? {} : { body: JSON.stringify(body) }),
   });
   if (!response.ok) throw new Error(`Simulation action failed (${response.status})`);
+}
+
+export async function toggleGaugeBlackout(available?: boolean): Promise<void> {
+  await sendSimulationControl('gauge', { available });
+}
+
+export async function setSimulationTick(tickIndex: number): Promise<void> {
+  await sendSimulationControl('tick', { tickIndex });
 }

@@ -7,6 +7,7 @@ import {
   Pause,
   Play,
   RotateCcw,
+  ShieldAlert,
   SkipForward,
   Users,
   Volume2,
@@ -20,6 +21,7 @@ import {
   OperationsMode,
   OperationsSnapshotBase,
   sendSimulationControl,
+  toggleGaugeBlackout,
 } from '../lib/operations-client';
 import { OperationsMap } from './OperationsMap';
 import { MasterCrisisClock } from './MasterCrisisClock';
@@ -88,7 +90,15 @@ function isPending(point: OperationMapPoint): boolean {
   return point.status === 'NEEDS_REVIEW';
 }
 
-export function OperationsOverview({ mode = 'EXERCISE', eventId }: { mode?: OperationsMode; eventId?: string }) {
+export function OperationsOverview({
+  mode = 'EXERCISE',
+  eventId,
+  districtCode = 'FENI_DIST',
+}: {
+  mode?: OperationsMode;
+  eventId?: string;
+  districtCode?: string;
+}) {
   const location = useLocation();
   const [snapshot, setSnapshot] = useState<OperationsSnapshotBase | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -102,7 +112,7 @@ export function OperationsOverview({ mode = 'EXERCISE', eventId }: { mode?: Oper
 
   const refresh = useCallback(async () => {
     try {
-      const next = await getOperationsSnapshot({ mode, eventId });
+      const next = await getOperationsSnapshot({ mode, eventId, districtCode });
       setSnapshot(next);
       setError(null);
 
@@ -137,7 +147,7 @@ export function OperationsOverview({ mode = 'EXERCISE', eventId }: { mode?: Oper
     } catch (failure) {
       setError(failure instanceof Error ? failure.message : 'Unable to reach operations API.');
     }
-  }, [eventId, mode, soundEnabled]);
+  }, [eventId, mode, districtCode, soundEnabled]);
 
   useEffect(() => {
     void refresh();
@@ -253,6 +263,9 @@ export function OperationsOverview({ mode = 'EXERCISE', eventId }: { mode?: Oper
     return <section className="situation-state" aria-live="polite"><Activity size={20} /> Loading selected event and mode…</section>;
   }
 
+  const isSylhet = districtCode === 'SYLHET_DIST';
+  const districtLabel = isSylhet ? 'SYLHET DISTRICT · SURMA-KUSHIYARA BASIN (সুরমা-কুশিয়ারা অববাহিকা)' : 'FENI DISTRICT · MUHURI BASIN (মুহুরী নদী অববাহিকা)';
+
   if (mode !== 'EXERCISE') {
     const title = mode === 'LIVE' ? 'Live sources' : 'Historical reconstruction';
     return (
@@ -266,7 +279,7 @@ export function OperationsOverview({ mode = 'EXERCISE', eventId }: { mode?: Oper
           <div className="sos-alert__actions"><Link to={{ pathname: '/control-room/responder', search: location.search }}>Open SOS triage</Link><button type="button" onClick={() => setActiveAlert(null)}>Dismiss alert</button></div>
         </section>}
         <header className="situation-heading">
-          <div><p className="situation-eyebrow">FENI DISTRICT <span>/</span> SHARED OPERATING PICTURE</p><h1>{title}</h1></div>
+          <div><p className="situation-eyebrow">{districtLabel} <span>/</span> SHARED OPERATING PICTURE</p><h1>{title}</h1></div>
           <div className="snapshot-time"><Clock3 size={15} /><span><small>SNAPSHOT · DHAKA TIME</small><strong>{formatDhakaTime(snapshot.generatedAt)} BST</strong></span></div>
         </header>
         <section className={`exercise-strip exercise-strip--${mode.toLowerCase()}`} aria-label="Selected data mode and source status">
@@ -275,7 +288,7 @@ export function OperationsOverview({ mode = 'EXERCISE', eventId }: { mode?: Oper
           <span className="exercise-strip__disclosure">{mode === 'LIVE' ? 'BMD CAP public advisories are separate from Aali rule alerts; other external feeds remain unavailable' : 'Fixture source citations and gaps are not yet verified'}</span>
         </section>
         <div className="situation-workspace">
-          <OperationsMap layers={snapshot.mapLayers} selectedPointId={selectedItem?.id} onSelectPoint={(point) => setSelectedItemId(point.id)} />
+          <OperationsMap layers={snapshot.mapLayers} districtCode={districtCode} selectedPointId={selectedItem?.id} onSelectPoint={(point) => setSelectedItemId(point.id)} />
           <aside className="operations-rail" aria-label="Data sources and authorized SOS activity">
             <section className="evidence-rail"><header className="rail-heading"><div><p className="situation-eyebrow">SOURCE REGISTER</p><h2>Availability and provenance</h2></div></header>
               {snapshot.context.sources.map((source) => <div className="evidence-line" key={source.id}><span>{source.label}</span><strong>{source.availability}</strong><small>{source.message}</small>{source.lastCheckedAt && <small>Checked {formatDhakaTime(source.lastCheckedAt)} BST</small>}{source.latestObservedAt && <small>Feed last published {formatDhakaTime(source.latestObservedAt)} BST · {source.ageSeconds == null ? 'age unknown' : `${Math.floor(source.ageSeconds / 3600)}h old`}</small>}</div>)}
@@ -339,7 +352,7 @@ export function OperationsOverview({ mode = 'EXERCISE', eventId }: { mode?: Oper
 
       <header className="situation-heading">
         <div>
-          <p className="situation-eyebrow">FENI DISTRICT <span>/</span> RESPONSE OPERATIONS</p>
+          <p className="situation-eyebrow">{districtLabel} <span>/</span> RESPONSE OPERATIONS</p>
           <h1>Situation room</h1>
         </div>
         <div className="situation-heading__status">
@@ -356,6 +369,132 @@ export function OperationsOverview({ mode = 'EXERCISE', eventId }: { mode?: Oper
         <span className="exercise-strip__divider" />
         <span>{simulation.running ? 'RUNNING' : 'PAUSED'} · tick {simulation.tickIndex + 1} of {simulation.totalTicks}</span>
         <span className="exercise-strip__disclosure">Fixture data · not a live flood feed</span>
+      </section>
+
+      {/* HERO 3-SIGNAL EARLY WARNING COCKPIT & BLANK-GAUGE ESCALATION */}
+      <section className={`early-warning-cockpit early-warning-cockpit--${level.toLowerCase()}`} aria-label="3-Signal Early Warning & Blank-Gauge Escalation Rule">
+        <div className="cockpit-header">
+          <div className="cockpit-title-wrap">
+            <span className="cockpit-tag"><Activity size={13} /> MULTI-SOURCE FLOOD EARLY WARNING COCKPIT</span>
+            <h2>3-Signal Data Fusion & Blank-Gauge Escalation Rule</h2>
+            <p className="cockpit-subtitle">
+              Deterministic cross-referencing of river telemetry, satellite precipitation, and volunteer field readings. When sensors fail, safety is NEVER inferred from silence.
+            </p>
+          </div>
+          <div className="cockpit-fusion-badge">
+            <span className={`fusion-pill fusion-pill--${level.toLowerCase()}`}>
+              <AlertTriangle size={14} /> RULE ALERT: {level}
+            </span>
+            <small style={{ color: '#8da9b0', fontSize: '0.68rem', fontWeight: 600 }}>
+              DETERMINISTIC DOMAIN ENGINE · ZERO HALLUCINATION
+            </small>
+          </div>
+        </div>
+
+        <div className="cockpit-signals-grid">
+          {/* SIGNAL A: RIVER GAUGE */}
+          <div className={`signal-card ${!gauge?.available ? 'signal-card--blackout' : gauge && gauge.valueM >= 13.0 ? 'signal-card--critical' : ''}`}>
+            <div className="signal-card__top">
+              <span className="signal-label">SIGNAL A · RIVER STAFF GAUGE</span>
+              <span className={`signal-status-pill ${gauge?.available ? 'signal-status-pill--active' : 'signal-status-pill--blackout'}`}>
+                {gauge?.available ? '● REPORTING' : '⚡ SENSOR BLACKOUT'}
+              </span>
+            </div>
+            <div className="signal-card__main">
+              <span className={`signal-value ${!gauge?.available ? 'signal-value--blackout' : ''}`}>
+                {gauge?.available ? `${gauge.valueM.toFixed(2)} m` : 'STALE / NO SIGNAL'}
+              </span>
+              <span className="signal-threshold">
+                Warning: 12.05m · Danger: 13.00m ({isSylhet ? 'Surma Point' : 'Muhuri Parshuram'})
+              </span>
+            </div>
+            <div className="signal-card__bottom">
+              <span className="signal-meta">{gauge?.available ? 'BWDB Automated Telemetry' : 'Sensor Down / Offline'}</span>
+              <button
+                type="button"
+                className={`signal-action-btn ${gauge?.available ? 'signal-action-btn--alert' : ''}`}
+                onClick={async () => {
+                  try {
+                    await toggleGaugeBlackout(!gauge?.available);
+                    await refresh();
+                  } catch (e) {
+                    console.error(e);
+                  }
+                }}
+                title="Simulate August 2024 sensor loss or restore gauge telemetry"
+              >
+                {gauge?.available ? '⚡ Simulate Blackout' : '🔌 Restore Telemetry'}
+              </button>
+            </div>
+          </div>
+
+          {/* SIGNAL B: SATELLITE RAINFALL */}
+          <div className={`signal-card ${(simulation.sourceData?.rainfall?.valueMm ?? 0) >= 75 ? 'signal-card--critical' : ''}`}>
+            <div className="signal-card__top">
+              <span className="signal-label">SIGNAL B · SATELLITE PRECIPITATION</span>
+              <span className="signal-status-pill signal-status-pill--active">● GSMaP RADAR</span>
+            </div>
+            <div className="signal-card__main">
+              <span className="signal-value">
+                {simulation.sourceData?.rainfall?.available ? `${simulation.sourceData.rainfall.valueMm.toFixed(1)} mm` : 'Unavailable'}
+              </span>
+              <span className="signal-threshold">
+                Threshold: 75.0 mm / 3h (Catchment Inflow Rate)
+              </span>
+            </div>
+            <div className="signal-card__bottom">
+              <span className="signal-meta">Upper Basin Precipitation</span>
+              <span className="signal-meta" style={{ color: (simulation.sourceData?.rainfall?.valueMm ?? 0) >= 75 ? '#f87171' : '#34d399', fontWeight: 700 }}>
+                {(simulation.sourceData?.rainfall?.valueMm ?? 0) >= 75 ? '⚠️ Extreme Inflow' : 'Normal Inflow'}
+              </span>
+            </div>
+          </div>
+
+          {/* SIGNAL C: VOLUNTEER GROUND TRUTH */}
+          <div className={`signal-card ${simulation.sourceData?.volunteerReading?.available ? 'signal-card--critical' : ''}`}>
+            <div className="signal-card__top">
+              <span className="signal-label">SIGNAL C · VOLUNTEER GROUND TRUTH</span>
+              <span className={`signal-status-pill ${simulation.sourceData?.volunteerReading?.available ? 'signal-status-pill--active' : ''}`}>
+                {simulation.sourceData?.volunteerReading?.available ? '● CPP VERIFIED' : 'PENDING'}
+              </span>
+            </div>
+            <div className="signal-card__main">
+              <span className="signal-value" style={{ fontSize: '1.15rem' }}>
+                {simulation.sourceData?.volunteerReading?.available ? 'RAPID RISE REPORTED' : 'Awaiting Field Reading'}
+              </span>
+              <span className="signal-threshold">
+                Local staff gauge confirmed: +35cm/hr rise
+              </span>
+            </div>
+            <div className="signal-card__bottom">
+              <span className="signal-meta">CPP Volunteer Ground Team</span>
+              <span className="signal-meta" style={{ color: '#38bdf8' }}>SMS / Packet Ingestion</span>
+            </div>
+          </div>
+        </div>
+
+        {/* DETERMINISTIC FUSION RULE BANNER */}
+        <div className={`cockpit-rule-banner cockpit-rule-banner--${level.toLowerCase()}`}>
+          <div className="cockpit-rule-banner__heading">
+            <ShieldAlert size={15} style={{ color: level === 'ACT' ? '#ef4444' : '#38bdf8' }} />
+            <span>RULE REASONING & EVIDENCE REGISTER ({isSylhet ? 'Sylhet District' : 'Feni District'})</span>
+          </div>
+          <p>
+            {!gauge?.available
+              ? '🚨 BLANK-GAUGE ESCALATION ACTIVE: Automated river gauge is silent / blackout. The deterministic safety rule strictly rejects "silence = safety" and forces escalation using upper-catchment satellite precipitation and volunteer observations.'
+              : 'Deterministic rule evaluates 3 independent signals. Alerts are computed by visible math; AI never decides warning levels. Authority approval required for public dissemination.'}
+          </p>
+          <div className="rule-badges-wrap">
+            {!gauge?.available && (
+              <span className="rule-code-badge rule-code-badge--blankout">
+                ⚡ RULE-EW-03: GAUGE_SILENT_ESCALATION
+              </span>
+            )}
+            {simulation.alert.reasonCodes?.map((code) => (
+              <span key={code} className="rule-code-badge">{code}</span>
+            ))}
+          </div>
+        </div>
       </section>
 
       <section className="situation-summary" aria-label="Operational status">
@@ -375,7 +514,7 @@ export function OperationsOverview({ mode = 'EXERCISE', eventId }: { mode?: Oper
           <small>{queue.strandedPeople ?? '—'} people in linked incidents</small>
         </article>
         <article className="summary-cell">
-          <span className="summary-cell__label">MUHURI GAUGE · SCENARIO</span>
+          <span className="summary-cell__label">{isSylhet ? 'SURMA GAUGE · SCENARIO' : 'MUHURI GAUGE · SCENARIO'}</span>
           <strong>{gauge?.available ? `${gauge.valueM.toFixed(2)} m` : 'Unavailable'}</strong>
           <small>{gauge?.source ?? 'No scenario reading available'}</small>
         </article>
@@ -384,6 +523,7 @@ export function OperationsOverview({ mode = 'EXERCISE', eventId }: { mode?: Oper
       <div className="situation-workspace">
         <OperationsMap
           layers={snapshot.mapLayers}
+          districtCode={districtCode}
           selectedPointId={selectedItem?.id}
           onSelectPoint={(point) => setSelectedItemId(point.id)}
         />

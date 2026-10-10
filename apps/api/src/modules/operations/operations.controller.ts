@@ -80,4 +80,16 @@ export class OperationsController {
   setConnectivity(@Body() dto: SetSimulationConnectivityDto) {
     return this.simulation.setConnectivity(dto.internetAvailable);
   }
+
+  @Patch('simulation/gauge')
+  @Roles(UserRole.AUTHORITY, UserRole.ADMIN, UserRole.RESPONDER, UserRole.VIEWER)
+  toggleGauge(@Body() body: { available?: boolean }) {
+    return this.simulation.toggleGauge(body.available);
+  }
+
+  @Patch('simulation/tick')
+  @Roles(UserRole.AUTHORITY, UserRole.ADMIN, UserRole.RESPONDER, UserRole.VIEWER)
+  setTick(@Body() body: { tickIndex: number }) {
+    return this.simulation.setTick(body.tickIndex);
+  }
 }

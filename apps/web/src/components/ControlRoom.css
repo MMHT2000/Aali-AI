@@ -215,9 +215,9 @@
 .map-record-button span { overflow: hidden; font-size: 0.62rem; text-overflow: ellipsis; white-space: nowrap; }
 .map-record-button small { color: #a7b5ba; font-size: 0.56rem; }
 .situation-map .map-attribution-note { margin: 0; padding: 0.25rem 0.65rem 0.4rem; color: #8f9fa6; font-size: 0.55rem; }
-.operations-rail { display: grid; min-width: 0; min-height: 0; grid-template-rows: minmax(0,1fr) auto; gap: 0.65rem; }
-.report-queue { display: flex; min-height: 0; flex-direction: column; overflow: hidden; }
-.rail-heading { display: flex; align-items: center; justify-content: space-between; gap: 0.7rem; padding: 0.7rem 0.75rem 0.55rem; }
+.operations-rail { display: flex; flex-direction: column; min-width: 0; min-height: 0; gap: 0.85rem; overflow-y: auto; max-height: calc(100vh - 160px); }
+.report-queue, .evidence-rail { display: flex; min-height: fit-content; flex-direction: column; overflow: visible; border: 1px solid var(--room-line); border-radius: 6px; background: var(--room-panel); margin-bottom: 0.5rem; }
+.rail-heading { display: flex; align-items: center; justify-content: space-between; gap: 0.7rem; padding: 0.7rem 0.75rem 0.55rem; border-bottom: 1px solid var(--room-line); }
 .rail-heading h2 { margin: 0.12rem 0 0; color: var(--room-text); font-size: 0.87rem; }
 .queue-count { display: grid; width: 26px; height: 26px; place-items: center; border: 1px solid #804c3d; border-radius: 50%; background: #38251f; color: #ffb09b; font-size: 0.75rem; font-weight: 750; }
 .queue-filter { display: flex; gap: 0.35rem; padding: 0 0.7rem 0.55rem; border-bottom: 1px solid var(--room-line); }
@@ -401,7 +401,7 @@
   .situation-workspace { height: auto; grid-template-columns: minmax(0,1fr); }
   .situation-map { min-height: 600px; }
   .situation-map .ops-map-frame, .situation-map .ops-leaflet-map { min-height: 400px; }
-  .operations-rail { grid-template-columns: minmax(0,1.15fr) minmax(260px,0.85fr); grid-template-rows: minmax(420px,auto); }
+  .operations-rail { display: flex; flex-direction: column; max-height: none; }
 }
 @media (max-width: 700px) {
   .control-body { grid-template-columns: minmax(0, 1fr); }
@@ -420,7 +420,7 @@
   .situation-map .ops-layer-toggle { gap: 0.35rem 0.55rem; }
   .situation-map .ops-layer-toggle label { font-size: 0.58rem; }
   .situation-map .ops-map-records details { width: 100%; }
-  .operations-rail { grid-template-columns: minmax(0,1fr); grid-template-rows: minmax(390px,auto) auto; }
+  .operations-rail { display: flex; flex-direction: column; max-height: none; }
   .sos-alert { grid-template-columns: auto minmax(0,1fr); }
   .sos-alert__actions { grid-column: 1 / -1; justify-content: flex-end; }
   .exercise-controls > summary { align-items: flex-start; flex-direction: column; }
@@ -918,4 +918,408 @@
   .judge-stepper { grid-template-columns: repeat(2, 1fr); }
   .compact-grid, .modal-split { grid-template-columns: 1fr; }
 }
+
+/* ==========================================================================
+   HERO 3-SIGNAL EARLY WARNING COCKPIT & BLANK-GAUGE ESCALATION
+   ========================================================================== */
+.early-warning-cockpit {
+  background: #091a24;
+  border: 1px solid #1e4557;
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.45);
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.early-warning-cockpit--act {
+  border-color: #ef4444;
+  background: linear-gradient(180deg, rgba(239, 68, 68, 0.08) 0%, #091a24 100%);
+  box-shadow: 0 0 20px rgba(239, 68, 68, 0.25);
+}
+
+.early-warning-cockpit--warning {
+  border-color: #f59e0b;
+  background: linear-gradient(180deg, rgba(245, 158, 11, 0.08) 0%, #091a24 100%);
+}
+
+.cockpit-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.cockpit-title-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.cockpit-tag {
+  font-size: 0.62rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #38bdf8;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.cockpit-title-wrap h2 {
+  font-size: 1.15rem;
+  font-weight: 700;
+  margin: 0;
+  color: #f1f8fa;
+  letter-spacing: -0.01em;
+}
+
+.cockpit-subtitle {
+  font-size: 0.78rem;
+  color: #8da9b0;
+  margin: 0;
+}
+
+.cockpit-fusion-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.25rem;
+  text-align: right;
+}
+
+.fusion-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.85rem;
+  border-radius: 9999px;
+  font-weight: 800;
+  font-size: 0.85rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.fusion-pill--act {
+  background: #dc2626;
+  color: #ffffff;
+  animation: pulse-border 2s infinite;
+}
+
+.fusion-pill--warning {
+  background: #d97706;
+  color: #ffffff;
+}
+
+.fusion-pill--watch {
+  background: #0284c7;
+  color: #ffffff;
+}
+
+.fusion-pill--normal {
+  background: #16a34a;
+  color: #ffffff;
+}
+
+.fusion-pill--unavailable {
+  background: #475569;
+  color: #cbd5e1;
+}
+
+.cockpit-signals-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.85rem;
+}
+
+@media (max-width: 960px) {
+  .cockpit-signals-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.signal-card {
+  background: #0d2431;
+  border: 1px solid #1c4558;
+  border-radius: 6px;
+  padding: 0.85rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 0.6rem;
+  transition: border-color 0.2s ease;
+}
+
+.signal-card--blackout {
+  border-color: #ef4444;
+  background: #19141e;
+}
+
+.signal-card--critical {
+  border-color: #f59e0b;
+}
+
+.signal-card__top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.signal-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #7b9ca4;
+}
+
+.signal-status-pill {
+  font-size: 0.62rem;
+  font-weight: 700;
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+
+.signal-status-pill--active {
+  background: rgba(16, 185, 129, 0.2);
+  color: #34d399;
+}
+
+.signal-status-pill--blackout {
+  background: rgba(239, 68, 68, 0.25);
+  color: #f87171;
+  animation: pulse-text 1.5s infinite;
+}
+
+.signal-card__main {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.signal-value {
+  font-size: 1.45rem;
+  font-weight: 800;
+  color: #f8fafc;
+  line-height: 1.1;
+}
+
+.signal-value--blackout {
+  color: #ef4444;
+  font-size: 1.1rem;
+}
+
+.signal-threshold {
+  font-size: 0.68rem;
+  color: #8da9b0;
+}
+
+.signal-card__bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  padding-top: 0.4rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.signal-meta {
+  font-size: 0.65rem;
+  color: #64748b;
+}
+
+.signal-action-btn {
+  font-size: 0.65rem;
+  font-weight: 600;
+  padding: 0.25rem 0.55rem;
+  border-radius: 4px;
+  border: 1px solid #38bdf8;
+  background: rgba(56, 189, 248, 0.1);
+  color: #38bdf8;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.signal-action-btn:hover {
+  background: #38bdf8;
+  color: #0c1e28;
+}
+
+.signal-action-btn--alert {
+  border-color: #ef4444;
+  background: rgba(239, 68, 68, 0.15);
+  color: #fca5a5;
+}
+
+.signal-action-btn--alert:hover {
+  background: #ef4444;
+  color: #ffffff;
+}
+
+.cockpit-rule-banner {
+  background: #081720;
+  border-left: 4px solid #38bdf8;
+  padding: 0.65rem 0.85rem;
+  border-radius: 0 6px 6px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.cockpit-rule-banner--act {
+  border-left-color: #ef4444;
+}
+
+.cockpit-rule-banner__heading {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #f1f8fa;
+}
+
+.cockpit-rule-banner p {
+  margin: 0;
+  font-size: 0.72rem;
+  color: #bad0d6;
+  line-height: 1.4;
+}
+
+.rule-badges-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-top: 0.2rem;
+}
+
+.rule-code-badge {
+  font-size: 0.6rem;
+  font-weight: 700;
+  padding: 0.15rem 0.45rem;
+  border-radius: 3px;
+  background: #173b4a;
+  color: #7dd3fc;
+  border: 1px solid #1f5063;
+}
+
+.rule-code-badge--blankout {
+  background: rgba(239, 68, 68, 0.2);
+  color: #fca5a5;
+  border-color: #ef4444;
+}
+
+/* ==========================================================================
+   ACTIVE MOMENT DIRECTOR CALLOUT (JUDGE DEMO RUNNER)
+   ========================================================================== */
+.judge-moment-callout {
+  background: #0d2735;
+  border: 1px solid #20546c;
+  border-radius: 6px;
+  padding: 0.75rem 1rem;
+  margin-top: 0.6rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  animation: fadeIn 0.25s ease-out;
+}
+
+@media (max-width: 900px) {
+  .judge-moment-callout {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+.moment-callout-left {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+}
+
+.moment-callout-icon {
+  background: #19465a;
+  color: #38bdf8;
+  padding: 0.45rem;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+}
+
+.moment-callout-text h4 {
+  margin: 0;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.moment-window-tag {
+  font-size: 0.6rem;
+  background: #173b4a;
+  color: #38bdf8;
+  padding: 0.1rem 0.4rem;
+  border-radius: 3px;
+  font-weight: 600;
+}
+
+.moment-proves {
+  font-size: 0.72rem;
+  color: #bad0d6;
+  margin: 0.2rem 0 0 0;
+  line-height: 1.35;
+}
+
+.moment-proves strong {
+  color: #facc15;
+}
+
+.moment-callout-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  flex: none;
+}
+
+.moment-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: #1d4ed8;
+  color: #ffffff;
+  border: none;
+  border-radius: 5px;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  white-space: nowrap;
+}
+
+.moment-action-btn:hover {
+  background: #2563eb;
+}
+
+.moment-action-btn--secondary {
+  background: #1e3a4b;
+  color: #cbd5e1;
+  border: 1px solid #334155;
+}
+
+.moment-action-btn--secondary:hover {
+  background: #2d4c60;
+  color: #ffffff;
+}
+
 

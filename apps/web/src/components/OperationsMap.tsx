@@ -7,6 +7,7 @@ import 'leaflet/dist/leaflet.css';
 interface OperationsMapProps {
   selectedPointId?: string;
   onSelectPoint?: (point: OperationMapPoint) => void;
+  districtCode?: string;
   layers: {
     areas: OperationMapPoint[];
     gauges: OperationMapPoint[];
@@ -26,29 +27,48 @@ const color: Record<string, string> = {
   sos: '#ef4444',
 };
 
-// Strict Bounding Box for Feni District (cannot zoom out to world map, cannot pan outside Feni)
+// Strict Bounding Box for Feni District
 const FENI_CENTER: [number, number] = [23.015, 91.397];
 const FENI_BOUNDS: [[number, number], [number, number]] = [
   [22.70, 91.05], // South-West of Feni District
   [23.45, 91.75], // North-East of Feni District
 ];
 
-// Helper component to recenter map on Feni
-function RecenterOnFeni({ onRecenter }: { onRecenter: () => void }) {
+// Strict Bounding Box for Sylhet District (Surma / Kushiyara Basin)
+const SYLHET_CENTER: [number, number] = [24.8949, 91.8687];
+const SYLHET_BOUNDS: [[number, number], [number, number]] = [
+  [24.40, 91.40], // South-West of Sylhet Basin
+  [25.35, 92.45], // North-East of Sylhet Basin
+];
+
+// Helper hook to dynamically fly to active district center
+function AutoRecenter({ center, bounds }: { center: [number, number]; bounds: [[number, number], [number, number]] }) {
   const map = useMap();
+  useState(() => {
+    map.setView(center, 11, { animate: true });
+    map.setMaxBounds(bounds);
+  });
+  return null;
+}
+
+// Helper component to recenter map on active district
+function RecenterButton({ onRecenter, isSylhet }: { onRecenter: () => void; isSylhet: boolean }) {
+  const map = useMap();
+  const targetCenter = isSylhet ? SYLHET_CENTER : FENI_CENTER;
+  const label = isSylhet ? '🎯 Focus Sylhet (সিলেট ফোকাস)' : '🎯 Focus Feni (ফেনী ফোকাস)';
   return (
     <div className="leaflet-top leaflet-right" style={{ pointerEvents: 'auto', margin: '10px 10px 0 0' }}>
       <button
         type="button"
         onClick={() => {
-          map.setView(FENI_CENTER, 11, { animate: true });
+          map.setView(targetCenter, 11, { animate: true });
           onRecenter();
         }}
-        title="Recenter on Feni District"
+        title={label}
         style={{
           background: '#0f172a',
-          color: '#38bdf8',
-          border: '1px solid #38bdf8',
+          color: isSylhet ? '#60a5fa' : '#38bdf8',
+          border: `1px solid ${isSylhet ? '#3b82f6' : '#38bdf8'}`,
           borderRadius: '6px',
           padding: '6px 12px',
           fontSize: '12px',
@@ -57,7 +77,7 @@ function RecenterOnFeni({ onRecenter }: { onRecenter: () => void }) {
           boxShadow: '0 2px 6px rgba(0,0,0,0.3)',
         }}
       >
-        🎯 Focus Feni (ফেনী ফোকাস)
+        {label}
       </button>
     </div>
   );
@@ -169,7 +189,11 @@ function marker(
   );
 }
 
-export function OperationsMap({ layers, selectedPointId, onSelectPoint }: OperationsMapProps) {
+export function OperationsMap({ layers, selectedPointId, onSelectPoint, districtCode = 'FENI_DIST' }: OperationsMapProps) {
+  const isSylhet = districtCode === 'SYLHET_DIST';
+  const center = isSylhet ? SYLHET_CENTER : FENI_CENTER;
+  const maxBounds = isSylhet ? SYLHET_BOUNDS : FENI_BOUNDS;
+
   const [tilesUnavailable, setTilesUnavailable] = useState(false);
   const [enabled, setEnabled] = useState<Record<string, boolean>>({
     area: true,
@@ -190,25 +214,25 @@ export function OperationsMap({ layers, selectedPointId, onSelectPoint }: Operat
   ];
 
   return (
-    <section className="ops-map-panel situation-map" aria-label="Feni operations map">
+    <section className="ops-map-panel situation-map" aria-label={`${isSylhet ? 'Sylhet' : 'Feni'} operations map`}>
       <div className="ops-map-heading">
         <div>
           <span className="eyebrow">SHARED OPERATING PICTURE</span>
-          <h2>Feni District Command (ফেনী জেলা মানচিত্র)</h2>
+          <h2>{isSylhet ? 'Sylhet District Command (সিলেট জেলা মানচিত্র)' : 'Feni District Command (ফেনী জেলা মানচিত্র)'}</h2>
         </div>
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
           <span
             style={{
-              background: '#064e3b',
-              color: '#34d399',
-              border: '1px solid #059669',
+              background: isSylhet ? '#1e3a8a' : '#064e3b',
+              color: isSylhet ? '#93c5fd' : '#34d399',
+              border: `1px solid ${isSylhet ? '#3b82f6' : '#059669'}`,
               fontSize: '11px',
               padding: '2px 8px',
               borderRadius: '12px',
               fontWeight: 'bold',
             }}
           >
-            Bounds Locked · Feni Only
+            {isSylhet ? 'Bounds Locked · Sylhet Basin Only' : 'Bounds Locked · Feni Only'}
           </span>
           <span className="source-chip source-chip--synthetic">
             {layers.sos.length} SOS · {layers.incidents.length} Incidents
@@ -232,11 +256,11 @@ export function OperationsMap({ layers, selectedPointId, onSelectPoint }: Operat
 
       <div className="ops-map-frame" style={{ position: 'relative' }}>
         <MapContainer
-          center={FENI_CENTER}
+          center={center}
           zoom={11}
-          minZoom={10}
+          minZoom={9}
           maxZoom={18}
-          maxBounds={FENI_BOUNDS}
+          maxBounds={maxBounds}
           maxBoundsViscosity={1.0}
           scrollWheelZoom
           className="ops-leaflet-map"
@@ -249,7 +273,8 @@ export function OperationsMap({ layers, selectedPointId, onSelectPoint }: Operat
               tileload: () => setTilesUnavailable(false),
             }}
           />
-          <RecenterOnFeni onRecenter={() => {}} />
+          <AutoRecenter center={center} bounds={maxBounds} />
+          <RecenterButton isSylhet={isSylhet} onRecenter={() => {}} />
           {layerItems
             .filter(([key]) => enabled[key])
             .flatMap(([key, , points]) =>
