@@ -12,6 +12,7 @@ import {
   ReplayTick,
 } from '../../domain/flood-alert/replay-scenarios';
 import { Warning, WarningState } from './entities/warning.entity';
+import { OperationsStreamService } from '../../common/stream/operations-stream.service';
 
 export interface ReplayRunState {
   runId: string;
@@ -323,6 +324,16 @@ export class AlertsService implements OnModuleInit {
         // fallback
       }
     }
+
+    // Notify connected browser clients and mobile apps via live stream
+    OperationsStreamService.emitStatic('ALERT_CHANGE', {
+      warningId: w.id,
+      state: w.state,
+      bodyBn: w.body_bn,
+      bodyEn: w.body_en,
+      alertLevel: w.delivery_simulation?.method,
+      timestamp: w.delivery_simulation?.deliveredAt || new Date().toISOString(),
+    });
 
     return {
       success: true,

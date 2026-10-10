@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
@@ -201,10 +202,43 @@ class _AppRootControllerState extends State<AppRootController> {
   String? _volunteerToken;
   bool _unit4Dispatched = false;
 
+  // Active DC Official Warning & Loudspeaker Audio State
+  Map<String, dynamic>? _activeBroadcastWarning;
+  Timer? _warningPollTimer;
+
   @override
   void initState() {
     super.initState();
     _loadStoredPreferences();
+    _warningPollTimer = Timer.periodic(const Duration(seconds: 4), (_) => _fetchLatestWarnings());
+    _fetchLatestWarnings();
+  }
+
+  @override
+  void dispose() {
+    _warningPollTimer?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _fetchLatestWarnings() async {
+    try {
+      final client = HttpClient()..connectionTimeout = const Duration(seconds: 2);
+      final req = await client.getUrl(Uri.parse('$_apiBase/warnings'));
+      final resp = await req.close();
+      if (resp.statusCode == 200) {
+        final body = await resp.transform(utf8.decoder).join();
+        final list = jsonDecode(body) as List<dynamic>;
+        final broadcast = list.firstWhere(
+          (w) => w['state'] == 'APPROVED' || w['state'] == 'SENT_SIMULATED',
+          orElse: () => null,
+        );
+        if (mounted) {
+          setState(() {
+            _activeBroadcastWarning = broadcast != null ? (broadcast as Map<String, dynamic>) : null;
+          });
+        }
+      }
+    } catch (_) {}
   }
 
   Future<String> _probeBestApiBase(String fallback) async {
@@ -726,6 +760,8 @@ class _AppRootControllerState extends State<AppRootController> {
               _simulateTowerOutage = !_simulateTowerOutage;
             });
           },
+          broadcastWarning: _activeBroadcastWarning,
+          apiBase: _apiBase,
         );
 
       case AppScreen.sosDistressRequest:
@@ -1622,6 +1658,8 @@ class ResidentHomeView extends StatefulWidget {
   final bool simulateTowerOutage;
   final VoidCallback onToggleTowerOutage;
   final VoidCallback? onOpenServerSettings;
+  final Map<String, dynamic>? broadcastWarning;
+  final String apiBase;
 
   const ResidentHomeView({
     super.key,
@@ -1638,6 +1676,8 @@ class ResidentHomeView extends StatefulWidget {
     required this.onSaveProfile,
     required this.simulateTowerOutage,
     required this.onToggleTowerOutage,
+    this.broadcastWarning,
+    this.apiBase = 'http://127.0.0.1:3001/api/v1',
   });
 
   @override
@@ -1650,6 +1690,7 @@ class _ResidentHomeViewState extends State<ResidentHomeView> {
   late TextEditingController _phoneController;
   late TextEditingController _nidController;
   String? _nidError;
+  bool _isPlayingWarningAudio = false;
 
   @override
   void initState() {
@@ -1688,6 +1729,25 @@ class _ResidentHomeViewState extends State<ResidentHomeView> {
     widget.onSaveProfile(name, phone, nid);
   }
 
+  void _playLoudspeakerAudio() {
+    setState(() {
+      _isPlayingWarningAudio = !_isPlayingWarningAudio;
+    });
+
+    if (_isPlayingWarningAudio) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('🔊 মসজিদ ও মাইক লাউডস্পিকার জরুরি ঘোষণা বাজছে (Loudspeaker Broadcast Playing)...'),
+          backgroundColor: Color(0xFF0284C7),
+          duration: Duration(seconds: 4),
+        ),
+      );
+      Future.delayed(const Duration(seconds: 6), () {
+        if (mounted) setState(() => _isPlayingWarningAudio = false);
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -1705,6 +1765,114 @@ class _ResidentHomeViewState extends State<ResidentHomeView> {
                 child: Column(
                   children: [
                     const SizedBox(height: 12),
+                    // Active DC Evacuation Warning Loudspeaker Card (Broadcast live from Command Center)
+                    if (widget.broadcastWarning != null)
+                      Container(
+                        margin: const EdgeInsets.only(bottom: 14),
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: isDark ? const Color(0xFF2C0B0E) : const Color(0xFFFFECEB),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: Colors.red.shade700, width: 1.5),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.red.withValues(alpha: 0.15),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Row(
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.all(6),
+                                      decoration: BoxDecoration(
+                                        color: Colors.red.shade700,
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: const Icon(Icons.campaign, color: Colors.white, size: 18),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      '⚡ DC OFFICIAL BROADCAST',
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w900,
+                                        color: Colors.red.shade800,
+                                        letterSpacing: 0.6,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                  decoration: BoxDecoration(
+                                    color: Colors.red.shade700,
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  child: Text(
+                                    widget.broadcastWarning!['state'] ?? 'APPROVED',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'জরুরি আশ্রয়কেন্দ্রে সরে যাওয়ার চূড়ান্ত ঘোষণা',
+                              style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.bold,
+                                color: isDark ? Colors.red.shade200 : Colors.red.shade900,
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              widget.broadcastWarning!['body_bn'] ??
+                                  'অতিবৃষ্টি ও পাহাড়ি ঢলে নদী বিপদসীমা অতিক্রম করেছে। অবিলম্বে আশ্রয়কেন্দ্রে যান।',
+                              style: TextStyle(
+                                fontSize: 13,
+                                height: 1.4,
+                                color: isDark ? Colors.white70 : Colors.black87,
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            SizedBox(
+                              width: double.infinity,
+                              child: ElevatedButton.icon(
+                                onPressed: _playLoudspeakerAudio,
+                                icon: Icon(
+                                  _isPlayingWarningAudio ? Icons.stop_circle : Icons.volume_up,
+                                  size: 18,
+                                ),
+                                label: Text(
+                                  _isPlayingWarningAudio
+                                      ? '⏹️ ঘোষণা থামান (Stop Loudspeaker Audio)'
+                                      : '🔊 মসজিদ/মাইক অডিও শুনুন (Play Loudspeaker Audio)',
+                                  style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold),
+                                ),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: _isPlayingWarningAudio ? Colors.red.shade800 : const Color(0xFF0284C7),
+                                  foregroundColor: Colors.white,
+                                  elevation: 0,
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                  padding: const EdgeInsets.symmetric(vertical: 10),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     // Simulated tower blackout badge if active
                     if (widget.simulateTowerOutage)
                       Container(

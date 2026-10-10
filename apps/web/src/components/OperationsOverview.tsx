@@ -4,6 +4,7 @@ import {
   Activity,
   AlertTriangle,
   Clock3,
+  Megaphone,
   Pause,
   Play,
   RotateCcw,
@@ -104,6 +105,9 @@ export function OperationsOverview({
   const [error, setError] = useState<string | null>(null);
   const [controlError, setControlError] = useState<string | null>(null);
   const [activeAlert, setActiveAlert] = useState<SosAlertInfo | null>(null);
+  const [activeBroadcastWarning, setActiveBroadcastWarning] = useState<{ id: string; state: string; body_bn: string } | null>(null);
+  const [isPlayingLoudspeaker, setIsPlayingLoudspeaker] = useState(false);
+  const currentAudioRef = useRef<HTMLAudioElement | null>(null);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [reportFilter, setReportFilter] = useState<ReportFilter>('pending');
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
@@ -126,6 +130,21 @@ export function OperationsOverview({
     try {
       const next = await getOperationsSnapshot({ mode, eventId, districtCode });
       setSnapshot(next);
+      setError(null);
+
+      // Check for approved / broadcast warnings
+      try {
+        const warnRes = await fetch('/api/v1/warnings');
+        if (warnRes.ok) {
+          const warnList = await warnRes.json();
+          const latestBroadcast = warnList.find(
+            (w: { state: string }) => w.state === 'APPROVED' || w.state === 'SENT_SIMULATED'
+          );
+          if (latestBroadcast) {
+            setActiveBroadcastWarning(latestBroadcast);
+          }
+        }
+      } catch (_) {}
       setError(null);
 
       const currentSos: OperationMapPoint[] = next.mapLayers?.sos ?? [];
@@ -188,6 +207,16 @@ export function OperationsOverview({
               receivedAt: parsed.timestamp || new Date().toISOString(),
             });
             void refresh();
+          } else if (parsed.type === 'ALERT_CHANGE') {
+            if (soundEnabled) playEmergencyBeep();
+            if (parsed.payload) {
+              setActiveBroadcastWarning({
+                id: (parsed.payload.warningId as string) || `warn-${Date.now()}`,
+                state: (parsed.payload.state as string) || 'SENT_SIMULATED',
+                body_bn: (parsed.payload.bodyBn as string) || '',
+              });
+            }
+            void refresh();
           } else if (parsed.type === 'DEMO_MOMENT' || parsed.type === 'BOAT_REVIEW') {
             void refresh();
           }
@@ -200,6 +229,28 @@ export function OperationsOverview({
       es?.close();
     };
   }, [refresh, soundEnabled]);
+
+  const toggleLoudspeakerAudio = () => {
+    if (isPlayingLoudspeaker) {
+      if (currentAudioRef.current) {
+        currentAudioRef.current.pause();
+        currentAudioRef.current.currentTime = 0;
+      }
+      setIsPlayingLoudspeaker(false);
+      return;
+    }
+
+    const audioFile = isSylhet ? '/audio/sylhet-evacuation-warning.mp3' : '/audio/feni-evacuation-warning.mp3';
+    const audio = new Audio(audioFile);
+    currentAudioRef.current = audio;
+    audio.onended = () => setIsPlayingLoudspeaker(false);
+    audio.onerror = () => setIsPlayingLoudspeaker(false);
+    audio.play().then(() => {
+      setIsPlayingLoudspeaker(true);
+    }).catch(() => {
+      setIsPlayingLoudspeaker(false);
+    });
+  };
 
   const control = async (action: string, body?: unknown) => {
     setControlError(null);
@@ -299,6 +350,89 @@ export function OperationsOverview({
           <strong>{snapshot.context.event?.name ?? 'Current API-submitted activity'}</strong>
           <span className="exercise-strip__disclosure">BMD CAP public advisories are separate from Aali rule alerts; other external feeds remain unavailable</span>
         </section>
+
+        {/* ACTIVE DC OFFICIAL EVACUATION WARNING & LOUDSPEAKER BROADCAST */}
+        {activeBroadcastWarning && (
+          <section
+            role="region"
+            aria-label="Active DC Evacuation Warning"
+            style={{
+              margin: '0.75rem 0',
+              padding: '1rem 1.25rem',
+              borderRadius: '8px',
+              background: 'linear-gradient(135deg, #1e1b4b 0%, #0f172a 100%)',
+              border: '2px solid #ef4444',
+              boxShadow: '0 4px 15px rgba(239, 68, 68, 0.25)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '0.6rem',
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span
+                  style={{
+                    background: '#ef4444',
+                    color: 'white',
+                    fontWeight: 900,
+                    fontSize: '0.75rem',
+                    padding: '0.2rem 0.5rem',
+                    borderRadius: '4px',
+                    letterSpacing: '0.5px',
+                  }}
+                >
+                  ⚡ DC OFFICIAL BROADCAST · {activeBroadcastWarning.state}
+                </span>
+                <strong style={{ color: '#f87171', fontSize: '0.9rem' }}>
+                  জরুরি আশ্রয়কেন্দ্রে সরে যাওয়ার চূড়ান্ত ঘোষণা
+                </strong>
+              </div>
+              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <button
+                  type="button"
+                  onClick={toggleLoudspeakerAudio}
+                  style={{
+                    background: isPlayingLoudspeaker ? '#dc2626' : '#0284c7',
+                    color: '#fff',
+                    border: 'none',
+                    borderRadius: '4px',
+                    padding: '0.35rem 0.75rem',
+                    fontSize: '0.8rem',
+                    fontWeight: 'bold',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '5px',
+                    cursor: 'pointer',
+                  }}
+                >
+                  <Megaphone size={14} />
+                  {isPlayingLoudspeaker ? '⏹️ অডিও থামান (Stop)' : '🔊 মসজিদ/মাইক অডিও শুনুন (Play Loudspeaker Audio)'}
+                </button>
+                <Link
+                  to={{ pathname: '/control-room/alerts', search: location.search }}
+                  style={{
+                    background: '#1e293b',
+                    color: '#38bdf8',
+                    border: '1px solid #0284c7',
+                    borderRadius: '4px',
+                    padding: '0.35rem 0.75rem',
+                    fontSize: '0.8rem',
+                    textDecoration: 'none',
+                    fontWeight: 'bold',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                  }}
+                >
+                  সতর্কতা খসড়া ও অনুমোদন কনসোল →
+                </Link>
+              </div>
+            </div>
+            <p style={{ margin: 0, fontSize: '0.9rem', color: '#f1f5f9', lineHeight: 1.5 }}>
+              {activeBroadcastWarning.body_bn}
+            </p>
+          </section>
+        )}
         <div className="situation-workspace">
           <OperationsMap layers={snapshot.mapLayers} districtCode={districtCode} selectedPointId={selectedItem?.id} onSelectPoint={(point) => setSelectedItemId(point.id)} />
           <aside className="operations-rail" aria-label="Data sources and authorized SOS activity">
