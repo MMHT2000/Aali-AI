@@ -34,7 +34,7 @@ describe('App Shell', () => {
       screen.getByText(/আলি এআই কন্ট্রোল রুম লগইন/i),
     ).toBeInTheDocument();
     expect(
-      screen.getByText(/Aali AI is a decision-support prototype/i),
+      screen.getByText(/Aali AI Central Control Room/i),
     ).toBeInTheDocument();
     expect(
       screen.getByText(/লগইন করুন \(Enter Operations\)/i),

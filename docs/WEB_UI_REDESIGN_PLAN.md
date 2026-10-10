@@ -1,6 +1,12 @@
 # Web UI Redesign Plan â€” Feni Operations Control Room
 
-**Status:** In progress; command frame and Authority situation-room work area implemented. Authority 1440x900 browser review completed; other role pages and responsive review remain pending.
+**Status:** In progress; command frame and Authority situation-room work area implemented. Role-specific home routing is implemented, including an aggregate-only Viewer page. Authority 1440x900 browser review completed; other role pages and responsive review remain pending.
+
+### Stitch reference review — responder workspace
+
+The `stitch_aali_ai_disaster_resilience_interface` folder contains five desktop concepts and a design token reference. Useful elements are the restrained dark command palette, compact incident queue, visible provenance/mode labels, selected-record hierarchy, and separation between command and field-response work. The concepts are visual references only: their claimed live gateways, source availability, forecasts, verification outcomes, source counts and historical outcomes were not adopted as product data. No Android design is included.
+
+The responder exercise workspace now uses a compact incident review queue, explicit rule score evidence, urgency labels, review controls, and asset suggestions labelled as suggestions without dispatch. Live API reports and historical reconstructions retain distinct views. Request errors are visible and failed human-review actions are not reported as successful. Automated component checks, lint, typecheck and production build pass. Browser screenshot review for the responder role, other roles, and responsive layouts is still pending.
 **Scope:** `apps/web` operations, field, recovery, viewer and administration workspaces.
 **Product boundary:** Aali is a synthetic, auditable decision-support prototype. It is not an emergency dispatch service or an official flood-data source.
 
@@ -10,10 +16,10 @@ Make the web app feel like a working district emergency operations room: an oper
 
 ## Current-state audit
 
-- `ControlRoom.tsx` has route gates, but every staff role is allowed to open `/control-room/map` and receives the same Authority-oriented `OperationsOverview`. Role-specific navigation alone has not produced role-specific home workspaces.
-- `OperationsService.getSnapshot(role)` performs partial field filtering: rescue assets, incidents, and SOS are omitted from some roles, but seeded areas, gauges, and shelters are returned to every role. The web snapshot type and shared overview then present one common dashboard shape. Re-audit every field against each role's need-to-know scope; hiding a link is not an access control.
+- `ControlRoom.tsx` now routes each role to its task-focused home. `/control-room/map` is limited to Authority and Admin; Viewer receives a separate aggregate-only summary. Existing Responder, Volunteer, Recovery and Admin pages are reused. Their workflows still need visual and responsive review.
+- `OperationsService.getSnapshot(role)` filters rescue assets, incidents, and SOS by role; Volunteer and Recovery receive village-only references; Admin receives no operational map layers; gauges and shelters follow task scope. `RolesGuard` enforces each endpoint role declaration exactly and does not grant Admin implicit access. Projection and endpoint tests cover key boundaries, but record ownership and every input/output still need continued review. Hiding a link is not an access control.
 - The snapshot is fetched from this application's API, but its map foundation is still mostly seeded synthetic data. The “API Connected” health check verifies the Aali API, not the presence or freshness of FFWC/BMD/satellite observations. The current map is an OSM basemap with point markers; it does not yet show verified external river, rainfall, warning, historical inundation, road-condition, or flood-footprint layers.
-- The application has separate deterministic exercise controls and a historical replay page, but no shared Live / Simulation / Historical mode selector. The control-room map, replay screen, responder screen, and recovery screen do not share one selected event/mode/filter context, which makes them feel unsynchronized.
+- The command frame now has a shared Live / Exercise / Historical selector and selected historical event, persisted in the route query and passed to map, responder, recovery, and replay/warning screens. Exercise simulation state still needs event-specific ownership and persisted lifecycle review; verify that every page's data follows the selected context.
 - Existing historical scenario code is sparse: the August 2024 scenario has four ticks; the July 2025 scenario has three. The latter's provenance calls it a simulated surge test even though the scenario is marked reconstructed. Neither fixture currently provides a complete source-linked, map-ready historical series for the full event window.
 - The Authority overview combines the map, high-level metrics, SOS list, simulation status, action controls and several information panels in one long view. The current map and record locations also cluster around a small number of synthetic coordinates. Its visual hierarchy is compact but still reads like a generic dashboard because real source layers and distinct work queues are missing.
 - Operational context is split across long navigation labels and separate pages. The map does not yet act as the clear anchor of a persistent shared operating picture.

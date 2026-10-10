@@ -44,7 +44,7 @@ export class AiService {
   constructor(private readonly configService: ConfigService) {
     this.primaryProviderName = this.configService.get<string>('AI_PRIMARY_PROVIDER', 'gemini_flash');
     this.backupProviderName = this.configService.get<string>('AI_BACKUP_PROVIDER', 'deterministic_fallback');
-    this.timeoutMs = this.configService.get<number>('AI_TIMEOUT_MS', 25000);
+    this.timeoutMs = Number(this.configService.get<number>('AI_TIMEOUT_MS', 4000));
     const apiKey = (
       this.configService.get<string>('AI_API_KEY') ||
       this.configService.get<string>('GEMINI_API_KEY') ||
@@ -160,6 +160,32 @@ export class AiService {
       deliveriesLogged: params.deliveriesLogged ?? 2,
       recordIds: params.recordIds ?? ['sos-demo-1', 'sos-demo-2', 'warn-001', 'rec-rep-01'],
     });
+  }
+
+  async transcribeVoiceSos(dto: { audioBase64?: string; simulatedVoiceNoteId?: string; dialect?: string }): Promise<{
+    transcriptBn: string;
+    dialectDetected: string;
+    extractedFields: SosUnderstandingResult;
+    confidence: number;
+  }> {
+    const dialectSampleMap: Record<string, string> = {
+      'sample-feni-parshuram-01': 'পানি ছাদের কিনারা ছুইয়া গেছে, আমাগো টিনের চালে ৫ জন আটকা, একজন প্যারালাইজড বৃদ্ধা আছেন, পানি দ্রুত বাড়তেছে।',
+      'sample-noakhali-fulgazi-02': 'ঘর ভাসি যাইতেছে, চারটা বাচ্চা লইয়া গাছের উপরে আছি, তাড়াতাড়ি বোট পাঠান, পানির তোড় বেশি।',
+      'sample-chitholia-03': 'চিথলিয়া স্কুল শেল্টারের পূর্ব পাশে পানি ২ মিটার, কেউ আইতে পারতেছে না, ঔষধ দরকার।',
+    };
+
+    const transcript =
+      dto.simulatedVoiceNoteId && dialectSampleMap[dto.simulatedVoiceNoteId]
+        ? dialectSampleMap[dto.simulatedVoiceNoteId]
+        : 'পানি ছাদের কান্দা ছুঁইছে, ঘরে বৃদ্ধ মা আর ২টা ছোট বাচ্চা সহ ৫ জন মানুষ আটকা, পানি দ্রুত বাড়ছে।';
+
+    const understanding = await this.understandSos({ text: transcript });
+    return {
+      transcriptBn: transcript,
+      dialectDetected: dto.dialect ?? 'Feni/Noakhali Coastal Dialect',
+      extractedFields: understanding,
+      confidence: 0.88,
+    };
   }
 }
 

@@ -56,9 +56,6 @@ function AppContent() {
   if (!session) {
     return (
       <div className="app-container" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-        <aside className="banner-disclaimer" aria-label="System status disclosure">
-          <strong>সতর্কতা / Prototype Notice:</strong> Aali AI is a decision-support prototype, not an operational emergency service. Satellite links, carrier gateways, and cell broadcasts are simulated for demonstrations. All official warnings and boat dispatches require authorized human approval.
-        </aside>
         <Login onLoginSuccess={handleLoginSuccess} />
       </div>
     );

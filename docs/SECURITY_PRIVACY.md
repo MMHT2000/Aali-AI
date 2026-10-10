@@ -18,6 +18,8 @@
 - Keep JWT signing secret in environment configuration and validate its strength in non-test environments.
 - Protect all write routes with role guards; client-side route restrictions are only UX, not security.
 - Scope volunteer and recovery roles to the data they need; avoid exposing contact numbers or raw reports to viewer roles.
+- A role guard enforces the endpoint's declared role list exactly. `ADMIN` has no implicit operational or human-approval authority; include it only on explicit system oversight or synthetic-control routes. Warning approval is Authority-only, rescue triage is Responder-only, field entry is Volunteer-only, and recovery writes are Recovery-Coordinator-only.
+- Reference endpoints may expose event/area/shelter metadata to roles that need location context. Rescue assets are limited to Authority and Responder. Snapshot projections must omit rescue records and unnecessary map layers for Volunteer, Recovery, Viewer and Admin roles, with role-matrix tests for both allowed and forbidden access.
 - Enforce body size limits, rate limits, DTO validation and safe error responses.
 
 ## External services

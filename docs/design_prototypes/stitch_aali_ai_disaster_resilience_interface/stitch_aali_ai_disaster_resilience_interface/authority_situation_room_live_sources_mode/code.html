@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_dashboard" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=JetBrains+Mono:wght@100..900&display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{colors:{"tertiary-fixed":"#ffdad6","on-tertiary-fixed":"#410002","on-background":"#dde2f5","on-secondary-fixed":"#00201d","surface-bright":"#333948","surface-variant":"#2f3543","secondary-fixed":"#89f5e7","outline":"#89929b","on-primary-fixed-variant":"#004b73","on-surface":"#dde2f5","on-secondary-fixed-variant":"#005049","secondary":"#6bd8cb","on-tertiary":"#690005","primary":"#93ccff","on-secondary-container":"#00302b","primary-container":"#3198dc","inverse-on-surface":"#2a303f","secondary-container":"#29a195","surface-container-low":"#161b29","primary-fixed-dim":"#93ccff","surface-container-highest":"#2f3543","surface-container-high":"#242a38","tertiary":"#ffb4ab","on-secondary":"#003732","secondary-fixed-dim":"#6bd8cb","surface-container":"#1a1f2d","background":"#0d1320","inverse-surface":"#dde2f5","tertiary-container":"#ff544a","on-error":"#690005","on-primary-container":"#002c47","surface":"#0d1320","outline-variant":"#3f4850","error-container":"#93000a","on-surface-variant":"#bfc7d2","error":"#ffb4ab","inverse-primary":"#006398","surface-tint":"#93ccff","on-tertiary-container":"#5c0004","on-primary":"#003351","surface-container-lowest":"#080e1b","on-error-container":"#ffdad6","surface-dim":"#0d1320","primary-fixed":"#cce5ff","tertiary-fixed-dim":"#ffb4ab","on-primary-fixed":"#001d31","on-tertiary-fixed-variant":"#93000b"},borderRadius:{DEFAULT:"0.125rem",lg:"0.25rem",xl:"0.5rem",full:"0.75rem"},spacing:{margin:"0.75rem","space-xs":"0.25rem","gutter-desktop":"1rem",gutter:"0.75rem","space-xl":"1.5rem","space-lg":"1rem","space-md":"0.75rem","space-sm":"0.375rem","margin-desktop":"1rem"},fontFamily:{"label-lg":["JetBrains Mono"],"body-md":["Inter"],"headline-xl-mobile":["Inter"],"headline-md":["Inter"],"headline-xl":["Inter"],"body-lg":["Inter"],"headline-lg":["Inter"],"body-sm":["Inter"],"label-md":["JetBrains Mono"],"label-sm":["JetBrains Mono"],"telemetry-numeral":["JetBrains Mono"]},fontSize:{"label-lg":["13px",{lineHeight:"16px",letterSpacing:"0.02em",fontWeight:"500"}],"body-md":["13px",{lineHeight:"18px",letterSpacing:"0em",fontWeight:"400"}],"headline-xl-mobile":["24px",{lineHeight:"30px",letterSpacing:"-0.01em",fontWeight:"700"}],"headline-md":["18px",{lineHeight:"24px",letterSpacing:"-0.005em",fontWeight:"600"}],"headline-xl":["32px",{lineHeight:"38px",letterSpacing:"-0.02em",fontWeight:"700"}],"body-lg":["15px",{lineHeight:"22px",letterSpacing:"0em",fontWeight:"400"}],"headline-lg":["24px",{lineHeight:"30px",letterSpacing:"-0.01em",fontWeight:"600"}],"body-sm":["12px",{lineHeight:"16px",letterSpacing:"0.01em",fontWeight:"400"}],"label-md":["11px",{lineHeight:"14px",letterSpacing:"0.04em",fontWeight:"500"}],"label-sm":["10px",{lineHeight:"12px",letterSpacing:"0.06em",fontWeight:"600"}],"telemetry-numeral":["20px",{lineHeight:"24px",letterSpacing:"-0.02em",fontWeight:"700"}]}}}};</script></head><body class="bg-background font-body-md text-on-surface antialiased"><header class="fixed top-0 left-0 right-0 z-50 bg-surface-container-lowest/95 backdrop-blur-md"><div class="w-full px-margin-desktop py-space-xs bg-surface-container-low flex flex-wrap items-center justify-between gap-gutter"><div class="flex items-center gap-space-md"><div class="flex items-center gap-space-xs font-label-sm text-label-sm uppercase tracking-wider text-secondary"><span class="inline-block w-1.5 h-1.5 rounded-full bg-secondary animate-pulse"></span><span>App Gateway: Connected</span><span class="text-outline">·</span><span class="text-on-surface-variant font-telemetry-numeral text-label-sm">42ms</span></div><div class="h-3 w-px bg-outline-variant"></div><div class="flex items-center gap-space-xs font-label-sm text-label-sm text-on-surface-variant"><span class="text-outline">Hydro Feeds:</span><span class="text-secondary font-label-sm font-semibold">2/5 Online</span><span class="text-outline">·</span><span class="text-error font-label-sm">FFWC: Unavailable</span></div><div class="h-3 w-px bg-outline-variant"></div><div class="flex items-center gap-space-xs font-label-sm text-label-sm text-on-surface-variant"><span>Last Sync:</span><span class="font-telemetry-numeral text-on-surface">14:28:12 BST</span></div></div><div class="flex items-center gap-space-sm bg-surface-container px-space-sm py-0.5 rounded"><span class="material-symbols-outlined text-tertiary text-[14px]">warning</span><span class="font-label-sm text-label-sm uppercase text-on-surface-variant tracking-wide">Decision-Support Prototype · Not an Emergency Service · Human Review Mandatory</span></div></div><div class="h-16 w-full px-margin-desktop flex items-center justify-between gap-gutter"><div class="flex items-center gap-gutter"><img alt="Aali AI Command Emblem" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1UDwVHtjLOuAiZTIprvbQExY8ap3y9hwyOqlL4J3GO0A_IPRl7YlLdXj_mREjka42i5lD5pksDHM8FHFJrAhGuUnT2OkzCpNlRADu8pf_Su2TXiEDrg4Xpc4klRSqiZkJLHp4tqS9ZC2SHPnLYMOM2R0sghWEaxE1tryZJOLjNpvsIw6GCbR8FKMXlFeY3XFWN-bImCNbM8eYof_hGx6XlwhJbPwLsXz3ZUNFD-_ixpyuA35gLPpm1_gw"/><div class="flex flex-col"><div class="flex items-center gap-space-xs"><span class="font-label-md text-label-md font-bold text-on-surface uppercase tracking-wider">Aali AI</span><span class="text-outline-variant">/</span><span class="font-label-sm text-label-sm bg-surface-container-high text-primary px-1.5 py-0.5 rounded uppercase">Feni District Operations</span></div><span class="font-label-sm text-label-sm text-on-surface-variant">Muhuri Basin Hydrological Sector · Zone-04</span></div><div class="hidden xl:flex items-center gap-space-xs bg-surface-container px-space-sm py-1 rounded"><span class="material-symbols-outlined text-primary text-[16px]">layers</span><select class="bg-transparent font-label-sm text-label-sm text-on-surface uppercase focus:outline-none cursor-pointer"><option class="bg-surface-container text-on-surface" selected="">Muhuri Basin Flash Flood Event 2024</option><option class="bg-surface-container text-on-surface">Feni Rising Water Exercise</option><option class="bg-surface-container text-on-surface">Live Monitor Feni Sadar & Parshuram</option></select></div></div><div class="flex items-center gap-gutter"><div class="hidden md:flex items-center bg-surface-container-low p-1 rounded font-label-sm text-label-sm"><button class="flex items-center gap-1.5 px-space-sm py-1 rounded bg-secondary-container text-on-secondary-container font-semibold"><span class="inline-block w-1.5 h-1.5 rounded-full bg-secondary animate-pulse"></span><span>LIVE SOURCES</span><span class="text-[9px] bg-surface-container-lowest px-1 rounded text-on-surface">2/5</span></button><button class="flex items-center gap-1.5 px-space-sm py-1 rounded text-on-surface-variant hover:text-on-surface"><span class="font-label-sm text-tertiary">▨</span><span>EXERCISE</span></button><button class="flex items-center gap-1.5 px-space-sm py-1 rounded text-on-surface-variant hover:text-on-surface"><span class="font-label-sm text-outline">◆</span><span>HISTORICAL</span></button></div><div class="flex items-center gap-space-md"><div class="flex items-center gap-space-xs bg-surface-container px-space-sm py-1 rounded"><span class="material-symbols-outlined text-secondary text-[16px]">badge</span><div class="flex flex-col text-left"><span class="font-label-sm text-label-sm text-on-surface font-semibold">Dr. K. Rahman</span><span class="font-label-sm text-[9px] text-primary uppercase">Authority · District Ops Room</span></div></div><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div></div><div class="w-full px-margin-desktop bg-surface-container-lowest flex items-center justify-between overflow-x-auto"><nav class="flex items-center gap-1 py-1 font-label-sm text-label-sm" data-active-classes="bg-primary-container text-on-primary-container font-bold rounded"><a aria-current="page" class="px-space-md py-1.5 transition-colors whitespace-nowrap bg-primary-container text-on-primary-container font-bold rounded" data-path="situation-room" href="#">Situation Room</a><a class="px-space-md py-1.5 rounded text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors whitespace-nowrap" data-path="sos-incident-queue" href="#">SOS & Incident Queue</a><a class="px-space-md py-1.5 rounded text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors whitespace-nowrap" data-path="water-gages-layers" href="#">Water Gages & Layers</a><a class="px-space-md py-1.5 rounded text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors whitespace-nowrap" data-path="warnings-bulletins" href="#">Warnings & Bulletins</a><a class="px-space-md py-1.5 rounded text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors whitespace-nowrap" data-path="exercise-controls" href="#">Exercise Controls</a><a class="px-space-md py-1.5 rounded text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors whitespace-nowrap" data-path="audit-log" href="#">Audit Log</a></nav><div class="flex items-center gap-space-xs font-label-sm text-label-sm text-outline"><span class="text-on-surface-variant uppercase">Role:</span><select class="bg-surface-container text-on-surface px-space-xs py-0.5 rounded text-label-sm focus:outline-none cursor-pointer"><option selected="">Authority (District Ops)</option><option>Responder (Rescue Desk)</option><option>Volunteer (Field Desk)</option><option>Recovery Coordinator</option><option>Viewer (Public Read-Only)</option><option>Admin (System Oversight)</option></select></div></div></header><aside class="fixed left-0 top-28 bottom-0 w-64 bg-surface-container-lowest z-40 flex flex-col justify-between py-space-md px-space-sm"><div class="flex flex-col gap-space-md"><div class="px-space-sm"><span class="font-label-sm text-label-sm text-outline uppercase tracking-wider">Operational Sectors</span></div><nav class="flex flex-col gap-1 font-label-sm text-label-sm" data-active-classes="bg-primary-container text-on-primary-container font-semibold rounded"><a aria-current="page" class="flex items-center justify-between px-space-sm py-2 bg-primary-container text-on-primary-container font-semibold rounded" data-path="situation-room" href="#"><div class="flex items-center gap-space-xs"><span class="material-symbols-outlined text-[16px]">radar</span><span>Parshuram Levee</span></div><span class="font-telemetry-numeral text-[11px] text-tertiary">EDL +0.8m</span></a><a class="flex items-center justify-between px-space-sm py-2 rounded text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface" data-path="sos-incident-queue" href="#"><div class="flex items-center gap-space-xs"><span class="material-symbols-outlined text-[16px]">emergency_home</span><span>Feni Sadar Urban</span></div><span class="font-telemetry-numeral text-[11px] text-secondary">38 SOS</span></a><a class="flex items-center justify-between px-space-sm py-2 rounded text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface" data-path="water-gages-layers" href="#"><div class="flex items-center gap-space-xs"><span class="material-symbols-outlined text-[16px]">tsunami</span><span>Fulgazi Bridge</span></div><span class="font-telemetry-numeral text-[11px] text-tertiary">DL +1.4m</span></a><a class="flex items-center justify-between px-space-sm py-2 rounded text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface" data-path="warnings-bulletins" href="#"><div class="flex items-center gap-space-xs"><span class="material-symbols-outlined text-[16px]">campaign</span><span>Chhagalnaiya Sector</span></div><span class="font-telemetry-numeral text-[11px] text-on-surface-variant">Active</span></a></nav><div class="mt-space-md px-space-sm"><span class="font-label-sm text-label-sm text-outline uppercase tracking-wider">Role Consoles</span><div class="mt-space-xs flex flex-col gap-1"><a class="flex items-center gap-space-xs px-space-sm py-1.5 rounded text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface text-label-sm" data-path="rescue-desk" href="#"><span class="material-symbols-outlined text-[14px]">support</span><span>Responder Console</span></a><a class="flex items-center gap-space-xs px-space-sm py-1.5 rounded text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface text-label-sm" data-path="verification-tasks" href="#"><span class="material-symbols-outlined text-[14px]">fact_check</span><span>Volunteer Field Portal</span></a><a class="flex items-center gap-space-xs px-space-sm py-1.5 rounded text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface text-label-sm" data-path="village-damage-needs" href="#"><span class="material-symbols-outlined text-[14px]">inventory</span><span>Recovery Ledger</span></a><a class="flex items-center gap-space-xs px-space-sm py-1.5 rounded text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface text-label-sm" data-path="system-health" href="#"><span class="material-symbols-outlined text-[14px]">admin_panel_settings</span><span>Admin Oversight</span></a></div></div></div><div class="p-space-sm bg-surface-container rounded"><div class="flex items-center justify-between font-label-sm text-label-sm"><span class="text-on-surface-variant uppercase">Comms Continuity</span><span class="text-secondary">ONLINE</span></div><div class="mt-1 text-[11px] font-body-sm text-on-surface-variant leading-tight">Repeater Parshuram-01 Failover Active via HF-Link</div></div></aside><div class="pl-64"><main class="relative pt-28 w-full min-h-screen bg-background px-margin-desktop py-space-lg"><div class="flex flex-col w-full">
+<!-- Mode Banner -->
+<section class="bg-surface-container-low px-gutter-desktop py-space-sm mb-space-md">
+<div class="flex flex-col lg:flex-row lg:items-center justify-between gap-space-sm">
+<div class="flex items-center gap-space-sm min-w-0">
+<span class="inline-flex items-center justify-center w-5 h-5 rounded-sm bg-secondary/20 text-secondary">
+<span class="material-symbols-outlined text-[14px]">sensors</span>
+</span>
+<div class="flex flex-wrap items-center gap-x-space-sm gap-y-0.5 min-w-0">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-secondary font-bold">
+            LIVE SOURCES MODE ACTIVE
+          </span>
+<span class="text-outline-variant font-label-sm text-label-sm">/</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant truncate">
+            Showing verified data received by application gateway. Unconnected sources labeled Unavailable.
+          </span>
+</div>
+</div>
+<div class="flex items-center gap-space-sm self-start lg:self-auto shrink-0">
+<span class="font-label-sm text-label-sm text-outline uppercase">Active Scope:</span>
+<span class="font-label-sm text-label-sm font-semibold text-primary bg-surface-container px-space-sm py-0.5 rounded">
+          Live Monitor: Feni Sadar & Parshuram
+        </span>
+</div>
+</div>
+</section>
+<!-- Real-Time Telemetry Bar -->
+<section class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-space-xs mb-space-md">
+<!-- App Core API -->
+<div class="bg-surface-container p-space-sm flex flex-col justify-between">
+<div class="flex items-center justify-between mb-1">
+<span class="font-label-sm text-label-sm text-outline uppercase tracking-wide">Core Engine</span>
+<span class="font-label-sm text-label-sm text-secondary flex items-center gap-1 font-semibold">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary animate-ping"></span>
+          OPERATIONAL
+        </span>
+</div>
+<div class="font-body-sm text-body-sm text-on-surface font-semibold truncate">App Gateway Connected</div>
+<div class="font-label-sm text-[10px] text-on-surface-variant flex items-center justify-between mt-1">
+<span>Channel: Ingestion Hub</span>
+<span class="font-telemetry-numeral text-label-sm text-secondary">28ms</span>
+</div>
+</div>
+<!-- BWDB/FFWC Hydrology Feed -->
+<div class="bg-surface-container p-space-sm flex flex-col justify-between">
+<div class="flex items-center justify-between mb-1">
+<span class="font-label-sm text-label-sm text-error uppercase tracking-wide">BWDB / FFWC Feed</span>
+<span class="font-label-sm text-label-sm text-error flex items-center gap-1 font-bold">
+<span class="w-1.5 h-1.5 rounded-full bg-error"></span>
+          UNAVAILABLE
+        </span>
+</div>
+<div class="font-body-sm text-body-sm text-on-surface font-semibold truncate">Connection Timed Out</div>
+<div class="font-label-sm text-[10px] text-tertiary mt-1 truncate">
+        Failed 3 retries · Sync: 6h ago
+      </div>
+</div>
+<!-- BMD Weather Radar -->
+<div class="bg-surface-container p-space-sm flex flex-col justify-between">
+<div class="flex items-center justify-between mb-1">
+<span class="font-label-sm text-label-sm text-error uppercase tracking-wide">BMD Doppler Radar</span>
+<span class="font-label-sm text-label-sm text-error flex items-center gap-1 font-bold">
+<span class="w-1.5 h-1.5 rounded-full bg-error"></span>
+          OFFLINE
+        </span>
+</div>
+<div class="font-body-sm text-body-sm text-on-surface font-semibold truncate">Cox's Bazar Station Stalled</div>
+<div class="font-label-sm text-[10px] text-on-surface-variant mt-1">
+        No radar sweeps received
+      </div>
+</div>
+<!-- District SMS/Telegram Ingestion Gateway -->
+<div class="bg-surface-container p-space-sm flex flex-col justify-between">
+<div class="flex items-center justify-between mb-1">
+<span class="font-label-sm text-label-sm text-secondary uppercase tracking-wide">SMS / Telegram Ingest</span>
+<span class="font-label-sm text-label-sm text-secondary flex items-center gap-1 font-semibold">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
+          CONNECTED
+        </span>
+</div>
+<div class="font-body-sm text-body-sm text-on-surface font-semibold truncate">Municipal Carrier Gateway</div>
+<div class="font-label-sm text-[10px] text-on-surface-variant flex items-center justify-between mt-1">
+<span>Queue: Processing</span>
+<span class="font-telemetry-numeral text-label-sm text-secondary">110ms</span>
+</div>
+</div>
+<!-- Volunteer App Stream -->
+<div class="bg-surface-container p-space-sm flex flex-col justify-between">
+<div class="flex items-center justify-between mb-1">
+<span class="font-label-sm text-label-sm text-secondary uppercase tracking-wide">Volunteer Field App</span>
+<span class="font-label-sm text-label-sm text-secondary flex items-center gap-1 font-semibold">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
+          STREAMING
+        </span>
+</div>
+<div class="font-body-sm text-body-sm text-on-surface font-semibold truncate">14 Active Field Units</div>
+<div class="font-label-sm text-[10px] text-on-surface-variant mt-1">
+        Muhuri Basin Sector 4
+      </div>
+</div>
+</section>
+<!-- 2/3 Map Split Operational View -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-gutter items-start">
+<!-- LEFT 8 COLS: TACTICAL MAP & HYDROLOGICAL DISPLAY -->
+<div class="lg:col-span-8 flex flex-col gap-space-sm">
+<!-- Tactical Map Viewport -->
+<div class="relative w-full h-[540px] xl:h-[620px] bg-surface-container-lowest rounded overflow-hidden shadow-xl">
+<!-- Google Maps Static Target Underlay -->
+<div class="absolute inset-0 bg-cover bg-center filter saturate-50 contrast-125 opacity-30 pointer-events-none" data-location="Feni Sadar, Bangladesh" style=""></div>
+<!-- Tactical Vector Overlay -->
+<div class="absolute inset-0 bg-gradient-to-b from-surface-container-lowest/80 via-transparent to-surface-container-lowest/90 pointer-events-none"></div>
+<!-- Top Map Bar -->
+<div class="absolute top-space-md left-space-md right-space-md flex flex-wrap items-center justify-between gap-space-xs z-10 pointer-events-auto">
+<div class="flex items-center gap-space-xs bg-surface-container-lowest/95 backdrop-blur-md px-space-sm py-1 rounded shadow-md">
+<span class="material-symbols-outlined text-primary text-[18px]">public</span>
+<span class="font-label-md text-label-md uppercase font-semibold text-on-surface">GIS Surface: Feni District Basemap</span>
+<span class="text-outline">·</span>
+<span class="font-label-sm text-label-sm text-secondary font-mono">EPSG:3106</span>
+</div>
+<!-- Unmapped reports warning badge -->
+<div class="flex items-center gap-1.5 bg-tertiary-container/90 backdrop-blur-md px-space-sm py-1 rounded shadow-md text-on-tertiary-container">
+<span class="material-symbols-outlined text-[15px]">location_off</span>
+<span class="font-label-sm text-label-sm font-bold uppercase tracking-tight">3 Live Reports have Unavailable Coordinates</span>
+<span class="text-[10px] bg-surface-container-lowest px-1 py-0.2 rounded text-tertiary font-mono">VIEW IN QUEUE</span>
+</div>
+</div>
+<!-- STALE / UNAVAILABLE RIVER GAUGE MARKER 01: Parshuram Gauge -->
+<div class="absolute top-24 left-1/4 z-20 max-w-xs group cursor-pointer">
+<div class="flex items-start gap-1.5">
+<!-- Striped Warning Node -->
+<div class="relative shrink-0 w-6 h-6 rounded bg-surface-container-highest flex items-center justify-center overflow-hidden shadow-md">
+<div class="absolute inset-0 opacity-40 bg-[repeating-linear-gradient(45deg,#ff544a,#ff544a_4px,#1a1f2d_4px,#1a1f2d_8px)]"></div>
+<span class="material-symbols-outlined text-tertiary text-[14px] relative z-10">error_outline</span>
+</div>
+<!-- Marker Tooltip Card -->
+<div class="bg-surface-container-lowest/95 backdrop-blur-md p-space-xs rounded shadow-lg flex flex-col gap-0.5">
+<div class="flex items-center justify-between gap-2">
+<span class="font-label-sm text-label-sm font-bold text-on-surface">Parshuram Gauge #BWDB-08</span>
+<span class="font-label-sm text-[9px] bg-error-container text-on-error-container px-1 rounded uppercase font-semibold">UNAVAILABLE</span>
+</div>
+<p class="font-label-sm text-[10px] text-tertiary leading-tight">
+                BWDB Feed: UNAVAILABLE · Freshness unknown · Do not rely on stale 11.2m data
+              </p>
+<div class="flex items-center justify-between text-[9px] font-label-sm text-outline mt-0.5">
+<span>Stale Stage: 11.20m</span>
+<span class="text-error font-mono">Telemetry Void</span>
+</div>
+</div>
+</div>
+</div>
+<!-- STALE / UNAVAILABLE RIVER GAUGE MARKER 02: Silonia Gauge -->
+<div class="absolute top-1/2 left-1/5 z-20 max-w-[240px] group cursor-pointer">
+<div class="flex items-start gap-1.5">
+<div class="relative shrink-0 w-5 h-5 rounded bg-surface-container-highest flex items-center justify-center overflow-hidden shadow-md">
+<div class="absolute inset-0 opacity-30 bg-[repeating-linear-gradient(45deg,#ff544a,#ff544a_3px,#1a1f2d_3px,#1a1f2d_6px)]"></div>
+<span class="material-symbols-outlined text-outline text-[13px] relative z-10">do_not_disturb_on</span>
+</div>
+<div class="bg-surface-container-lowest/95 backdrop-blur-md p-space-xs rounded shadow-lg">
+<div class="font-label-sm text-label-sm font-semibold text-on-surface-variant flex items-center gap-1.5">
+<span>Silonia Gauge</span>
+<span class="text-[9px] text-error font-mono font-bold">BWDB Feed: UNAVAILABLE</span>
+</div>
+<div class="font-label-sm text-[9px] text-outline mt-0.5">Historical Ref: Basin Point 14B · No Handshake</div>
+</div>
+</div>
+</div>
+<!-- LIVE REPORT MARKER 01: API-LIVE-01 -->
+<div class="absolute bottom-28 left-1/2 -translate-x-12 z-20 group cursor-pointer">
+<div class="flex items-start gap-1.5">
+<!-- Pulsing Active Pin -->
+<div class="relative shrink-0 w-6 h-6 rounded-full bg-secondary-container flex items-center justify-center shadow-lg">
+<span class="absolute -inset-1 rounded-full bg-secondary opacity-40 animate-ping"></span>
+<span class="material-symbols-outlined text-on-secondary-container text-[14px]">water</span>
+</div>
+<!-- Marker Flyout -->
+<div class="bg-surface-container-lowest/95 backdrop-blur-md p-space-xs rounded shadow-xl w-64 flex flex-col gap-1">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm font-bold text-secondary font-mono">API-LIVE-01</span>
+<span class="font-label-sm text-[9px] bg-secondary-container/40 text-secondary px-1 rounded uppercase font-semibold">Verified Ingestion</span>
+</div>
+<div class="font-body-sm text-body-sm font-semibold text-on-surface leading-tight">
+                Feni Sadar Station Road
+              </div>
+<div class="text-[11px] font-body-sm text-on-surface-variant">
+                Urban water accumulation: <span class="font-telemetry-numeral text-label-sm text-secondary font-bold">0.4m</span>
+</div>
+<div class="flex items-center justify-between text-[9px] font-label-sm text-outline pt-0.5">
+<span>Via Municipal Gateway</span>
+<span class="font-mono text-on-surface">14:10 BST</span>
+</div>
+</div>
+</div>
+</div>
+<!-- LIVE REPORT MARKER 02: API-LIVE-02 -->
+<div class="absolute top-1/3 right-1/4 z-20 group cursor-pointer">
+<div class="flex items-start gap-1.5">
+<!-- Blue Active Pin -->
+<div class="relative shrink-0 w-6 h-6 rounded-full bg-primary-container flex items-center justify-center shadow-lg">
+<span class="material-symbols-outlined text-on-primary-container text-[14px]">trending_down</span>
+</div>
+<!-- Marker Flyout -->
+<div class="bg-surface-container-lowest/95 backdrop-blur-md p-space-xs rounded shadow-xl w-60 flex flex-col gap-0.5">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm font-bold text-primary font-mono">API-LIVE-02</span>
+<span class="font-label-sm text-[9px] bg-primary/20 text-primary px-1 rounded uppercase font-semibold">Active Report</span>
+</div>
+<div class="font-body-sm text-body-sm font-semibold text-on-surface">
+                Ranirhat Market, Chhagalnaiya
+              </div>
+<p class="font-body-sm text-[11px] text-on-surface-variant leading-tight">
+                Water receding from bypass road. Access restoring for light transport.
+              </p>
+<div class="flex items-center justify-between text-[9px] font-label-sm text-outline pt-0.5">
+<span>Volunteer Unit #04</span>
+<span class="font-mono text-on-surface">14:24 BST</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Bottom Controls / Map Legend Strip -->
+<div class="absolute bottom-space-md left-space-md right-space-md flex flex-wrap items-center justify-between gap-space-sm pointer-events-auto">
+<!-- Legend Badges -->
+<div class="flex items-center gap-space-xs bg-surface-container-lowest/90 backdrop-blur-md px-space-sm py-1 rounded">
+<div class="flex items-center gap-1 font-label-sm text-[10px] text-on-surface-variant">
+<span class="w-2.5 h-2.5 rounded bg-secondary"></span>
+<span>Live Ingest</span>
+</div>
+<span class="text-outline-variant">·</span>
+<div class="flex items-center gap-1 font-label-sm text-[10px] text-on-surface-variant">
+<span class="w-2.5 h-2.5 rounded bg-primary"></span>
+<span>Volunteer Stream</span>
+</div>
+<span class="text-outline-variant">·</span>
+<div class="flex items-center gap-1 font-label-sm text-[10px] text-on-surface-variant">
+<span class="w-2.5 h-2.5 rounded bg-error"></span>
+<span>Unavailable External</span>
+</div>
+</div>
+<!-- Map Tools -->
+<div class="flex items-center gap-1 bg-surface-container-lowest/90 backdrop-blur-md p-1 rounded font-label-sm text-label-sm">
+<button class="px-space-xs py-0.5 rounded text-on-surface-variant hover:text-on-surface hover:bg-surface-container flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">layers</span>
+<span>Gauges (2)</span>
+</button>
+<button class="px-space-xs py-0.5 rounded bg-surface-container text-on-surface font-semibold flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">crisis_alert</span>
+<span>Incidents (2)</span>
+</button>
+<button class="px-space-xs py-0.5 rounded text-on-surface-variant hover:text-on-surface hover:bg-surface-container flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">my_location</span>
+<span>Recenter</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Water Column & Basin Telemetry Status Card -->
+<div class="bg-surface-container p-space-md rounded flex flex-col md:flex-row items-stretch justify-between gap-space-md">
+<div class="flex flex-col gap-1 md:w-2/3">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-tertiary text-[18px]">warning</span>
+<span class="font-label-md text-label-md font-bold text-on-surface uppercase">Basin Hydrological Diagnostic Notice</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">
+            Muhuri Basin river gauge feeds from BWDB/FFWC remain unavailable. Real-time crest heights, rate-of-rise rates (<code class="text-secondary font-mono">m/hr</code>), and downstream flow velocity models are suspended. Operational decisions must rely strictly on confirmed municipal ground observations and verified volunteer reports until FFWC API restores.
+          </p>
+</div>
+<div class="bg-surface-container-low p-space-sm rounded flex flex-col justify-between shrink-0 md:w-1/3">
+<span class="font-label-sm text-label-sm uppercase text-outline">Gauging Integrity</span>
+<div class="flex items-baseline gap-2 my-1">
+<span class="font-telemetry-numeral text-headline-md text-tertiary">0 / 2</span>
+<span class="font-label-sm text-label-sm text-tertiary uppercase">Functional Feeds</span>
+</div>
+<span class="font-label-sm text-[10px] text-on-surface-variant">Hydrological Confidence: <strong class="text-error uppercase">Degraded</strong></span>
+</div>
+</div>
+</div>
+<!-- RIGHT 4 COLS: QUEUE & SOURCE DIAGNOSTICS PANEL -->
+<div class="lg:col-span-4 flex flex-col gap-space-md">
+<!-- Panel Header & Custom Tab Switcher -->
+<div class="bg-surface-container-low p-space-xs rounded flex flex-col gap-space-xs shadow-md">
+<div class="grid grid-cols-2 gap-1 font-label-sm text-label-sm">
+<button class="px-space-sm py-2 rounded bg-primary-container text-on-primary-container font-bold flex items-center justify-center gap-1.5 transition-colors" id="tab-incidents-btn" onclick="switchRightPanelTab('incidents')">
+<span class="material-symbols-outlined text-[16px]">receipt_long</span>
+<span>Live Incidents</span>
+<span class="bg-surface-container-lowest text-primary px-1.5 py-0.2 rounded text-[10px]">2</span>
+</button>
+<button class="px-space-sm py-2 rounded text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors flex items-center justify-center gap-1.5" id="tab-sources-btn" onclick="switchRightPanelTab('sources')">
+<span class="material-symbols-outlined text-[16px]">hub</span>
+<span>Source Health</span>
+<span class="bg-surface-container px-1.5 py-0.2 rounded text-[10px] text-tertiary">5</span>
+</button>
+</div>
+</div>
+<!-- VIEW 1: LIVE INCIDENT QUEUE -->
+<div class="flex flex-col gap-space-md" id="panel-incidents">
+<!-- Urgent Incident Card: API-LIVE-01 -->
+<article class="bg-surface-container rounded p-space-md relative overflow-hidden shadow-md flex flex-col gap-space-sm">
+<!-- Critical Urgency Color Bar Left Strip -->
+<div class="absolute left-0 top-0 bottom-0 w-1.5 bg-tertiary-container"></div>
+<!-- Card Header -->
+<div class="flex items-start justify-between gap-space-xs pl-2">
+<div class="flex flex-col">
+<div class="flex items-center gap-space-xs">
+<span class="font-label-md text-label-md font-bold text-on-surface font-mono">API-LIVE-01</span>
+<span class="font-label-sm text-[9px] bg-secondary-container/30 text-secondary px-1 rounded uppercase font-semibold">Authenticated Gateway</span>
+</div>
+<span class="font-headline-md text-headline-md text-on-surface mt-0.5">Feni Sadar Station Road</span>
+</div>
+<div class="flex flex-col items-end shrink-0">
+<span class="font-telemetry-numeral text-label-sm text-on-surface font-bold">14:10 BST</span>
+<span class="font-label-sm text-[9px] text-secondary">T+00:18:12</span>
+</div>
+</div>
+<!-- Incident Body Details -->
+<div class="bg-surface-container-low p-space-sm rounded ml-2 flex flex-col gap-1">
+<div class="flex items-center gap-1.5 text-on-surface font-semibold text-body-md">
+<span class="material-symbols-outlined text-tertiary text-[16px]">group</span>
+<span>2 people seeking shelter access</span>
+</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant">
+              Reported urban flash inundation at 0.4m and rising near railway culvert junction. Ground floor commercial properties isolated.
+            </div>
+<div class="font-label-sm text-[10px] text-outline font-mono mt-1">
+              Source: Citizen SMS Gateway #88017... · Ingestion ID #MUNI-FN-9921
+            </div>
+</div>
+<!-- Mandatory Operational Constraint Warning Note -->
+<div class="ml-2 bg-error-container/20 p-space-xs rounded flex items-start gap-1.5">
+<span class="material-symbols-outlined text-tertiary text-[15px] shrink-0 mt-0.5">warning</span>
+<p class="font-body-sm text-[11px] text-tertiary leading-snug">
+              External river gauge context unavailable. Human verification required before responder deployment.
+            </p>
+</div>
+<!-- Human Triage Action Buttons -->
+<div class="ml-2 pt-space-xs flex flex-col sm:flex-row gap-space-xs">
+<button class="flex-1 bg-primary text-on-primary font-semibold font-body-sm text-body-sm px-space-sm py-2 rounded flex items-center justify-center gap-1.5 hover:bg-primary-fixed-dim transition-colors shadow-sm">
+<span class="material-symbols-outlined text-[16px]">send</span>
+<span>Route to Responder Desk</span>
+</button>
+<button class="bg-surface-container-high text-on-surface font-body-sm text-body-sm px-space-sm py-2 rounded flex items-center justify-center gap-1 hover:bg-surface-variant transition-colors shadow-sm">
+<span class="material-symbols-outlined text-[16px]">fact_check</span>
+<span>Request Volunteer Check</span>
+</button>
+</div>
+<!-- Micro-Provenance Footer -->
+<div class="ml-2 flex items-center justify-between text-[10px] font-label-sm text-outline pt-1">
+<span>Provenance: SMS-GATEWAY</span>
+<span>Dual-Entry: PENDING</span>
+<span class="text-tertiary font-semibold">NO AUTO-DISPATCH</span>
+</div>
+</article>
+<!-- Incident Card: API-LIVE-02 -->
+<article class="bg-surface-container rounded p-space-md relative overflow-hidden shadow-md flex flex-col gap-space-sm">
+<div class="absolute left-0 top-0 bottom-0 w-1.5 bg-primary-container"></div>
+<div class="flex items-start justify-between gap-space-xs pl-2">
+<div class="flex flex-col">
+<div class="flex items-center gap-space-xs">
+<span class="font-label-md text-label-md font-bold text-on-surface font-mono">API-LIVE-02</span>
+<span class="font-label-sm text-[9px] bg-primary/20 text-primary px-1 rounded uppercase font-semibold">Volunteer Verified</span>
+</div>
+<span class="font-headline-md text-headline-md text-on-surface mt-0.5">Ranirhat Market, Chhagalnaiya</span>
+</div>
+<div class="flex flex-col items-end shrink-0">
+<span class="font-telemetry-numeral text-label-sm text-on-surface font-bold">14:24 BST</span>
+<span class="font-label-sm text-[9px] text-secondary">T+00:04:12</span>
+</div>
+</div>
+<div class="bg-surface-container-low p-space-sm rounded ml-2 flex flex-col gap-1">
+<div class="flex items-center gap-1.5 text-on-surface font-semibold text-body-md">
+<span class="material-symbols-outlined text-secondary text-[16px]">check_circle</span>
+<span>Water receding from bypass road</span>
+</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant">
+              Surface drainage clearing toward eastern canal. Route cleared for emergency ration transports.
+            </div>
+<div class="font-label-sm text-[10px] text-outline font-mono mt-1">
+              Source: Field Volunteer App #REP-CH-04 · GPS Verified Fix
+            </div>
+</div>
+<div class="ml-2 pt-space-xs flex flex-col sm:flex-row gap-space-xs">
+<button class="flex-1 bg-surface-container-high text-on-surface font-body-sm text-body-sm px-space-sm py-2 rounded flex items-center justify-center gap-1 hover:bg-surface-variant transition-colors shadow-sm">
+<span class="material-symbols-outlined text-[16px]">share</span>
+<span>Update Logistics Route Map</span>
+</button>
+<button class="bg-surface-container-high text-on-surface font-body-sm text-body-sm px-space-sm py-2 rounded flex items-center justify-center gap-1 hover:bg-surface-variant transition-colors shadow-sm">
+<span class="material-symbols-outlined text-[16px]">archive</span>
+<span>Acknowledge</span>
+</button>
+</div>
+<div class="ml-2 flex items-center justify-between text-[10px] font-label-sm text-outline pt-1">
+<span>Provenance: VOLUNTEER-APP</span>
+<span class="text-secondary">VERIFIED_DUAL</span>
+<span>Zone: 04-CHH</span>
+</div>
+</article>
+<!-- Unmapped Queue Notice Strip -->
+<div class="bg-surface-container-low p-space-sm rounded flex items-center justify-between gap-space-xs shadow-sm">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-tertiary text-[18px]">contact_support</span>
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm font-semibold text-on-surface">3 Ingests Without Valid Lat/Lng</span>
+<span class="font-body-sm text-[11px] text-on-surface-variant">Awaiting geo-coding by dispatch operator</span>
+</div>
+</div>
+<button class="px-space-sm py-1 bg-surface-container-high text-primary hover:text-on-surface rounded font-label-sm text-label-sm">
+            Manual Resolve
+          </button>
+</div>
+</div>
+<!-- VIEW 2: SOURCE CONNECTION HEALTH TABLE (TOGGLEABLE) -->
+<div class="hidden flex-col gap-space-md" id="panel-sources">
+<div class="bg-surface-container rounded p-space-md shadow-md flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-primary text-[18px]">dns</span>
+<span class="font-label-md text-label-md font-bold text-on-surface uppercase">External Hydrology & Sensing Feeds</span>
+</div>
+<span class="font-label-sm text-[10px] text-tertiary font-mono">5 REGISTERED</span>
+</div>
+<!-- Disclaimer Banner -->
+<div class="bg-surface-container-lowest p-space-xs rounded flex items-start gap-1.5">
+<span class="material-symbols-outlined text-tertiary text-[14px] shrink-0 mt-0.5">policy</span>
+<span class="font-body-sm text-[11px] text-on-surface-variant">
+              Policy Rule: Never substitute synthetic, mock, or estimated numbers as live data during operational incidents.
+            </span>
+</div>
+<!-- Feed Health Table -->
+<div class="flex flex-col gap-space-xs mt-1">
+<!-- Feed 1: FFWC -->
+<div class="bg-surface-container-low p-space-sm rounded flex flex-col gap-1">
+<div class="flex items-center justify-between">
+<span class="font-body-sm text-body-sm font-semibold text-on-surface">1. Flood Forecasting & Warning Centre (FFWC)</span>
+<span class="font-label-sm text-[9px] bg-error-container text-on-error-container px-1.5 py-0.2 rounded font-bold uppercase">UNAVAILABLE</span>
+</div>
+<div class="font-body-sm text-[11px] text-tertiary">
+                No live API token / server unreachable. Connection timed out after 3 retries.
+              </div>
+<div class="font-label-sm text-[10px] text-outline flex items-center justify-between pt-0.5">
+<span>Protocol: REST / GeoJSON</span>
+<span>Last Sync: 6h ago</span>
+</div>
+</div>
+<!-- Feed 2: BMD -->
+<div class="bg-surface-container-low p-space-sm rounded flex flex-col gap-1">
+<div class="flex items-center justify-between">
+<span class="font-body-sm text-body-sm font-semibold text-on-surface">2. Bangladesh Meteorological Dept (BMD)</span>
+<span class="font-label-sm text-[9px] bg-error-container text-on-error-container px-1.5 py-0.2 rounded font-bold uppercase">UNAVAILABLE</span>
+</div>
+<div class="font-body-sm text-[11px] text-tertiary">
+                Radar feed offline at Cox's Bazar station. No precipitation reflectance matrices available.
+              </div>
+<div class="font-label-sm text-[10px] text-outline flex items-center justify-between pt-0.5">
+<span>Protocol: WMS Doppler Grid</span>
+<span>Signal: No Carrier</span>
+</div>
+</div>
+<!-- Feed 3: District SMS -->
+<div class="bg-surface-container-low p-space-sm rounded flex flex-col gap-1">
+<div class="flex items-center justify-between">
+<span class="font-body-sm text-body-sm font-semibold text-on-surface">3. District Disaster SMS Ingestion</span>
+<span class="font-label-sm text-[9px] bg-secondary-container/40 text-secondary px-1.5 py-0.2 rounded font-bold uppercase">CONNECTED</span>
+</div>
+<div class="font-body-sm text-[11px] text-on-surface-variant">
+                Live queue: 2 items active in memory. Carrier routing latency nominal.
+              </div>
+<div class="font-label-sm text-[10px] text-outline flex items-center justify-between pt-0.5">
+<span>Gateway: Robi/GP SMPP</span>
+<span class="text-secondary font-mono">Latency: 110ms</span>
+</div>
+</div>
+<!-- Feed 4: Field Volunteer Submission API -->
+<div class="bg-surface-container-low p-space-sm rounded flex flex-col gap-1">
+<div class="flex items-center justify-between">
+<span class="font-body-sm text-body-sm font-semibold text-on-surface">4. Field Volunteer Submission API</span>
+<span class="font-label-sm text-[9px] bg-secondary-container/40 text-secondary px-1.5 py-0.2 rounded font-bold uppercase">CONNECTED</span>
+</div>
+<div class="font-body-sm text-[11px] text-on-surface-variant">
+                14 certified field observers streaming geo-tagged situational tokens.
+              </div>
+<div class="font-label-sm text-[10px] text-outline flex items-center justify-between pt-0.5">
+<span>Protocol: WebSocket TLS</span>
+<span class="text-secondary font-mono">Stream: Active</span>
+</div>
+</div>
+<!-- Feed 5: SPARRSO -->
+<div class="bg-surface-container-low p-space-sm rounded flex flex-col gap-1">
+<div class="flex items-center justify-between">
+<span class="font-body-sm text-body-sm font-semibold text-on-surface">5. SPARRSO Flood Mask (Satellite SAR)</span>
+<span class="font-label-sm text-[9px] bg-surface-container-highest text-on-surface-variant px-1.5 py-0.2 rounded font-bold uppercase">UNAVAILABLE</span>
+</div>
+<div class="font-body-sm text-[11px] text-on-surface-variant">
+                Last orbital pass 48h ago. Next Sentinel-1 window pending schedule.
+              </div>
+<div class="font-label-sm text-[10px] text-outline flex items-center justify-between pt-0.5">
+<span>Orbital SAR Pol: VV+VH</span>
+<span>Orbit Delta: +14h</span>
+</div>
+</div>
+</div>
+<div class="mt-2 pt-2 flex items-center justify-between">
+<button class="bg-surface-container-high hover:bg-surface-variant text-primary font-body-sm text-body-sm px-space-sm py-1.5 rounded flex items-center gap-1 transition-colors">
+<span class="material-symbols-outlined text-[16px]">refresh</span>
+<span>Force Connection Handshake</span>
+</button>
+<span class="font-label-sm text-[10px] text-outline">Auto-probe: 60s</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Operational Protocol Footer Note -->
+<footer class="mt-space-lg p-space-sm bg-surface-container-lowest rounded flex flex-col sm:flex-row items-center justify-between gap-space-xs">
+<div class="flex items-center gap-space-xs font-label-sm text-label-sm text-outline">
+<span class="material-symbols-outlined text-[16px] text-secondary">verified_user</span>
+<span>Aali AI Flood Operations Center · Audit Trail: Active (Signed SHA-256)</span>
+</div>
+<div class="flex items-center gap-space-sm font-label-sm text-[11px] text-on-surface-variant font-mono">
+<span>DISTRICT_OPS_FENI</span>
+<span>·</span>
+<span>TERMINAL_ROOM_01</span>
+<span>·</span>
+<span class="text-primary">AUTHORITY READ/DISPATCH</span>
+</div>
+</footer>
+<script>
+    function switchRightPanelTab(tab) {
+      const panelIncidents = document.getElementById('panel-incidents');
+      const panelSources = document.getElementById('panel-sources');
+      const btnIncidents = document.getElementById('tab-incidents-btn');
+      const btnSources = document.getElementById('tab-sources-btn');
+
+      if (!panelIncidents || !panelSources || !btnIncidents || !btnSources) return;
+
+      if (tab === 'incidents') {
+        panelIncidents.classList.remove('hidden');
+        panelIncidents.classList.add('flex');
+        panelSources.classList.add('hidden');
+        panelSources.classList.remove('flex');
+
+        btnIncidents.className = 'px-space-sm py-2 rounded bg-primary-container text-on-primary-container font-bold flex items-center justify-center gap-1.5 transition-colors';
+        btnSources.className = 'px-space-sm py-2 rounded text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors flex items-center justify-center gap-1.5';
+      } else {
+        panelSources.classList.remove('hidden');
+        panelSources.classList.add('flex');
+        panelIncidents.classList.add('hidden');
+        panelIncidents.classList.remove('flex');
+
+        btnSources.className = 'px-space-sm py-2 rounded bg-primary-container text-on-primary-container font-bold flex items-center justify-center gap-1.5 transition-colors';
+        btnIncidents.className = 'px-space-sm py-2 rounded text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors flex items-center justify-center gap-1.5';
+      }
+    }
+  </script>
+</div></main></div></body></html>

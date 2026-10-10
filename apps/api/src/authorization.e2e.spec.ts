@@ -48,6 +48,8 @@ describe('API authorization boundary', () => {
     // Reading snapshot is allowed for viewer
     await request(app.getHttpServer()).get('/api/v1/operations/snapshot')
       .set('Authorization', `Bearer ${viewerToken}`).expect(200);
+    await request(app.getHttpServer()).get('/api/v1/assets')
+      .set('Authorization', `Bearer ${viewerToken}`).expect(403);
   });
 
   it('forbids VOLUNTEER from warning approval and boat review, allows field-readings', async () => {
@@ -99,5 +101,51 @@ describe('API authorization boundary', () => {
       .set('Authorization', `Bearer ${responderToken}`)
       .send({ decision: 'ACCEPT', reason: 'Engine boat dispatched by volunteer unit' })
       .expect(201);
+  });
+
+  it('makes endpoint role lists authoritative for ADMIN and limits reference assets to rescue roles', async () => {
+    const adminToken = jwt.sign({ sub: 'admin-id', username: 'admin', role: UserRole.ADMIN, displayName: 'System Admin' });
+    const authorityToken = jwt.sign({ sub: 'authority-id', username: 'authority', role: UserRole.AUTHORITY, displayName: 'Authority' });
+    const residentToken = jwt.sign({ sub: 'resident-id', username: 'resident', role: UserRole.RESIDENT, displayName: 'Resident' });
+
+    // Admin keeps explicit system oversight and safe reference access.
+    await request(app.getHttpServer()).get('/api/v1/users/demo-accounts')
+      .set('Authorization', `Bearer ${adminToken}`).expect(200);
+    await request(app.getHttpServer()).get('/api/v1/areas')
+      .set('Authorization', `Bearer ${adminToken}`).expect(200);
+    await request(app.getHttpServer()).get('/api/v1/assets')
+      .set('Authorization', `Bearer ${adminToken}`).expect(403);
+
+    // Operational records and human warning authority are not implied by ADMIN.
+    await request(app.getHttpServer()).get('/api/v1/sos')
+      .set('Authorization', `Bearer ${adminToken}`).expect(403);
+    await request(app.getHttpServer()).get('/api/v1/incidents')
+      .set('Authorization', `Bearer ${adminToken}`).expect(403);
+    await request(app.getHttpServer()).get('/api/v1/recovery/reports')
+      .set('Authorization', `Bearer ${adminToken}`).expect(403);
+    await request(app.getHttpServer()).post('/api/v1/warnings/warn-001/approve')
+      .set('Authorization', `Bearer ${adminToken}`).send({ note: 'admin approval attempt' }).expect(403);
+    await request(app.getHttpServer()).post('/api/v1/incidents/inc-feni-001/boat-recommendation/review')
+      .set('Authorization', `Bearer ${adminToken}`).send({ decision: 'ACCEPT', reason: 'admin review attempt' }).expect(403);
+
+    // A resident needs village/shelter references, but never the response asset register.
+    await request(app.getHttpServer()).get('/api/v1/areas')
+      .set('Authorization', `Bearer ${residentToken}`).expect(200);
+    await request(app.getHttpServer()).get('/api/v1/shelters')
+      .set('Authorization', `Bearer ${residentToken}`).expect(200);
+    await request(app.getHttpServer()).get('/api/v1/assets')
+      .set('Authorization', `Bearer ${residentToken}`).expect(403);
+
+    await request(app.getHttpServer()).get('/api/v1/assets')
+      .set('Authorization', `Bearer ${authorityToken}`).expect(200);
+  });
+
+  it('keeps warning approval Authority-only while preserving explicit Admin simulation controls', async () => {
+    const adminToken = jwt.sign({ sub: 'admin-id', username: 'admin', role: UserRole.ADMIN, displayName: 'System Admin' });
+
+    await request(app.getHttpServer()).post('/api/v1/simulation/start')
+      .set('Authorization', `Bearer ${adminToken}`).expect(201);
+    await request(app.getHttpServer()).post('/api/v1/warnings/warn-001/approve')
+      .set('Authorization', `Bearer ${adminToken}`).send({ note: 'admin must not approve' }).expect(403);
   });
 });

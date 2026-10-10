@@ -12,10 +12,10 @@ import {
 } from 'class-validator';
 
 export class CreateSosDto {
-  @ApiProperty({ description: 'Stable client-generated report ID for idempotency' })
+  @ApiPropertyOptional({ description: 'Stable client-generated report ID for idempotency' })
   @IsString()
-  @IsNotEmpty()
-  clientReportId!: string;
+  @IsOptional()
+  clientReportId?: string;
 
   @ApiPropertyOptional({ description: 'Optional flood event ID' })
   @IsString()
@@ -26,6 +26,11 @@ export class CreateSosDto {
   @IsString()
   @IsOptional()
   areaId?: string;
+
+  @ApiPropertyOptional({ description: 'Village name alias' })
+  @IsString()
+  @IsOptional()
+  village?: string;
 
   @ApiProperty({ description: 'Number of people needing rescue (1 - 99)', minimum: 1, maximum: 99 })
   @IsInt()
@@ -38,13 +43,30 @@ export class CreateSosDto {
   @IsOptional()
   elderlyCount?: number;
 
-  @ApiProperty({ description: 'Has infants or children' })
+  @ApiPropertyOptional({ description: 'Has elderly flag' })
   @IsBoolean()
-  hasChild!: boolean;
+  @IsOptional()
+  hasElderly?: boolean;
 
-  @ApiProperty({ description: 'Has urgent medical need or injury' })
+  @ApiPropertyOptional({ description: 'Has infants or children' })
   @IsBoolean()
-  hasMedicalNeed!: boolean;
+  @IsOptional()
+  hasChild?: boolean;
+
+  @ApiPropertyOptional({ description: 'Has children flag alias' })
+  @IsBoolean()
+  @IsOptional()
+  hasChildren?: boolean;
+
+  @ApiPropertyOptional({ description: 'Has urgent medical need or injury' })
+  @IsBoolean()
+  @IsOptional()
+  hasMedicalNeed?: boolean;
+
+  @ApiPropertyOptional({ description: 'Needs medical alias' })
+  @IsBoolean()
+  @IsOptional()
+  needsMedical?: boolean;
 
   @ApiProperty({ description: 'Trapped on roof, tree or isolated high spot' })
   @IsBoolean()
@@ -69,6 +91,16 @@ export class CreateSosDto {
   @IsString()
   @IsOptional()
   sourceType?: string;
+
+  @ApiPropertyOptional({ description: 'Optional contact phone (redacted in audit logs)' })
+  @IsString()
+  @IsOptional()
+  residentPhone?: string;
+
+  @ApiPropertyOptional({ description: 'Optional reporter phone alias' })
+  @IsString()
+  @IsOptional()
+  reporterPhone?: string;
 
   @ApiPropertyOptional({ description: 'Canonical validated ASCII packet produced by the resident client' })
   @IsString()

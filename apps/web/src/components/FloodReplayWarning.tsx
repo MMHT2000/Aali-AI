@@ -88,20 +88,22 @@ export function FloodReplayWarning({ mode, eventId, session }: { mode: Operation
     setCurrentTickIndex(0);
     setEvaluation(null);
     setIsPlaying(false);
-    if (!replayEnabled || !eventId) return;
+    if (!replayEnabled) return;
+    const targetEventId = eventId || '11111111-1111-1111-1111-111111111101';
 
     fetch('/api/v1/replay/scenarios')
       .then((res) => (res.ok ? res.json() : []))
       .then((data: ReplayScenarioView[]) => {
-        const selected = data.filter((scenario) => scenario.id === eventId);
-        setScenarios(selected);
-        if (selected.length > 0) setSelectedScenarioId(selected[0].id);
+        const selected = data.filter((scenario) => scenario.id === targetEventId);
+        const toUse = selected.length > 0 ? selected : data;
+        setScenarios(toUse);
+        if (toUse.length > 0) setSelectedScenarioId(toUse[0].id);
       })
       .catch(() => {});
 
     if (canApprove) fetch('/api/v1/warnings')
       .then((res) => (res.ok ? res.json() : []))
-      .then((data: WarningView[]) => setWarnings(data.filter((warning) => warning.event_id === eventId)))
+      .then((data: WarningView[]) => setWarnings(data.filter((warning) => warning.event_id === targetEventId)))
       .catch(() => {});
   }, [canApprove, eventId, replayEnabled]);
 
@@ -260,6 +262,33 @@ export function FloodReplayWarning({ mode, eventId, session }: { mode: Operation
       {actionFeedback && (
         <div style={{ background: '#064e3b', border: '1px solid #10b981', color: '#a7f3d0', padding: '0.5rem 0.8rem', borderRadius: '4px', marginBottom: '1rem', fontSize: '0.85rem' }}>
           {actionFeedback}
+        </div>
+      )}
+
+      {mode === 'EXERCISE' && (
+        <div style={{ background: '#1e293b', border: '1px solid #38bdf8', borderRadius: '8px', padding: '1.25rem', marginBottom: '1.5rem', textAlign: 'center' }}>
+          <h3 style={{ color: '#38bdf8', margin: '0 0 0.5rem', fontSize: '1.1rem' }}>
+            🌊 Run Historical Flood Replay (ঐতিহাসিক বন্যা রিপ্লে চালু করুন)
+          </h3>
+          <p style={{ color: '#94a3b8', fontSize: '0.85rem', margin: '0 0 1rem' }}>
+            You are currently in synthetic Exercise mode. To inspect and step through the full August 2024 or July 2025 Feni flood reconstruction with deterministic 3-signal rules, click below to load the scenario:
+          </p>
+          <a
+            href="?mode=HISTORICAL&eventId=11111111-1111-1111-1111-111111111101"
+            style={{
+              display: 'inline-block',
+              background: '#0284c7',
+              color: '#ffffff',
+              padding: '0.6rem 1.4rem',
+              borderRadius: '6px',
+              fontWeight: 'bold',
+              textDecoration: 'none',
+              fontSize: '0.9rem',
+              boxShadow: '0 2px 8px rgba(2, 132, 199, 0.4)',
+            }}
+          >
+            ▶ Load August 2024 Feni Flood Replay / ঐতিহাসিক রিপ্লে লোড করুন →
+          </a>
         </div>
       )}
 

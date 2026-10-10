@@ -1,6 +1,7 @@
 import { Body, Controller, Get, Patch, Post, Query, Request } from '@nestjs/common';
 import { ApiBearerAuth, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { Roles } from '../../common/auth/roles.decorator';
+import { Public } from '../../common/auth/public.decorator';
 import { UserRole } from '../users/entities/user-role.enum';
 import { SimulationService } from './simulation.service';
 import { CreateFieldReadingDto } from './field-reading.dto';
@@ -23,7 +24,7 @@ export class OperationsController {
   }
 
   @Post('field-readings')
-  @Roles(UserRole.VOLUNTEER, UserRole.ADMIN)
+  @Roles(UserRole.VOLUNTEER)
   recordFieldReading(@Body() dto: CreateFieldReadingDto, @Request() req: { user: { id: string } }) {
     return this.operations.recordFieldReading(dto, req.user.id);
   }
@@ -37,7 +38,7 @@ export class OperationsController {
   pause() { return this.simulation.pause(); }
 
   @Post('simulation/step')
-  @Roles(UserRole.AUTHORITY, UserRole.ADMIN, UserRole.RESPONDER)
+  @Roles(UserRole.AUTHORITY, UserRole.ADMIN)
   step() { return this.simulation.step(); }
 
   @Post('simulation/reset')

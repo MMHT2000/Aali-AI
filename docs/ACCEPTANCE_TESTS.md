@@ -13,6 +13,9 @@
 - API readiness fails cleanly when MySQL is unavailable and recovers when database returns.
 - Unauthenticated users cannot call protected endpoints.
 - Volunteer cannot approve official warning; Viewer cannot edit report; Authority can approve/reject warning.
+- `ADMIN` does not bypass declared role lists: Admin may use explicit oversight/synthetic-control routes but cannot read SOS/incident detail, inspect rescue asset positions, approve warnings, or make responder/recovery field actions.
+- Reference assets are available only to Authority and Responder; resident-safe area/shelter references remain available to their intended authenticated roles.
+- Snapshot projection tests assert allowed and excluded layers for Authority, Responder, Volunteer, Recovery Coordinator, Viewer and Admin.
 
 ### B. SOS and packet
 - SOS can be created with valid GPS.

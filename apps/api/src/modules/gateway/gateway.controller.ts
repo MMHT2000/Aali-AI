@@ -12,7 +12,7 @@ export class GatewayController {
   constructor(private readonly gatewayService: GatewayService) {}
 
   @Post('simulated/ingest')
-  @Roles(UserRole.AUTHORITY, UserRole.RESPONDER, UserRole.ADMIN)
+  @Roles(UserRole.AUTHORITY, UserRole.RESPONDER)
   @ApiOperation({
     summary: 'Demo only: Ingest an ASCII Disaster Packet through simulated carrier SMS gateway',
     description:
@@ -30,7 +30,7 @@ export class GatewayController {
   }
 
   @Get('simulated/traces')
-  @Roles(UserRole.AUTHORITY, UserRole.RESPONDER, UserRole.ADMIN)
+  @Roles(UserRole.AUTHORITY, UserRole.RESPONDER)
   @ApiOperation({ summary: 'List recent simulated gateway transmission traces' })
   getGatewayTraces() {
     return this.gatewayService.getGatewayTraces();

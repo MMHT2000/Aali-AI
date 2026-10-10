@@ -99,7 +99,7 @@ export class OperationsService {
     const isAdmin = role === UserRole.ADMIN;
     const generatedAt = new Date().toISOString();
     const areas = SYNTHETIC_FENI_SEEDS.areas
-      .filter((area) => !isVolunteer || area.area_type === 'VILLAGE')
+      .filter((area) => !isAdmin && (!(isVolunteer || isRecovery) || area.area_type === 'VILLAGE'))
       .map((area) => ({
         id: area.id,
         name: area.name_en,
@@ -120,7 +120,7 @@ export class OperationsService {
     const canSeeReports = canSeeRescueRecords;
     const mapLayers = {
       areas,
-      gauges: isFieldOrSituationRole && mode === OperationsMode.EXERCISE && simulation
+      gauges: isFieldOrSituationRole && !isRecovery && mode === OperationsMode.EXERCISE && simulation
         ? SYNTHETIC_FENI_SEEDS.gauges.map((gauge) => {
           const area = SYNTHETIC_FENI_SEEDS.areas.find((item) => item.id === gauge.area_id);
           return { id: gauge.id, name: gauge.name, latitude: area?.latitude, longitude: area?.longitude, valueM: simulation.sourceData.gauge.valueM, status: simulation.sourceData.gauge.available ? 'REPORTING' : 'STALE', provenance: OperationsProvenance.SYNTHETIC_SIMULATION };
@@ -137,16 +137,21 @@ export class OperationsService {
         const area = areaFor(incident.areaName);
         return { id: incident.id, label: incident.summary, latitude: area?.latitude, longitude: area?.longitude, status: incident.status, peopleCount: incident.peopleCount, provenance: OperationsProvenance.SYNTHETIC_FIXTURE };
       }) : [],
-      sos: canSeeReports ? reports.map((report) => {
-        const area = SYNTHETIC_FENI_SEEDS.areas.find((item) => item.id === report.area_id);
-        const areaLabel = area ? (area.name_bn || area.name_en) : 'Unknown area';
+      sos: canSeeReports ? reports.map((report, idx) => {
+        let area = SYNTHETIC_FENI_SEEDS.areas.find((item) => item.id === report.area_id);
+        if (!area && report.geohash7) {
+          area = SYNTHETIC_FENI_SEEDS.areas.find((item) => item.geohash7 === report.geohash7);
+        }
+        const areaLabel = area ? (area.name_bn || area.name_en) : 'Feni District';
+        const lat = report.location_lat ?? area?.latitude ?? (23.015 + ((idx * 7) % 20 - 10) * 0.003);
+        const lng = report.location_lng ?? area?.longitude ?? (91.397 + ((idx * 13) % 20 - 10) * 0.003);
         return {
           id: report.id,
           shortId: report.packet_short_id,
           name: area ? `${area.name_en} (${report.packet_short_id})` : `SOS ${report.packet_short_id ?? report.id.slice(0, 8)}`,
           label: `${areaLabel} · ${report.people_count} people affected`,
-          latitude: report.location_lat ?? area?.latitude,
-          longitude: report.location_lng ?? area?.longitude,
+          latitude: Number(lat),
+          longitude: Number(lng),
           status: report.review_status,
           peopleCount: report.people_count,
           hasChild: report.has_child,

@@ -20,7 +20,7 @@ export class AlertsController {
 
   @ApiOperation({ summary: 'Evaluate pure deterministic 3-signal flood alert rules' })
   @Post('alerts/evaluate')
-  @Roles(UserRole.AUTHORITY, UserRole.ADMIN)
+  @Roles(UserRole.AUTHORITY, UserRole.RESPONDER, UserRole.ADMIN, UserRole.VIEWER, UserRole.VOLUNTEER, UserRole.RECOVERY_COORDINATOR)
   evaluateAlert(@Body() body: ThreeSignalAlertInput) {
     return this.alertsService.evaluateAlert(body);
   }
@@ -34,7 +34,7 @@ export class AlertsController {
 
   @ApiOperation({ summary: 'Initialize or start historical replay scenario' })
   @Post('replay/runs')
-  @Roles(UserRole.AUTHORITY, UserRole.RESPONDER, UserRole.ADMIN)
+  @Roles(UserRole.AUTHORITY, UserRole.ADMIN)
   startReplay(@Body('scenarioId') scenarioId: string) {
     return this.alertsService.startReplay(scenarioId);
   }
@@ -48,7 +48,7 @@ export class AlertsController {
 
   @ApiOperation({ summary: 'Step replay tick forward/backward' })
   @Post('replay/runs/:id/step')
-  @Roles(UserRole.AUTHORITY, UserRole.RESPONDER, UserRole.ADMIN)
+  @Roles(UserRole.AUTHORITY, UserRole.ADMIN)
   stepReplay(
     @Param('id') runId: string,
     @Body('direction') direction: 'NEXT' | 'PREV' | 'SET_TICK',
@@ -69,21 +69,21 @@ export class AlertsController {
 
   @ApiOperation({ summary: 'List all warning drafts and approvals' })
   @Get('warnings')
-  @Roles(UserRole.AUTHORITY, UserRole.ADMIN)
+  @Roles(UserRole.AUTHORITY)
   getWarnings() {
     return this.alertsService.getWarnings();
   }
 
   @ApiOperation({ summary: 'Draft a ward-level emergency warning citing supporting signals' })
   @Post('warnings/drafts')
-  @Roles(UserRole.AUTHORITY, UserRole.ADMIN)
+  @Roles(UserRole.AUTHORITY)
   createDraft(@Body() dto: WarningDraftDto, @Request() req: { user: { id: string } }) {
     return this.alertsService.createWarningDraft(dto, req.user.id);
   }
 
   @ApiOperation({ summary: 'Approve warning draft (human authority approval required)' })
   @Post('warnings/:id/approve')
-  @Roles(UserRole.AUTHORITY, UserRole.ADMIN)
+  @Roles(UserRole.AUTHORITY)
   approveWarning(
     @Param('id') id: string,
     @Body('note') note: string,
@@ -94,7 +94,7 @@ export class AlertsController {
 
   @ApiOperation({ summary: 'Reject warning draft' })
   @Post('warnings/:id/reject')
-  @Roles(UserRole.AUTHORITY, UserRole.ADMIN)
+  @Roles(UserRole.AUTHORITY)
   rejectWarning(
     @Param('id') id: string,
     @Body('reason') reason: string,
@@ -105,7 +105,7 @@ export class AlertsController {
 
   @ApiOperation({ summary: 'Simulate warning broadcast via cell broadcast/SMS (Demo only)' })
   @Post('warnings/:id/send-simulated')
-  @Roles(UserRole.AUTHORITY, UserRole.ADMIN)
+  @Roles(UserRole.AUTHORITY)
   simulateBroadcast(@Param('id') id: string) {
     return this.alertsService.simulateBroadcast(id);
   }

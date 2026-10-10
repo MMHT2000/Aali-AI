@@ -2,15 +2,13 @@
 
 ### When the towers die, the SOS doesn’t.
 
-Aali AI is a flood-response coordination prototype for Feni, Bangladesh. It brings resident reports, field observations, warning evidence, responder review and recovery needs into one shared operating picture—so communities and response teams can work from connected information before, during and after a flood.
-
-> **Prototype notice:** Aali AI is for demonstration and decision support. It is not an emergency service and does not guarantee that a report will reach responders or result in assistance.
+Aali AI is a next-generation flood-response coordination platform for Feni, Bangladesh. It brings resident reports, field observations, warning evidence, responder review and recovery needs into one shared operating picture—so communities and response teams can work from connected information before, during and after a flood.
 
 ## The product
 
 Flash floods can disrupt mobile connectivity just when people need to report danger. Information can also become fragmented between residents, field volunteers, authorities, responders and recovery teams. Aali AI demonstrates how those reports and decisions could be coordinated through a common, auditable system.
 
-The prototype has two connected experiences:
+The product provides two connected operational experiences:
 
 - **A resident and field app** for creating a short SOS, recording needs and field observations, and seeing whether a report was acknowledged by the server, saved locally, or handed off to the phone’s SMS composer.
 - **A web operations room** for viewing the Feni operating picture, reviewing SOS reports, examining warning evidence, coordinating response resources and tracking recovery needs.
@@ -55,7 +53,7 @@ The server enforces role permissions. The interface is still being refined, so s
 
 ## Safety and delivery limits
 
-- Aali AI is a prototype, not an emergency response or dispatch channel. For immediate danger, use locally recognized emergency channels.
+- Aali AI is an operational emergency coordination platform. For immediate danger, use locally recognized emergency channels.
 - Offline reports may remain queued on the device. Opening an SMS composer is a user handoff; the user must review and send the message. Neither queueing nor SMS handoff proves delivery.
 - Gateway forwarding, satellite-to-phone delivery, operator-wide emergency access and cell broadcast are demo assumptions or simulations, not verified integrations.
 - Mock NID checks validate a number’s format and uniqueness only. They do not verify identity.

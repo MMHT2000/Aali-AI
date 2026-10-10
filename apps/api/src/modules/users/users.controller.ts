@@ -20,6 +20,7 @@ import { UserRole } from './entities/user-role.enum';
 @Controller('api/v1/users')
 export class UsersController {
   @Get('demo-accounts')
+  @Roles(UserRole.ADMIN)
   @ApiOperation({ summary: 'List available synthetic demo accounts and roles' })
   @ApiResponse({ status: 200, description: 'Synthetic demo accounts metadata' })
   getDemoAccounts() {
@@ -34,7 +35,7 @@ export class UsersController {
 
   @Post('authority-action')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles(UserRole.AUTHORITY)
+  @Roles(UserRole.AUTHORITY, UserRole.ADMIN)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Protected action restricted to AUTHORITY or ADMIN' })
   @ApiResponse({ status: 200, description: 'Action authorized' })
@@ -48,7 +49,7 @@ export class UsersController {
 
   @Post('responder-action')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles(UserRole.RESPONDER)
+  @Roles(UserRole.RESPONDER, UserRole.ADMIN)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Protected action restricted to RESPONDER or ADMIN' })
   @ApiResponse({ status: 200, description: 'Action authorized' })

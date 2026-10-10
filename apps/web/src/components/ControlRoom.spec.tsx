@@ -15,6 +15,16 @@ vi.mock('./OperationsOverview', () => ({
   OperationsOverview: () => <section>Situation room content</section>,
 }));
 
+vi.mock('../lib/operations-client', () => ({
+  getOperationsSnapshot: vi.fn().mockResolvedValue({
+    role: 'VIEWER', generatedAt: '2026-10-10T00:00:00.000Z',
+    context: { mode: 'EXERCISE', event: { id: 'event-1', name: 'Synthetic Feni exercise' }, sources: [] },
+    mapLayers: { areas: [], gauges: [], shelters: [], assets: [], incidents: [], sos: [] },
+    queue: {}, visibility: { sos: false, incidents: false, assets: false, simulationControls: false, aggregateOnly: true },
+  }),
+  sendSimulationControl: vi.fn(),
+}));
+
 const authoritySession: UserSession = {
   id: 'authority-id',
   username: 'authority_dc',
@@ -35,7 +45,7 @@ describe('ControlRoom command frame', () => {
     vi.stubGlobal('fetch', vi.fn());
   });
 
-  it('shows the role, current workspace, API state and prototype disclosure', async () => {
+  it('shows the role, current workspace and API state', async () => {
     render(
       <MemoryRouter initialEntries={['/control-room/map']}>
         <ControlRoom session={authoritySession} onLogout={vi.fn()} />
@@ -44,7 +54,6 @@ describe('ControlRoom command frame', () => {
 
     expect(screen.getByText('AUTHORITY')).toBeInTheDocument();
     expect(screen.getByRole('combobox', { name: 'Shared data mode' })).toHaveValue('EXERCISE');
-    expect(screen.getByRole('note', { name: 'Prototype disclosure' })).toHaveTextContent('Not an emergency service');
     expect(screen.getByRole('navigation', { name: 'Operations workspaces' })).toContainElement(
       screen.getByRole('link', { name: /SOS & incidents/ }),
     );
@@ -75,10 +84,25 @@ describe('ControlRoom command frame', () => {
     );
 
     const navigation = screen.getByRole('navigation', { name: 'Operations workspaces' });
-    expect(navigation).toHaveTextContent('Situation room');
+    expect(navigation).toHaveTextContent('Situation summary');
+    expect(navigation).not.toHaveTextContent('Situation room');
     expect(navigation).toHaveTextContent('Replay & exercise');
     expect(navigation).not.toHaveTextContent('Warnings & approvals');
     expect(navigation).not.toHaveTextContent('Configuration');
+    expect(await screen.findByRole('heading', { name: 'Feni situation summary' })).toBeInTheDocument();
     await waitFor(() => expect(screen.getByRole('status', { name: 'API connected' })).toBeInTheDocument());
+  });
+
+  it('lands responders on the rescue desk instead of the Authority map', async () => {
+    const responderSession: UserSession = { ...authoritySession, role: 'RESPONDER' };
+    render(
+      <MemoryRouter initialEntries={['/control-room/map']}>
+        <ControlRoom session={responderSession} onLogout={vi.fn()} />
+      </MemoryRouter>,
+    );
+
+    expect(await screen.findByRole('heading', { name: /Responder desk/i })).toBeInTheDocument();
+    expect(screen.queryByText('Situation room content')).not.toBeInTheDocument();
+    expect(screen.getByRole('navigation', { name: 'Operations workspaces' })).not.toHaveTextContent('Situation room');
   });
 });

@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+
+<html class="h-full" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/>
+<title>Emergency Triage · Responder Desk</title>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700&amp;family=Roboto+Flex:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "surface-container-lowest": "#ffffff",
+            "on-error": "#ffffff",
+            "secondary-container": "#da342d",
+            "inverse-on-surface": "#eff1f2",
+            "secondary": "#b61718",
+            "on-primary": "#ffffff",
+            "tertiary-fixed": "#ffdeaa",
+            "surface-container-low": "#f2f4f5",
+            "primary-fixed-dim": "#85d2e0",
+            "surface-bright": "#f8f9fa",
+            "background": "#f8f9fa",
+            "tertiary-container": "#ffd185",
+            "on-tertiary-container": "#271900",
+            "outline": "#6f797b",
+            "on-primary-fixed": "#001f24",
+            "secondary-fixed": "#ffdad5",
+            "on-primary-fixed-variant": "#004f58",
+            "surface-dim": "#d8dadb",
+            "on-error-container": "#93000a",
+            "inverse-surface": "#2e3132",
+            "primary": "#004e58",
+            "outline-variant": "#bec8ca",
+            "on-surface-variant": "#3f484a",
+            "surface-container-highest": "#e1e3e4",
+            "error-container": "#ffdad6",
+            "on-secondary-container": "#fffbff",
+            "surface-tint": "#016874",
+            "surface-container": "#eceeef",
+            "on-tertiary": "#ffffff",
+            "surface-container-high": "#e7e8e9",
+            "tertiary": "#5f4100",
+            "on-tertiary-fixed-variant": "#5f4100",
+            "on-secondary-fixed": "#410002",
+            "on-surface": "#191c1d",
+            "on-primary-container": "#97e4f2",
+            "on-secondary-fixed-variant": "#930009",
+            "on-background": "#191c1d",
+            "inverse-primary": "#85d2e0",
+            "error": "#ba1a1a",
+            "on-tertiary-fixed": "#271900",
+            "primary-container": "#006874",
+            "surface-variant": "#e1e3e4",
+            "on-secondary": "#ffffff",
+            "primary-fixed": "#a2effd",
+            "secondary-fixed-dim": "#ffb4ab",
+            "tertiary-fixed-dim": "#f1be65",
+            "surface": "#f8f9fa"
+          },
+          fontFamily: {
+            "label-lg": ["Roboto Flex", "sans-serif"],
+            "headline-lg-mobile": ["Roboto Flex", "sans-serif"],
+            "label-sm": ["Roboto Flex", "sans-serif"],
+            "headline-sm": ["Roboto Flex", "sans-serif"],
+            "body-lg": ["Noto Sans", "sans-serif"],
+            "body-md": ["Noto Sans", "sans-serif"],
+            "label-md": ["Roboto Flex", "sans-serif"],
+            "body-sm": ["Noto Sans", "sans-serif"],
+            "headline-lg": ["Roboto Flex", "sans-serif"],
+            "headline-md": ["Roboto Flex", "sans-serif"]
+          }
+        }
+      }
+    };
+  </script>
+<style>
+    @layer base {
+      html, body {
+        width: 100%;
+        margin: 0;
+        padding: 0;
+        user-select: none;
+        -webkit-user-select: none;
+      }
+      body {
+        overscroll-behavior-y: none;
+      }
+    }
+    ::-webkit-scrollbar {
+      display: none;
+    }
+  </style>
+</head>
+<body class="bg-[#f8f9fa] dark:bg-[#111415] text-[#191c1d] dark:text-[#e1e3e4] font-body-md min-h-screen flex flex-col justify-between antialiased transition-colors duration-300">
+<!-- Android 14 System Status Bar -->
+<header class="sticky top-0 z-50 bg-[#f8f9fa]/95 dark:bg-[#111415]/95 backdrop-blur-md transition-colors duration-300">
+<div class="h-7 px-5 flex items-center justify-between text-xs font-semibold tracking-tight text-[#191c1d] dark:text-[#e1e3e4] select-none">
+<span class="font-bold text-[13px] tracking-normal">10:00</span>
+<div class="flex items-center gap-2 text-[14px]">
+<span class="material-symbols-outlined text-[15px] leading-none">signal_cellular_4_bar</span>
+<span class="material-symbols-outlined text-[15px] leading-none">wifi</span>
+<span class="material-symbols-outlined text-[16px] leading-none rotate-90">battery_full</span>
+</div>
+</div>
+<!-- M3 Top App Bar (Small / Center-Aligned) -->
+<div class="px-4 py-2 flex items-center justify-between border-b border-black/[0.04] dark:border-white/[0.06]">
+<div class="flex items-center gap-2.5 min-w-0">
+<button aria-label="Menu" class="w-10 h-10 rounded-full flex items-center justify-center text-[#3f484a] dark:text-[#bec8ca] hover:bg-black/5 dark:hover:bg-white/10 active:scale-95 transition-all" type="button">
+<span class="material-symbols-outlined text-[24px]">menu</span>
+</button>
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-2">
+<h1 class="font-headline-sm text-[18px] leading-tight font-bold text-[#191c1d] dark:text-[#e1e3e4] truncate">
+              Emergency Triage
+            </h1>
+<span class="hidden sm:inline text-xs text-[#3f484a] dark:text-[#bec8ca] font-medium">/ জরুরি ট্রায়াজ</span>
+</div>
+<div class="flex items-center gap-1.5 mt-0.5">
+<span class="inline-flex items-center gap-1 text-[11px] font-semibold text-primary dark:text-[#85d2e0] bg-primary/10 dark:bg-[#85d2e0]/15 px-2 py-0.5 rounded-full">
+<span class="w-1.5 h-1.5 rounded-full bg-primary dark:bg-[#85d2e0] animate-pulse"></span>
+              2 Active Cards
+            </span>
+<span class="text-[11px] text-[#6f797b] dark:text-[#8e989a]">· Feni Desk</span>
+</div>
+</div>
+</div>
+<!-- Action Chips & Controls -->
+<div class="flex items-center gap-1.5 shrink-0">
+<!-- Language Chip -->
+<button class="h-8 px-2.5 rounded-full border border-[#bec8ca]/60 dark:border-[#3f484a] text-[12px] font-semibold text-[#3f484a] dark:text-[#bec8ca] hover:bg-black/5 dark:hover:bg-white/5 flex items-center gap-1 transition-colors" type="button">
+<span class="material-symbols-outlined text-[15px]">translate</span>
+<span>BN</span>
+</button>
+<!-- Dark Mode Toggle Button -->
+<button aria-label="Toggle Theme" class="w-9 h-9 rounded-full flex items-center justify-center text-[#191c1d] dark:text-[#e1e3e4] bg-[#eceeef] dark:bg-[#1c2122] hover:bg-[#e1e3e4] dark:hover:bg-[#282f30] active:scale-95 transition-all shadow-sm" id="theme-toggle" type="button">
+<span class="material-symbols-outlined text-[20px]" id="theme-toggle-icon">dark_mode</span>
+</button>
+</div>
+</div>
+</header>
+<!-- Main Content Container -->
+<main class="flex-1 w-full max-w-md mx-auto px-4 py-3 flex flex-col gap-4 pb-28">
+<!-- Overview Status Banner (M3 Tonal Surface) -->
+<section class="rounded-[20px] bg-[#eceeef]/70 dark:bg-[#1c2122]/80 p-3.5 flex items-center justify-between border border-black/[0.03] dark:border-white/[0.05]">
+<div class="flex items-center gap-3">
+<div class="flex flex-col">
+<span class="text-[11px] font-semibold uppercase tracking-wider text-[#6f797b] dark:text-[#8e989a]">Queue Total</span>
+<span class="text-[17px] font-bold text-[#191c1d] dark:text-[#e1e3e4]">14 reports</span>
+</div>
+<div class="h-7 w-[1px] bg-[#bec8ca]/40 dark:bg-[#3f484a]"></div>
+<div class="flex flex-col">
+<span class="text-[11px] font-semibold uppercase tracking-wider text-[#ba1a1a] dark:text-[#ffb4ab]">Critical</span>
+<span class="text-[17px] font-bold text-[#ba1a1a] dark:text-[#ffb4ab]">4 urgent</span>
+</div>
+</div>
+<div class="flex items-center gap-1.5 text-[11px] text-[#6f797b] dark:text-[#8e989a] bg-[#f8f9fa] dark:bg-[#111415] px-2.5 py-1 rounded-full border border-black/[0.04] dark:border-white/[0.06]">
+<span class="material-symbols-outlined text-[14px]">history</span>
+<span>Cached 18m ago</span>
+</div>
+</section>
+<!-- M3 Triage Card 1: Critical (SOS-7K4M) -->
+<article class="relative rounded-[28px] p-5 bg-[#ffffff] dark:bg-[#1c2122] shadow-[0_2px_12px_rgba(0,0,0,0.06)] dark:shadow-[0_2px_16px_rgba(0,0,0,0.35)] border border-[#ffdad6] dark:border-[#93000a]/40 flex flex-col gap-3.5 transition-all">
+<!-- Decorative left accent bar for M3 critical urgency -->
+<div class="absolute left-0 top-6 bottom-6 w-1.5 bg-[#ba1a1a] dark:bg-[#ffb4ab] rounded-r-full"></div>
+<!-- Header: Badges & Timestamp -->
+<div class="flex items-center justify-between pl-1">
+<div class="flex items-center gap-2">
+<span class="inline-flex items-center px-2.5 py-1 rounded-full bg-[#ffdad6] dark:bg-[#93000a]/70 text-[#93000a] dark:text-[#ffdad6] text-[11px] font-bold tracking-wide">
+            CRITICAL
+          </span>
+<span class="font-headline-sm text-[16px] font-bold tracking-tight text-[#191c1d] dark:text-[#ffffff]">
+            SOS-7K4M
+          </span>
+</div>
+<span class="text-[12px] font-medium text-[#6f797b] dark:text-[#bec8ca]">12m ago</span>
+</div>
+<!-- Location -->
+<div class="pl-1">
+<div class="flex items-center gap-1.5 text-[#191c1d] dark:text-[#e1e3e4]">
+<span class="material-symbols-outlined text-primary dark:text-[#85d2e0] text-[20px]">location_on</span>
+<h3 class="font-headline-sm text-[16px] font-bold leading-snug">Chandgazi Village, Ward 4</h3>
+</div>
+<p class="font-body-md text-[14px] text-[#3f484a] dark:text-[#bec8ca] mt-1.5 leading-relaxed">
+          4 people on roof (includes infant &amp; senior). Water ~1.8m.
+        </p>
+</div>
+<!-- AI Suggested Dispatch Banner (M3 Surface Container Low) -->
+<div class="rounded-[16px] bg-[#f2f4f5] dark:bg-[#252b2c] p-3 text-[12px] border border-black/[0.03] dark:border-white/[0.05]">
+<p class="text-[#3f484a] dark:text-[#bec8ca] leading-relaxed">
+<strong class="text-[#191c1d] dark:text-[#ffffff] font-semibold">Suggested:</strong> Boat Rescue Unit 4
+          <span class="text-[#ba1a1a] dark:text-[#ffb4ab] font-medium block mt-0.5">
+            (Human review required — no automatic dispatch)
+          </span>
+</p>
+</div>
+<!-- M3 Pill Action Buttons -->
+<div class="flex items-center gap-2.5 pt-1">
+<button class="flex-1 h-11 px-4 rounded-full bg-primary hover:bg-[#00363e] active:scale-[0.98] text-[#ffffff] font-label-md text-[13px] font-bold flex items-center justify-center gap-2 shadow-sm transition-all" id="acknowledge-btn" type="button">
+<span class="material-symbols-outlined text-[19px]">check_circle</span>
+<span>Acknowledge Report</span>
+</button>
+<button class="h-11 px-4 rounded-full bg-[#eceeef] dark:bg-[#282f30] hover:bg-[#e1e3e4] dark:hover:bg-[#343d3e] text-[#191c1d] dark:text-[#e1e3e4] font-label-md text-[13px] font-semibold transition-colors active:scale-[0.98]" type="button">
+          More Info
+        </button>
+</div>
+</article>
+<!-- M3 Triage Card 2: High Priority (SOS-3B9R) -->
+<article class="relative rounded-[28px] p-5 bg-[#ffffff] dark:bg-[#1c2122] shadow-[0_2px_12px_rgba(0,0,0,0.06)] dark:shadow-[0_2px_16px_rgba(0,0,0,0.35)] border border-[#ffdeaa]/60 dark:border-[#ffd185]/20 flex flex-col gap-3.5 transition-all">
+<!-- Decorative left accent bar for high urgency -->
+<div class="absolute left-0 top-6 bottom-6 w-1.5 bg-[#f1be65] dark:bg-[#ffd185] rounded-r-full"></div>
+<!-- Header: Badges & Timestamp -->
+<div class="flex items-center justify-between pl-1">
+<div class="flex items-center gap-2">
+<span class="inline-flex items-center px-2.5 py-1 rounded-full bg-[#ffdeaa] dark:bg-[#ffd185]/25 text-[#5f4100] dark:text-[#ffd185] text-[11px] font-bold tracking-wide">
+            HIGH
+          </span>
+<span class="font-headline-sm text-[16px] font-bold tracking-tight text-[#191c1d] dark:text-[#ffffff]">
+            SOS-3B9R
+          </span>
+</div>
+<span class="text-[12px] font-medium text-[#6f797b] dark:text-[#bec8ca]">24m ago</span>
+</div>
+<!-- Location -->
+<div class="pl-1">
+<div class="flex items-center gap-1.5 text-[#191c1d] dark:text-[#e1e3e4]">
+<span class="material-symbols-outlined text-[#6f797b] dark:text-[#bec8ca] text-[20px]">location_on</span>
+<h3 class="font-headline-sm text-[16px] font-bold leading-snug">Parshuram Bazar</h3>
+</div>
+<p class="font-body-md text-[14px] text-[#3f484a] dark:text-[#bec8ca] mt-1.5 leading-relaxed">
+          2 people isolated. Cold exposure / insulin need.
+        </p>
+</div>
+<!-- Bottom action row: Status & Action Button -->
+<div class="flex items-center justify-between pt-2 border-t border-[#eceeef] dark:border-white/[0.08] pl-1">
+<div class="flex items-center gap-1.5 text-[13px] text-[#6f797b] dark:text-[#8e989a]">
+<span class="w-2 h-2 rounded-full bg-[#f1be65]"></span>
+<span>Unassigned</span>
+</div>
+<button class="h-10 px-4 rounded-full border border-primary/40 dark:border-[#85d2e0]/50 hover:bg-primary/5 dark:hover:bg-[#85d2e0]/10 text-primary dark:text-[#85d2e0] font-label-md text-[13px] font-bold flex items-center gap-1.5 transition-all active:scale-[0.98]" type="button">
+<span>Review</span>
+<span class="material-symbols-outlined text-[17px]">arrow_forward</span>
+</button>
+</div>
+</article>
+</main>
+<!-- M3 Bottom Navigation Bar with Authentic Active Pill -->
+<footer class="fixed bottom-0 inset-x-0 z-50 bg-[#eceeef] dark:bg-[#181d1e] border-t border-black/[0.05] dark:border-white/[0.06] transition-colors duration-300">
+<nav class="max-w-md mx-auto flex items-center justify-around h-16 px-3">
+<!-- Tab 1: SOS Help -->
+<a class="flex flex-col items-center justify-center group flex-1 py-1 text-[#3f484a] dark:text-[#bec8ca]" href="#">
+<div class="w-14 h-8 rounded-full flex items-center justify-center transition-all group-hover:bg-black/5 dark:group-hover:bg-white/5">
+<span class="material-symbols-outlined text-[23px]">sos</span>
+</div>
+<span class="text-[11px] font-medium tracking-tight mt-0.5">SOS Help</span>
+</a>
+<!-- Tab 2: Responder (Active) -->
+<a class="flex flex-col items-center justify-center flex-1 py-1 text-primary dark:text-[#85d2e0]" href="#">
+<!-- Material You Active Pill Indicator -->
+<div class="w-16 h-8 rounded-full bg-[#97e4f2]/60 dark:bg-[#004f58] flex items-center justify-center transition-all">
+<span class="material-symbols-outlined text-[23px] text-[#001f24] dark:text-[#a2effd] font-bold" style="font-variation-settings: 'FILL' 1;">emergency_home</span>
+</div>
+<span class="text-[11px] font-bold tracking-tight text-[#001f24] dark:text-[#a2effd] mt-0.5">Responder</span>
+</a>
+<!-- Tab 3: Volunteer -->
+<a class="flex flex-col items-center justify-center group flex-1 py-1 text-[#3f484a] dark:text-[#bec8ca]" href="#">
+<div class="w-14 h-8 rounded-full flex items-center justify-center transition-all group-hover:bg-black/5 dark:group-hover:bg-white/5">
+<span class="material-symbols-outlined text-[23px]">volunteer_activism</span>
+</div>
+<span class="text-[11px] font-medium tracking-tight mt-0.5">Volunteer</span>
+</a>
+<!-- Tab 4: Settings -->
+<a class="flex flex-col items-center justify-center group flex-1 py-1 text-[#3f484a] dark:text-[#bec8ca]" href="#">
+<div class="w-14 h-8 rounded-full flex items-center justify-center transition-all group-hover:bg-black/5 dark:group-hover:bg-white/5">
+<span class="material-symbols-outlined text-[23px]">settings</span>
+</div>
+<span class="text-[11px] font-medium tracking-tight mt-0.5">Settings</span>
+</a>
+</nav>
+<!-- Native Android 14 Bottom Gesture Bar -->
+<div class="h-4 pb-2 w-full flex items-center justify-center">
+<div class="w-28 h-1 bg-[#191c1d]/30 dark:bg-[#e1e3e4]/30 rounded-full"></div>
+</div>
+</footer>
+<script>
+    (function() {
+      // Dark Mode toggle logic
+      const themeToggleBtn = document.getElementById('theme-toggle');
+      const themeToggleIcon = document.getElementById('theme-toggle-icon');
+      const rootHtml = document.documentElement;
+
+      function updateThemeIcon() {
+        if (rootHtml.classList.contains('dark')) {
+          themeToggleIcon.textContent = 'light_mode';
+        } else {
+          themeToggleIcon.textContent = 'dark_mode';
+        }
+      }
+
+      if (themeToggleBtn) {
+        themeToggleBtn.addEventListener('click', function() {
+          rootHtml.classList.toggle('dark');
+          updateThemeIcon();
+        });
+      }
+
+      // Initial check for system dark preference
+      if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        rootHtml.classList.add('dark');
+        updateThemeIcon();
+      }
+
+      // Acknowledge Action Simulation
+      const ackBtn = document.getElementById('acknowledge-btn');
+      if (ackBtn) {
+        ackBtn.addEventListener('click', function() {
+          const originalContent = this.innerHTML;
+          this.disabled = true;
+          this.innerHTML = `
+            <span class="material-symbols-outlined text-[19px] animate-spin">progress_activity</span>
+            <span>Relaying to Dispatch...</span>
+          `;
+          this.classList.add('opacity-90');
+
+          setTimeout(() => {
+            this.innerHTML = `
+              <span class="material-symbols-outlined text-[19px]">done_all</span>
+              <span>Unit 4 Dispatched</span>
+            `;
+            this.classList.remove('bg-primary', 'dark:bg-primary');
+            this.classList.add('bg-emerald-700', 'text-white');
+          }, 1100);
+        });
+      }
+    })();
+  </script>
+</body></html>

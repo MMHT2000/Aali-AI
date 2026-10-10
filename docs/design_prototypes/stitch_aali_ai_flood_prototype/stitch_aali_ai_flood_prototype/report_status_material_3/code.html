@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/>
+<meta content="mobile_stack" name="shell-type"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700&amp;family=Roboto+Flex:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "surface-container-lowest": "#ffffff",
+            "on-error": "#ffffff",
+            "secondary-container": "#da342d",
+            "inverse-on-surface": "#eff1f2",
+            "secondary": "#b61718",
+            "on-primary": "#ffffff",
+            "tertiary-fixed": "#ffdeaa",
+            "surface-container-low": "#f2f4f5",
+            "primary-fixed-dim": "#85d2e0",
+            "surface-bright": "#f8f9fa",
+            "background": "#f8f9fa",
+            "tertiary-container": "#7d5700",
+            "outline": "#6f797b",
+            "on-tertiary-container": "#ffd185",
+            "on-primary-fixed": "#001f24",
+            "secondary-fixed": "#ffdad5",
+            "on-primary-fixed-variant": "#004f58",
+            "surface-dim": "#d8dadb",
+            "on-error-container": "#93000a",
+            "inverse-surface": "#2e3132",
+            "primary": "#004e58",
+            "outline-variant": "#bec8ca",
+            "on-surface-variant": "#3f484a",
+            "surface-container-highest": "#e1e3e4",
+            "error-container": "#ffdad6",
+            "on-secondary-container": "#fffbff",
+            "surface-tint": "#016874",
+            "surface-container": "#eceeef",
+            "on-tertiary": "#ffffff",
+            "surface-container-high": "#e7e8e9",
+            "tertiary": "#5f4100",
+            "on-tertiary-fixed-variant": "#5f4100",
+            "on-secondary-fixed": "#410002",
+            "on-surface": "#191c1d",
+            "on-primary-container": "#97e4f2",
+            "on-secondary-fixed-variant": "#930009",
+            "on-background": "#191c1d",
+            "inverse-primary": "#85d2e0",
+            "error": "#ba1a1a",
+            "on-tertiary-fixed": "#271900",
+            "primary-container": "#006874",
+            "surface-variant": "#e1e3e4",
+            "on-secondary": "#ffffff",
+            "primary-fixed": "#a2effd",
+            "secondary-fixed-dim": "#ffb4ab",
+            "tertiary-fixed-dim": "#f1be65",
+            "surface": "#f8f9fa"
+          },
+          borderRadius: {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          spacing: {
+            "margin": "1rem",
+            "gutter": "1rem",
+            "space-md": "1rem",
+            "margin-sm": "0.75rem",
+            "space-sm": "0.5rem",
+            "space-lg": "1.5rem",
+            "gutter-sm": "0.75rem",
+            "space-xs": "0.25rem",
+            "space-xl": "2rem"
+          },
+          fontFamily: {
+            "label-lg": ["Roboto Flex"],
+            "headline-lg-mobile": ["Roboto Flex"],
+            "label-sm": ["Roboto Flex"],
+            "headline-sm": ["Roboto Flex"],
+            "body-lg": ["Noto Sans"],
+            "body-md": ["Noto Sans"],
+            "label-md": ["Roboto Flex"],
+            "body-sm": ["Noto Sans"],
+            "headline-lg": ["Roboto Flex"],
+            "headline-md": ["Roboto Flex"]
+          },
+          fontSize: {
+            "label-lg": ["15px", { lineHeight: "20px", fontWeight: "600" }],
+            "headline-lg-mobile": ["26px", { lineHeight: "32px", fontWeight: "700" }],
+            "label-sm": ["11px", { lineHeight: "14px", letterSpacing: "0.5px", fontWeight: "700" }],
+            "headline-sm": ["18px", { lineHeight: "24px", fontWeight: "600" }],
+            "body-lg": ["16px", { lineHeight: "24px", fontWeight: "400" }],
+            "body-md": ["14px", { lineHeight: "20px", fontWeight: "400" }],
+            "label-md": ["13px", { lineHeight: "16px", fontWeight: "600" }],
+            "body-sm": ["12px", { lineHeight: "16px", fontWeight: "400" }],
+            "headline-lg": ["32px", { lineHeight: "40px", fontWeight: "700" }],
+            "headline-md": ["22px", { lineHeight: "28px", fontWeight: "600" }]
+          }
+        }
+      }
+    };
+  </script>
+<style>
+    @layer base {
+      html, body {
+        width: 100vw;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        overscroll-behavior: none;
+      }
+      .pb-safe {
+        padding-bottom: env(safe-area-inset-bottom, 0px);
+      }
+      .pt-safe {
+        padding-top: env(safe-area-inset-top, 0px);
+      }
+    }
+    ::-webkit-scrollbar {
+      display: none;
+    }
+  </style>
+</head>
+<body class="bg-surface dark:bg-[#111415] font-body-md text-on-surface dark:text-[#e1e3e4] flex flex-col min-h-screen transition-colors duration-200">
+<!-- Android 14 System Status Bar -->
+<div class="fixed top-0 inset-x-0 z-50 h-10 px-5 flex items-center justify-between text-on-surface dark:text-[#e1e3e4] bg-surface/90 dark:bg-[#111415]/90 backdrop-blur-md select-none text-xs font-semibold tracking-tight">
+<span class="font-mono">10:00</span>
+<div class="flex items-center gap-1.5 opacity-90">
+<span class="material-symbols-outlined text-[16px]">signal_cellular_4_bar</span>
+<span class="material-symbols-outlined text-[16px]">wifi</span>
+<span class="material-symbols-outlined text-[18px]">battery_full</span>
+</div>
+</div>
+<!-- M3 Top App Bar -->
+<header class="fixed top-10 inset-x-0 z-40 bg-surface/95 dark:bg-[#111415]/95 backdrop-blur-lg border-b border-surface-container-high/60 dark:border-white/5 transition-colors">
+<div class="h-16 px-3 flex items-center justify-between gap-2">
+<div class="flex items-center gap-2 min-w-0">
+<button aria-label="Go back" class="w-11 h-11 rounded-full flex items-center justify-center text-on-surface dark:text-[#e1e3e4] hover:bg-surface-container dark:hover:bg-white/10 active:scale-95 transition-all" onclick="history.back()">
+<span class="material-symbols-outlined text-[24px]">arrow_back</span>
+</button>
+<div class="flex flex-col truncate">
+<span class="font-headline-sm text-[19px] leading-tight text-on-surface dark:text-[#e1e3e4] font-semibold truncate">Report Status / অবস্থা</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant dark:text-[#bec8ca] truncate">Aali Emergency Dispatch</span>
+</div>
+</div>
+<div class="flex items-center gap-1.5 shrink-0">
+<!-- Language toggle chip -->
+<button class="h-9 px-3 rounded-full bg-surface-container-low dark:bg-white/10 text-on-surface dark:text-[#e1e3e4] font-label-md text-label-md flex items-center justify-center hover:bg-surface-container dark:hover:bg-white/15 transition-colors">
+<span class="text-primary dark:text-[#85d2e0] font-bold">EN</span>
+<span class="mx-1 text-outline dark:text-outline-variant">|</span>
+<span class="text-on-surface-variant dark:text-white/80">বাং</span>
+</button>
+<!-- Dark Mode Toggle Button -->
+<button aria-label="Toggle Theme" class="w-10 h-10 rounded-full flex items-center justify-center text-on-surface dark:text-[#e1e3e4] hover:bg-surface-container dark:hover:bg-white/10 active:scale-90 transition-all" id="themeToggleBtn" onclick="toggleDarkMode()">
+<span class="material-symbols-outlined text-[22px] hidden dark:inline" id="lightIcon">light_mode</span>
+<span class="material-symbols-outlined text-[22px] inline dark:hidden" id="darkIcon">dark_mode</span>
+</button>
+</div>
+</div>
+</header>
+<!-- Main Content Container -->
+<main class="flex flex-col relative w-full pt-[104px] pb-14 bg-surface dark:bg-[#111415] min-h-screen transition-colors">
+<div class="flex flex-col w-full px-4 pt-4 pb-6 gap-5 max-w-md mx-auto">
+<!-- Card 1: Primary Offline Status Card (M3 Warning/Tonal Container) -->
+<section class="bg-tertiary-fixed dark:bg-[#3d2c00] text-on-tertiary-fixed dark:text-[#ffd185] rounded-[28px] p-6 shadow-sm border border-tertiary-container/10 dark:border-tertiary-fixed-dim/20 flex flex-col gap-5 transition-colors">
+<!-- Status badge with live indicator dot -->
+<div class="flex items-center justify-between">
+<span class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-surface-container-lowest/90 dark:bg-black/30 text-on-tertiary-fixed dark:text-[#ffdeaa] text-label-sm font-label-sm shadow-sm">
+<span class="w-2.5 h-2.5 rounded-full bg-tertiary dark:bg-[#f1be65] animate-pulse"></span>
+            Offline · Saved on phone (অফলাইনে সংরক্ষিত)
+          </span>
+</div>
+<!-- Reassurance Typography & Reference Info -->
+<div class="flex flex-col gap-2.5">
+<p class="font-body-md text-[15px] leading-relaxed text-on-tertiary-fixed dark:text-[#ffe2b5]">
+            Your distress report is stored safely on this phone. It will automatically submit when a network is detected.
+          </p>
+<div class="inline-flex items-center gap-1.5 text-body-sm text-on-tertiary-fixed/85 dark:text-[#f1be65]/90 pt-0.5">
+<span>Reference:</span>
+<span class="font-mono font-semibold px-2 py-0.5 rounded-md bg-black/5 dark:bg-white/10 tracking-wider text-xs">SOS-7K4M</span>
+<span class="text-[11px] opacity-75">(Sample Data)</span>
+</div>
+</div>
+<!-- M3 Filled Primary Pill Button (rounded-full, 48dp) -->
+<button class="w-full h-12 rounded-full bg-primary dark:bg-[#85d2e0] text-on-primary dark:text-[#00363d] font-label-lg text-label-lg flex items-center justify-center gap-2 shadow-sm hover:shadow active:scale-[0.98] transition-all" id="retryBtn" onclick="handleRetry()">
+<span class="material-symbols-outlined text-[20px] transition-transform" id="retryIcon">sync</span>
+<span id="retryText">Retry Submission / পুনরায় জমা দিন</span>
+</button>
+</section>
+<!-- Card 2: Fallback SMS Handoff Card (M3 Surface Container Low) -->
+<section class="bg-surface-container-low dark:bg-[#1a1d1e] text-on-surface dark:text-[#e1e3e4] rounded-[28px] p-6 shadow-sm border border-outline-variant/30 dark:border-white/5 flex flex-col gap-5 transition-colors">
+<div class="flex flex-col gap-1.5">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[20px] text-primary dark:text-[#85d2e0]">sms</span>
+<h2 class="font-headline-sm text-headline-sm text-on-surface dark:text-[#e1e3e4] tracking-tight">
+              Send via SMS (এসএমএস দিয়ে পাঠান)
+            </h2>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant dark:text-[#bec8ca] leading-relaxed pl-7">
+            If internet fails, send a pre-filled text message to emergency dispatch.
+          </p>
+</div>
+<!-- M3 Tonal / Outlined Pill Button (rounded-full, 48dp) -->
+<a class="w-full h-12 rounded-full bg-surface-container-lowest dark:bg-[#282a2b] text-primary dark:text-[#85d2e0] border border-outline-variant/60 dark:border-white/10 font-label-lg text-label-lg flex items-center justify-center gap-2 shadow-sm hover:bg-surface-container dark:hover:bg-[#323536] active:scale-[0.98] transition-all" href="sms:+8801700000000?body=AALI%23SOS-7K4M%23CHANDGAZI%234P%231INF%231ELD%23LVL-CRIT%23TS1432">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">send</span>
+<span>Open SMS App (এসএমএস অ্যাপ খুলুন)</span>
+</a>
+<!-- Disclaimer -->
+<p class="font-body-sm text-[11px] leading-tight text-on-surface-variant/80 dark:text-[#bec8ca]/70 text-center">
+          Opening SMS does not guarantee delivery. Carrier charges may apply.
+        </p>
+</section>
+</div>
+</main>
+<!-- Android Bottom Gesture Bar Pill -->
+<footer class="fixed bottom-0 inset-x-0 h-8 flex items-center justify-center pointer-events-none z-50 bg-surface/90 dark:bg-[#111415]/90 backdrop-blur-sm">
+<div class="w-36 h-1 rounded-full bg-on-surface/40 dark:bg-white/40"></div>
+</footer>
+<script>
+    function toggleDarkMode() {
+      const isDark = document.documentElement.classList.toggle('dark');
+      localStorage.setItem('theme', isDark ? 'dark' : 'light');
+    }
+
+    // Initialize theme based on user preference or local storage
+    if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+
+    function handleRetry() {
+      const btn = document.getElementById('retryBtn');
+      const icon = document.getElementById('retryIcon');
+      const text = document.getElementById('retryText');
+      
+      btn.disabled = true;
+      btn.classList.add('opacity-80', 'cursor-not-allowed');
+      icon.classList.add('animate-spin');
+      text.innerText = 'Checking Gateway... / সংযোগ যাচাই করা হচ্ছে...';
+      
+      setTimeout(() => {
+        icon.classList.remove('animate-spin');
+        btn.disabled = false;
+        btn.classList.remove('opacity-80', 'cursor-not-allowed');
+        text.innerText = 'Still Offline · Stored Safely';
+        setTimeout(() => {
+          text.innerText = 'Retry Submission / পুনরায় জমা দিন';
+        }, 3000);
+      }, 2000);
+    }
+  </script>
+</body></html>

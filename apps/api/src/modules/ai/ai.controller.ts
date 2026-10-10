@@ -30,21 +30,21 @@ export class AiController {
 
   @ApiOperation({ summary: 'Extract structured SOS fields from Bangla/Banglish text' })
   @Post('understand-sos')
-  @Roles(UserRole.AUTHORITY, UserRole.RESPONDER, UserRole.ADMIN)
+  @Roles(UserRole.AUTHORITY, UserRole.RESPONDER)
   understandSos(@Body() body: UnderstandSosDto) {
     return this.aiService.understandSos(body);
   }
 
   @ApiOperation({ summary: 'Explain text duplicate candidate similarity' })
   @Post('duplicate-similarity')
-  @Roles(UserRole.AUTHORITY, UserRole.RESPONDER, UserRole.ADMIN)
+  @Roles(UserRole.AUTHORITY, UserRole.RESPONDER)
   duplicateSimilarity(@Body() body: DuplicateSimilarityDto) {
     return this.aiService.explainDuplicateSimilarity(body);
   }
 
   @ApiOperation({ summary: 'Draft Bangla emergency communication citing source record IDs' })
   @Post('draft-communication')
-  @Roles(UserRole.AUTHORITY, UserRole.ADMIN)
+  @Roles(UserRole.AUTHORITY)
   draftCommunication(@Body() body: DraftCommunicationDto) {
     return this.aiService.draftCommunication(body);
   }
@@ -77,6 +77,20 @@ export class AiController {
     },
   ) {
     return this.aiService.generateShiftSummary(body || {});
+  }
+
+  @ApiOperation({ summary: 'Transcribe and parse panicked Bangla/dialect voice note SOS' })
+  @Post('transcribe-voice-sos')
+  @Roles(UserRole.AUTHORITY, UserRole.RESPONDER, UserRole.ADMIN)
+  transcribeVoiceSos(
+    @Body()
+    body: {
+      audioBase64?: string;
+      simulatedVoiceNoteId?: string;
+      dialect?: string;
+    },
+  ) {
+    return this.aiService.transcribeVoiceSos(body || {});
   }
 }
 

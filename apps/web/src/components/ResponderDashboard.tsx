@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Activity, AlertTriangle, Check, RefreshCw, Users } from 'lucide-react';
 import { apiFetch as fetch } from '../lib/authenticated-fetch';
 import { getOperationsSnapshot, OperationMapPoint, OperationsMode } from '../lib/operations-client';
 
@@ -7,12 +8,7 @@ export interface IncidentViewItem {
   summary: string;
   areaName: string;
   peopleCount: number;
-  urgencyFlags: {
-    child: boolean;
-    elderly: boolean;
-    medical: boolean;
-    trapped: boolean;
-  };
+  urgencyFlags: { child: boolean; elderly: boolean; medical: boolean; trapped: boolean };
   confidence: number;
   confidenceReasons: string[];
   priorityScore: number;
@@ -20,19 +16,8 @@ export interface IncidentViewItem {
   status: string;
   reportsCount: number;
   linkedReportIds: string[];
-  duplicateCandidate?: {
-    candidateId: string;
-    similarityScore: number;
-    reasons: string[];
-    status: string;
-  };
-  suggestedBoat?: {
-    assetId: string;
-    name: string;
-    capacity: number;
-    suitability: string;
-    status?: string;
-  };
+  duplicateCandidate?: { candidateId: string; similarityScore: number; reasons: string[]; status: string };
+  suggestedBoat?: { assetId: string; name: string; capacity: number; suitability: string; status?: string };
 }
 
 export interface SilentVillageItem {
@@ -42,16 +27,22 @@ export interface SilentVillageItem {
   reason: string;
 }
 
+const flagLabels: Array<[keyof IncidentViewItem['urgencyFlags'], string]> = [
+  ['trapped', 'Trapped'], ['medical', 'Medical need'], ['child', 'Child'], ['elderly', 'Older adult'],
+];
+
 export function ResponderDashboard({ mode = 'EXERCISE', eventId }: { mode?: OperationsMode; eventId?: string }) {
   const [incidents, setIncidents] = useState<IncidentViewItem[]>([]);
   const [silentAreas, setSilentAreas] = useState<SilentVillageItem[]>([]);
   const [liveReports, setLiveReports] = useState<OperationMapPoint[]>([]);
   const [contextEventName, setContextEventName] = useState<string | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [actionMessage, setActionMessage] = useState<string | null>(null);
 
   const fetchData = async () => {
     setLoading(true);
+    setLoadError(null);
     try {
       if (mode === 'LIVE') {
         const snapshot = await getOperationsSnapshot({ mode });
@@ -75,287 +66,79 @@ export function ResponderDashboard({ mode = 'EXERCISE', eventId }: { mode?: Oper
         fetch(`/api/v1/incidents?eventId=${encodeURIComponent(selectedEventId)}`),
         fetch(`/api/v1/incidents/silent-areas?eventId=${encodeURIComponent(selectedEventId)}`),
       ]);
-      if (incRes.ok) setIncidents(await incRes.json());
-      if (silentRes.ok) setSilentAreas(await silentRes.json());
-    } catch {
-      // offline / mock fallback
+      if (!incRes?.ok || !silentRes?.ok) throw new Error('The incident queue could not be loaded for this account.');
+      setIncidents(await incRes.json());
+      setSilentAreas(await silentRes.json());
+    } catch (err: unknown) {
+      setLoadError(err instanceof Error ? err.message : 'Could not load responder data.');
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    void fetchData();
-  }, [eventId, mode]);
+  useEffect(() => { void fetchData(); }, [eventId, mode]);
 
   if (mode === 'LIVE' || mode === 'HISTORICAL') {
-    return <section className="ops-panel responder-context-view">
-      <span className="eyebrow">RESPONDER WORKSPACE · {mode === 'LIVE' ? 'LIVE API REPORTS' : 'HISTORICAL RECONSTRUCTION'}</span>
-      <h1>{mode === 'LIVE' ? 'Current SOS reports' : contextEventName ?? 'Historical event view'}</h1>
-      <p>{mode === 'LIVE' ? 'Reports were submitted to the Aali API. External flood feeds remain unavailable; no rescue assignment is implied.' : 'Historical reconstruction is available for context. It does not contain current responder assignments.'}</p>
-      {loading ? <p role="status">Loading selected context…</p> : mode === 'LIVE' && liveReports.length > 0
-        ? <ul className="responder-live-report-list">{liveReports.map((report) => <li key={report.id}><strong>{report.name ?? report.label ?? 'SOS location unavailable'}</strong><span>{report.peopleCount ?? 1} people · {report.status ?? 'Received'}</span><small>{report.provenance} · {report.receivedAt ? new Date(report.receivedAt).toLocaleString('en-GB', { timeZone: 'Asia/Dhaka' }) : 'Time unavailable'}</small></li>)}</ul>
-        : <p className="empty-state">{mode === 'LIVE' ? 'No current API-submitted SOS reports.' : 'No current rescue queue is shown in historical mode.'}</p>}
+    return <section className="responder-workspace">
+      <header className="responder-header"><div><p className="responder-eyebrow">RESPONDER WORKSPACE / {mode === 'LIVE' ? 'LIVE API REPORTS' : 'HISTORICAL RECONSTRUCTION'}</p><h1>{mode === 'LIVE' ? 'Current SOS reports' : contextEventName ?? 'Historical event view'}</h1></div><button className="responder-refresh" type="button" onClick={() => void fetchData()}><RefreshCw size={15} /> Refresh</button></header>
+      <p className="responder-disclosure">{mode === 'LIVE' ? 'Reports submitted to the Aali API. This queue does not imply an assignment or dispatch.' : 'Historical reconstruction is for context and does not contain current responder assignments.'}</p>
+      {loadError && <p role="alert" className="responder-error">{loadError}</p>}
+      {loading ? <p role="status" className="responder-empty">Loading selected context…</p> : mode === 'LIVE' && liveReports.length > 0
+        ? <ul className="responder-live-list">{liveReports.map((report) => <li key={report.id}><div><strong>{report.name ?? report.label ?? 'SOS location unavailable'}</strong><span>{report.peopleCount ?? 1} people · {report.status ?? 'Received'}</span></div><small>{report.provenance} · received {report.receivedAt ? new Date(report.receivedAt).toLocaleString('en-GB', { timeZone: 'Asia/Dhaka' }) : 'time unavailable'}</small></li>)}</ul>
+        : <p className="responder-empty">{mode === 'LIVE' ? 'No current API-submitted SOS reports.' : 'No current rescue queue is shown in historical mode.'}</p>}
     </section>;
   }
 
-  const handleDuplicateReview = async (incidentId: string, candidateId: string, decision: 'ACCEPT' | 'REJECT') => {
+  const review = async (url: string, body: Record<string, string>, success: string) => {
     try {
-      const res = await fetch(`/api/v1/incidents/${incidentId}/duplicate-candidates/${candidateId}/review`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ decision, reason: `Operator ${decision} via dashboard` }),
-      });
-      if (res.ok) {
-        setActionMessage(`Duplicate candidate ${decision}ED successfully.`);
-        fetchData();
-      }
+      const response = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+      if (!response.ok) throw new Error(`Request rejected (${response.status}).`);
+      setActionMessage(success);
+      await fetchData();
     } catch (err: unknown) {
-      setActionMessage(`Review failed: ${err instanceof Error ? err.message : 'Error'}`);
+      setActionMessage(`Review failed: ${err instanceof Error ? err.message : 'Unknown error'}`);
     }
   };
 
-  const handleSplitReport = async (incidentId: string, reportId: string) => {
-    try {
-      const res = await fetch(`/api/v1/incidents/${incidentId}/split`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ reportId, reason: 'Operator verified reports are physically distinct' }),
-      });
-      if (res.ok) {
-        setActionMessage(`Report ${reportId} separated into independent incident.`);
-        fetchData();
-      }
-    } catch (err: unknown) {
-      setActionMessage(`Split failed: ${err instanceof Error ? err.message : 'Error'}`);
-    }
-  };
-
-  const handleBoatReview = async (incidentId: string, decision: 'ACCEPT' | 'REJECT') => {
-    try {
-      const res = await fetch(`/api/v1/incidents/${incidentId}/boat-recommendation/review`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ decision, reason: `Responder manual approval: ${decision}` }),
-      });
-      if (res.ok) {
-        setActionMessage(`Boat recommendation ${decision}ED (Recorded in audit trail; no automatic external dispatch).`);
-        fetchData();
-      }
-    } catch (err: unknown) {
-      setActionMessage(`Boat review failed: ${err instanceof Error ? err.message : 'Error'}`);
-    }
-  };
-
-  return (
-    <div className="responder-dashboard" style={{ marginTop: '1.5rem' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-        <h2 style={{ fontSize: '1.4rem', color: '#38bdf8', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          📋 রেসপন্ডার ড্যাশবোর্ড / Responder Operations Dashboard
-        </h2>
-        <button
-          onClick={fetchData}
-          style={{ background: '#0284c7', color: 'white', border: 'none', padding: '0.4rem 0.8rem', borderRadius: '4px' }}
-        >
-          🔄 রিফ্রেশ (Refresh)
-        </button>
-      </div>
-
-      {actionMessage && (
-        <div style={{ padding: '0.5rem 1rem', background: '#064e3b', border: '1px solid #10b981', color: '#a7f3d0', borderRadius: '4px', marginBottom: '1rem', fontSize: '0.85rem' }}>
-          {actionMessage}
-        </div>
-      )}
-
-      {/* KPI Cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
-        <div style={{ background: '#1e293b', border: '1px solid #475569', padding: '1rem', borderRadius: '6px' }}>
-          <div style={{ fontSize: '0.8rem', color: '#94a3b8' }}>সক্রিয় উদ্ধার ঘটনা (Active Incidents)</div>
-          <div style={{ fontSize: '1.75rem', fontWeight: 'bold', color: '#f87171' }}>{incidents.length}</div>
-        </div>
-        <div style={{ background: '#1e293b', border: '1px solid #475569', padding: '1rem', borderRadius: '6px' }}>
-          <div style={{ fontSize: '0.8rem', color: '#94a3b8' }}>উদ্ধারপ্রত্যাশী মানুষ (Stranded People)</div>
-          <div style={{ fontSize: '1.75rem', fontWeight: 'bold', color: '#38bdf8' }}>
-            {incidents.reduce((sum, i) => sum + i.peopleCount, 0)}
-          </div>
-        </div>
-        <div style={{ background: '#1e293b', border: '1px solid #475569', padding: '1rem', borderRadius: '6px' }}>
-          <div style={{ fontSize: '0.8rem', color: '#94a3b8' }}>নীরব গ্রাম সতর্কতা (Silent Villages)</div>
-          <div style={{ fontSize: '1.75rem', fontWeight: 'bold', color: '#f59e0b' }}>{silentAreas.length}</div>
-        </div>
-      </div>
-
-      {/* Silent Village Alert Banner */}
-      {silentAreas.length > 0 && (
-        <div style={{ background: 'rgba(245, 158, 11, 0.15)', border: '1px solid #f59e0b', padding: '1rem', borderRadius: '6px', marginBottom: '1.5rem' }}>
-          <h4 style={{ color: '#fbbf24', fontSize: '1rem', marginBottom: '0.4rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            ⚠️ নীরব গ্রাম সতর্কতা / SILENT VILLAGE FLAG (Action: VERIFY BY SAFE MEANS)
-          </h4>
-          {silentAreas.map((s, idx) => (
-            <p key={idx} style={{ fontSize: '0.85rem', color: '#fef3c7' }}>
-              {s.reason}
-            </p>
-          ))}
-          <span style={{ fontSize: '0.75rem', color: '#d97706', display: 'block', marginTop: '0.4rem', fontStyle: 'italic' }}>
-            * Note: Aali never interprets lack of SOS calls as safety. Silent villages demand active, safe verification.
-          </span>
-        </div>
-      )}
-
-      {/* Incidents Table / List View */}
-      <div style={{ background: '#1e293b', border: '1px solid #475569', borderRadius: '8px', padding: '1.25rem' }}>
-        <h3 style={{ fontSize: '1.1rem', marginBottom: '0.75rem', color: '#f8fafc' }}>
-          উদ্ধার অগ্রাধিকার তালিকা / Triage & Priority Incident List
-        </h3>
-
-        {loading ? (
-          <p style={{ color: '#94a3b8' }}>লোড হচ্ছে...</p>
-        ) : incidents.length === 0 ? (
-          <p style={{ color: '#94a3b8' }}>বর্তমানে কোনো উদ্ধার ঘটনা নেই।</p>
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            {incidents.map((inc) => (
-              <div
-                key={inc.id}
-                style={{
-                  background: '#0f172a',
-                  border: '1px solid #334155',
-                  padding: '1rem',
-                  borderRadius: '6px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '0.5rem',
-                }}
-              >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                  <div>
-                    <strong style={{ fontSize: '1rem', color: '#38bdf8' }}>{inc.summary}</strong>
-                    <div style={{ fontSize: '0.85rem', color: '#94a3b8' }}>
-                      📍 {inc.areaName} | মানুষ: <b style={{ color: 'white' }}>{inc.peopleCount} জন</b> | রিপোর্ট সংখ্যা: {inc.reportsCount}
-                    </div>
-                  </div>
-                  <div style={{ textAlign: 'right' }}>
-                    <span
-                      style={{
-                        padding: '0.2rem 0.5rem',
-                        borderRadius: '4px',
-                        fontSize: '0.75rem',
-                        fontWeight: 'bold',
-                        background: inc.priorityScore >= 0.7 ? '#dc2626' : '#d97706',
-                        color: 'white',
-                      }}
-                    >
-                      Priority: {(inc.priorityScore * 100).toFixed(0)}%
-                    </span>
-                    <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '0.25rem' }}>
-                      Confidence: {(inc.confidence * 100).toFixed(0)}%
-                    </div>
-                  </div>
-                </div>
-
-                {/* Urgency badges */}
-                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                  {inc.urgencyFlags.trapped && <span style={{ fontSize: '0.7rem', background: '#7f1d1d', color: '#fca5a5', padding: '0.1rem 0.4rem', borderRadius: '3px' }}>পানিবন্দী (Trapped)</span>}
-                  {inc.urgencyFlags.child && <span style={{ fontSize: '0.7rem', background: '#1e3a8a', color: '#bfdbfe', padding: '0.1rem 0.4rem', borderRadius: '3px' }}>শিশু (Child)</span>}
-                  {inc.urgencyFlags.elderly && <span style={{ fontSize: '0.7rem', background: '#374151', color: '#e5e7eb', padding: '0.1rem 0.4rem', borderRadius: '3px' }}>বৃদ্ধ (Elderly)</span>}
-                  {inc.urgencyFlags.medical && <span style={{ fontSize: '0.7rem', background: '#831843', color: '#fbcfe8', padding: '0.1rem 0.4rem', borderRadius: '3px' }}>চিকিৎসা (Medical)</span>}
-                </div>
-
-                {/* Boat recommendation */}
-                {inc.suggestedBoat && (
-                  <div style={{ fontSize: '0.8rem', background: '#1e293b', padding: '0.6rem', borderRadius: '4px', border: '1px solid #334155', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
-                    <div>
-                      <span style={{ color: '#38bdf8' }}>🛥️ প্রস্তাবিত উদ্ধারকারী নৌকা (Suggested Boat):</span> <b>{inc.suggestedBoat.name}</b> (ধারণক্ষমতা: {inc.suggestedBoat.capacity} জন)
-                      <span style={{ marginLeft: '0.5rem', fontSize: '0.75rem', padding: '0.1rem 0.4rem', borderRadius: '3px', background: inc.suggestedBoat.status === 'ACCEPTED' ? '#065f46' : inc.suggestedBoat.status === 'REJECTED' ? '#7f1d1d' : '#334155', color: '#f8fafc' }}>
-                        {inc.suggestedBoat.status || 'PROPOSED'}
-                      </span>
-                    </div>
-                    <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
-                      {(!inc.suggestedBoat.status || inc.suggestedBoat.status === 'PROPOSED') && (
-                        <>
-                          <button
-                            type="button"
-                            onClick={() => handleBoatReview(inc.id, 'ACCEPT')}
-                            style={{ background: '#10b981', color: 'black', border: 'none', padding: '0.25rem 0.5rem', borderRadius: '3px', fontSize: '0.75rem', fontWeight: 'bold', cursor: 'pointer' }}
-                          >
-                            ✓ গ্রহণ (Accept)
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleBoatReview(inc.id, 'REJECT')}
-                            style={{ background: '#ef4444', color: 'white', border: 'none', padding: '0.25rem 0.5rem', borderRadius: '3px', fontSize: '0.75rem', cursor: 'pointer' }}
-                          >
-                            ✕ প্রত্যাখ্যান (Reject)
-                          </button>
-                        </>
-                      )}
-                      <span style={{ fontSize: '0.7rem', color: '#94a3b8', fontStyle: 'italic' }}>
-                        * রেসপন্ডার অনুমোদন প্রয়োজন (No auto-dispatch)
-                      </span>
-                    </div>
-                  </div>
-                )}
-
-                {/* Duplicate candidate review section */}
-                {inc.duplicateCandidate && (
-                  <div style={{ background: 'rgba(168, 85, 247, 0.1)', border: '1px solid #a855f7', padding: '0.6rem', borderRadius: '4px', marginTop: '0.5rem' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
-                      <strong style={{ fontSize: '0.85rem', color: '#c084fc' }}>
-                        🔗 সম্ভাব্য ডুপ্লিকেট রিপোর্ট সনাক্ত (Duplicate Match Suggestion: {(inc.duplicateCandidate.similarityScore * 100).toFixed(0)}%)
-                      </strong>
-                      <span style={{ fontSize: '0.75rem', color: '#e9d5ff', fontWeight: 'bold' }}>
-                        Status: {inc.duplicateCandidate.status}
-                      </span>
-                    </div>
-                    <ul style={{ fontSize: '0.75rem', color: '#cbd5e1', paddingLeft: '1.2rem', margin: 0 }}>
-                      {inc.duplicateCandidate.reasons.map((r, i) => (
-                        <li key={i}>{r}</li>
-                      ))}
-                    </ul>
-
-                    {inc.duplicateCandidate.status === 'PENDING' && (
-                      <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
-                        <button
-                          type="button"
-                          onClick={() => handleDuplicateReview(inc.id, inc.duplicateCandidate!.candidateId, 'ACCEPT')}
-                          style={{ background: '#10b981', color: 'black', border: 'none', padding: '0.3rem 0.6rem', borderRadius: '3px', fontSize: '0.75rem', fontWeight: 'bold' }}
-                        >
-                          ✓ মার্জ অনুমোদন (Accept Merge)
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleDuplicateReview(inc.id, inc.duplicateCandidate!.candidateId, 'REJECT')}
-                          style={{ background: '#ef4444', color: 'white', border: 'none', padding: '0.3rem 0.6rem', borderRadius: '3px', fontSize: '0.75rem' }}
-                        >
-                          ✕ বাতিল (Reject)
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {/* Unmerge / Split action */}
-                {inc.linkedReportIds.length > 1 && (
-                  <div style={{ marginTop: '0.5rem', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                    <span style={{ fontSize: '0.8rem', color: '#94a3b8' }}>রিপোর্ট আলাদা করুন (Split Report):</span>
-                    {inc.linkedReportIds.map((repId) => (
-                      <button
-                        key={repId}
-                        type="button"
-                        onClick={() => handleSplitReport(inc.id, repId)}
-                        style={{ background: '#334155', border: '1px solid #64748b', color: '#cbd5e1', padding: '0.2rem 0.5rem', borderRadius: '3px', fontSize: '0.75rem' }}
-                      >
-                        আলাদা করুন {repId}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
+  const handleDuplicateReview = (incidentId: string, candidateId: string, decision: 'ACCEPT' | 'REJECT') => review(
+    `/api/v1/incidents/${incidentId}/duplicate-candidates/${candidateId}/review`,
+    { decision, reason: `Operator ${decision} via dashboard` },
+    `Duplicate candidate ${decision === 'ACCEPT' ? 'accepted' : 'rejected'} and recorded.`,
   );
-}
+  const handleSplitReport = (incidentId: string, reportId: string) => review(
+    `/api/v1/incidents/${incidentId}/split`, { reportId, reason: 'Operator verified reports are physically distinct' },
+    `Report ${reportId} separated into an independent incident.`,
+  );
+  const handleBoatReview = (incidentId: string, decision: 'ACCEPT' | 'REJECT') => review(
+    `/api/v1/incidents/${incidentId}/boat-recommendation/review`, { decision, reason: `Responder manual review: ${decision}` },
+    `Boat recommendation ${decision === 'ACCEPT' ? 'accepted' : 'rejected'} for review. No dispatch was sent.`,
+  );
 
+  const peopleCount = incidents.reduce((sum, incident) => sum + incident.peopleCount, 0);
+  return <main className="responder-workspace">
+    <header className="responder-header"><div><p className="responder-eyebrow">FIELD RESPONSE / FENI DISTRICT / SYNTHETIC EXERCISE</p><h1>Responder desk</h1><p>Review incidents, verify duplicate suggestions, and assess available asset recommendations.</p></div><button className="responder-refresh" type="button" onClick={() => void fetchData()}><RefreshCw size={15} /> Refresh queue</button></header>
+    <div className="responder-exercise-banner"><Activity size={15} /><span><strong>Exercise records</strong> · synthetic fixtures, not live rescue assignments</span></div>
+    {actionMessage && <p className="responder-feedback" role="status">{actionMessage}</p>}
+    {loadError && <p className="responder-error" role="alert">{loadError} <button type="button" onClick={() => void fetchData()}>Retry</button></p>}
+
+    <section className="responder-metrics" aria-label="Queue summary">
+      <article><span>Open incidents</span><strong>{loading ? '—' : incidents.length}</strong><small>in selected event</small></article>
+      <article><span>People reported</span><strong>{loading ? '—' : peopleCount}</strong><small>across listed incidents</small></article>
+      <article className={silentAreas.length ? 'responder-metric--review' : ''}><span>Areas to verify</span><strong>{loading ? '—' : silentAreas.length}</strong><small>silence is unknown, not safety</small></article>
+    </section>
+
+    {silentAreas.length > 0 && <section className="responder-silent" aria-labelledby="silent-title"><header><AlertTriangle size={17} /><h2 id="silent-title">Verification flags · verify by safe means</h2></header>{silentAreas.map((area, index) => <p key={`${area.statusLabel}-${index}`}>{area.reason}</p>)}<small>No reports do not establish that an area is safe. Do not enter a hazardous area solely to verify this flag.</small></section>}
+
+    <section className="responder-incidents" aria-labelledby="incident-queue-title"><header className="responder-section-heading"><div><p className="responder-eyebrow">PRIORITIZED QUEUE</p><h2 id="incident-queue-title">Incident review</h2></div><span>{incidents.length} records</span></header>
+      {loading ? <p className="responder-empty" role="status">Loading incident queue…</p> : incidents.length === 0 ? <p className="responder-empty">No exercise incidents are available for this event.</p> : <div className="responder-incident-list">{incidents.map((incident) => <article className="responder-incident" key={incident.id}>
+        <header className="responder-incident__top"><div><span className="responder-incident__id">INCIDENT / {incident.id}</span><h3>{incident.summary}</h3><p>{incident.areaName} · {incident.peopleCount} people · {incident.reportsCount} linked reports</p></div><span className="responder-status">{incident.status.replaceAll('_', ' ')}</span></header>
+        <div className="responder-score-row"><span><strong>Priority {(incident.priorityScore * 100).toFixed(0)}%</strong><small>{incident.priorityReasons.join(' · ') || 'Rule-based score; evidence unavailable'}</small></span><span><strong>Confidence {(incident.confidence * 100).toFixed(0)}%</strong><small>{incident.confidenceReasons.join(' · ') || 'Confidence evidence unavailable'}</small></span></div>
+        <div className="responder-flags" aria-label="Reported urgency needs">{flagLabels.filter(([key]) => incident.urgencyFlags[key]).map(([, label]) => <span key={label}>{label}</span>)}{!Object.values(incident.urgencyFlags).some(Boolean) && <span>No additional urgency flags</span>}</div>
+        {incident.duplicateCandidate && <section className="responder-review-card"><div><p className="responder-eyebrow">HUMAN REVIEW REQUIRED / DUPLICATE SUGGESTION</p><h4>Possible match · {(incident.duplicateCandidate.similarityScore * 100).toFixed(0)}% similarity</h4><p>{incident.duplicateCandidate.reasons.join(' · ')}</p><small>Status: {incident.duplicateCandidate.status}</small></div>{incident.duplicateCandidate.status === 'PENDING' && <div className="responder-actions"><button type="button" onClick={() => void handleDuplicateReview(incident.id, incident.duplicateCandidate!.candidateId, 'ACCEPT')}><Check size={14} /> Accept merge</button><button type="button" onClick={() => void handleDuplicateReview(incident.id, incident.duplicateCandidate!.candidateId, 'REJECT')}>Keep separate</button></div>}</section>}
+        {incident.suggestedBoat && <section className="responder-asset-card"><div><p className="responder-eyebrow">ASSET SUGGESTION / NOT A DISPATCH</p><strong>{incident.suggestedBoat.name}</strong><p>Capacity {incident.suggestedBoat.capacity} · {incident.suggestedBoat.suitability.replaceAll('_', ' ')} · {incident.suggestedBoat.status ?? 'Proposed'}</p></div>{(!incident.suggestedBoat.status || incident.suggestedBoat.status === 'PROPOSED') && <div className="responder-actions"><button type="button" onClick={() => void handleBoatReview(incident.id, 'ACCEPT')}>Accept suggestion</button><button type="button" onClick={() => void handleBoatReview(incident.id, 'REJECT')}>Reject</button></div>}<small>Human review is recorded. This does not contact or dispatch an asset.</small></section>}
+        {incident.linkedReportIds.length > 1 && <details className="responder-split"><summary>Separate a report from this incident</summary><div>{incident.linkedReportIds.map((reportId) => <button key={reportId} type="button" onClick={() => void handleSplitReport(incident.id, reportId)}>Separate report {reportId}</button>)}</div></details>}
+      </article>)}</div>}
+    </section>
+    <p className="responder-footnote"><Users size={14} /> {peopleCount} people are represented by submitted reports. This prototype supports human review and does not coordinate a real rescue response.</p>
+  </main>;
+}

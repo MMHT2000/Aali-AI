@@ -6,41 +6,99 @@ import 'package:shared_preferences/shared_preferences.dart';
 void main() {
   setUp(() => SharedPreferences.setMockInitialValues({}));
 
-  testWidgets('AaliResidentApp smoke test', (WidgetTester tester) async {
-    await tester.pumpWidget(const AaliResidentApp());
-    await tester.pumpAndSettle();
-    expect(find.textContaining('Aali AI'), findsWidgets);
-  });
-
-  testWidgets(
-      'mobile access picker separates resident, responder and volunteer workspaces',
+  testWidgets('AaliResidentApp launches into Welcome Role Selection matching Stitch reference',
       (WidgetTester tester) async {
-    tester.view.physicalSize = const Size(320, 720);
+    tester.view.physicalSize = const Size(360, 800);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
+
     await tester.pumpWidget(const AaliResidentApp());
     await tester.pumpAndSettle();
-    expect(tester.takeException(), isNull);
 
-    expect(find.text('Choose your workspace'), findsOneWidget);
-    expect(
-        Theme.of(tester.element(find.text('Choose your workspace'))).brightness,
-        Brightness.light);
-    expect(find.text('Resident'), findsOneWidget);
-    expect(find.text('Responder'), findsOneWidget);
-    expect(find.text('Volunteer'), findsOneWidget);
+    // Welcome Role Chooser elements
+    expect(find.textContaining('Welcome'), findsOneWidget);
+    expect(find.textContaining('Feni Flood Command'), findsOneWidget);
+    expect(find.textContaining('OFFLINE MESH ACTIVE'), findsOneWidget);
+    expect(find.byKey(const Key('enter-sos-help')), findsOneWidget);
+    expect(find.byKey(const Key('responder-sign-in')), findsOneWidget);
+    expect(find.byKey(const Key('volunteer-sign-in')), findsOneWidget);
+    expect(find.textContaining('AUTONOMOUS ARCHITECTURE'), findsOneWidget);
+  });
 
-    await tester.tap(find.text('Responder'));
+  testWidgets('Citizen role navigates to Resident Home with Emergency SOS Hero card',
+      (WidgetTester tester) async {
+    tester.view.physicalSize = const Size(360, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(const AaliResidentApp());
     await tester.pumpAndSettle();
-    expect(find.text('Responder sign in'), findsOneWidget);
-    expect(find.text('Review incidents and human rescue suggestions.'),
-        findsOneWidget);
 
-    await tester.tap(find.text('Volunteer'));
+    // Tap Citizen SOS Help
+    await tester.ensureVisible(find.byKey(const Key('enter-sos-help')));
+    await tester.tap(find.byKey(const Key('enter-sos-help')));
     await tester.pumpAndSettle();
-    expect(find.text('Volunteer sign in'), findsOneWidget);
-    expect(find.text('Submit field water readings against a village.'),
-        findsOneWidget);
+
+    // Now on Resident Home
+    expect(find.textContaining('Need help now'), findsOneWidget);
+    expect(find.textContaining('এখনই সাহায্য দরকার'), findsOneWidget);
+    expect(find.textContaining('Works offline'), findsOneWidget);
+    expect(find.textContaining('Mesh sync ready'), findsOneWidget);
+    expect(find.byKey(const Key('start-sos')), findsOneWidget);
+
+    // Tap Emergency SOS card to enter Distress Request Wizard
+    await tester.ensureVisible(find.byKey(const Key('start-sos')));
+    await tester.tap(find.byKey(const Key('start-sos')));
+    await tester.pumpAndSettle();
+
+    // In SOS Wizard step 1
+    expect(find.textContaining('Step 1 of 3: Headcount'), findsOneWidget);
+    expect(find.text('How many people?'), findsOneWidget);
+    expect(find.text('4'), findsOneWidget);
+  });
+
+  testWidgets('Responder role navigates to Emergency Triage Desk',
+      (WidgetTester tester) async {
+    tester.view.physicalSize = const Size(360, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(const AaliResidentApp());
+    await tester.pumpAndSettle();
+
+    // Tap Responder Sign In
+    await tester.ensureVisible(find.byKey(const Key('responder-sign-in')));
+    await tester.tap(find.byKey(const Key('responder-sign-in')));
+    await tester.pumpAndSettle();
+
+    // Now on Responder Desk
+    expect(find.textContaining('Emergency Triage'), findsOneWidget);
+    expect(find.textContaining('SOS-7K4M'), findsOneWidget);
+    expect(find.text('Acknowledge Report'), findsOneWidget);
+  });
+
+  testWidgets('Resident Home handles tower blackout and Starlink D2C fallback',
+      (WidgetTester tester) async {
+    tester.view.physicalSize = const Size(360, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(const AaliResidentApp());
+    await tester.pumpAndSettle();
+
+    await tester.ensureVisible(find.byKey(const Key('enter-sos-help')));
+    await tester.tap(find.byKey(const Key('enter-sos-help')));
+    await tester.pumpAndSettle();
+
+    await tester.ensureVisible(find.byKey(const Key('simulate-tower-outage')));
+    await tester.tap(find.byKey(const Key('simulate-tower-outage')));
+    await tester.pumpAndSettle();
+
+    await tester.ensureVisible(find.text('Tower blackout active · Starlink D2C satellite fallback'));
+    expect(find.text('Tower blackout active · Starlink D2C satellite fallback'), findsOneWidget);
   });
 }

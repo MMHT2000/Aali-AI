@@ -92,21 +92,21 @@ describe('ResponderDashboard Component', () => {
   it('renders dashboard title and KPIs correctly', async () => {
     render(<ResponderDashboard />);
 
-    expect(screen.getByText(/রেসপন্ডার ড্যাশবোর্ড \/ Responder Operations Dashboard/i)).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Responder desk' })).toBeInTheDocument();
 
     await waitFor(() => {
       expect(screen.getByText('Mirzanagar Ward 3 Embankment Overflow - 8 People Stranded on Roof')).toBeInTheDocument();
     });
 
-    expect(screen.getByText('Priority: 92%')).toBeInTheDocument();
-    expect(screen.getByText('Confidence: 85%')).toBeInTheDocument();
+    expect(screen.getByText('Priority 92%')).toBeInTheDocument();
+    expect(screen.getByText('Confidence 85%')).toBeInTheDocument();
   });
 
   it('displays silent-village verification flag with VERIFY BY SAFE MEANS instruction', async () => {
     render(<ResponderDashboard />);
 
     await waitFor(() => {
-      expect(screen.getByText(/SILENT VILLAGE FLAG \(Action: VERIFY BY SAFE MEANS\)/i)).toBeInTheDocument();
+      expect(screen.getByText(/Verification flags · verify by safe means/i)).toBeInTheDocument();
       expect(screen.getByText(/Village Chitholia Union has WARNING alert/i)).toBeInTheDocument();
     });
   });
@@ -115,14 +115,14 @@ describe('ResponderDashboard Component', () => {
     render(<ResponderDashboard />);
 
     await waitFor(() => {
-      expect(screen.getByText('✓ মার্জ অনুমোদন (Accept Merge)')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Accept merge' })).toBeInTheDocument();
     });
 
-    const mergeBtn = screen.getByText('✓ মার্জ অনুমোদন (Accept Merge)');
+    const mergeBtn = screen.getByRole('button', { name: 'Accept merge' });
     fireEvent.click(mergeBtn);
 
     await waitFor(() => {
-      expect(screen.getByText(/Duplicate candidate ACCEPTED successfully/i)).toBeInTheDocument();
+      expect(screen.getByText(/Duplicate candidate accepted and recorded/i)).toBeInTheDocument();
     });
   });
 
@@ -130,14 +130,14 @@ describe('ResponderDashboard Component', () => {
     render(<ResponderDashboard />);
 
     await waitFor(() => {
-      expect(screen.getByText('আলাদা করুন sos-demo-1')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Separate report sos-demo-1' })).toBeInTheDocument();
     });
 
-    const splitBtn = screen.getByText('আলাদা করুন sos-demo-1');
+    const splitBtn = screen.getByRole('button', { name: 'Separate report sos-demo-1' });
     fireEvent.click(splitBtn);
 
     await waitFor(() => {
-      expect(screen.getByText(/Report sos-demo-1 separated into independent incident/i)).toBeInTheDocument();
+      expect(screen.getByText(/Report sos-demo-1 separated into an independent incident/i)).toBeInTheDocument();
     });
   });
 
@@ -145,15 +145,15 @@ describe('ResponderDashboard Component', () => {
     render(<ResponderDashboard />);
 
     await waitFor(() => {
-      expect(screen.getByText('✓ গ্রহণ (Accept)')).toBeInTheDocument();
-      expect(screen.getByText(/No auto-dispatch/i)).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Accept suggestion' })).toBeInTheDocument();
+      expect(screen.getByText(/does not contact or dispatch an asset/i)).toBeInTheDocument();
     });
 
-    const acceptBtn = screen.getByText('✓ গ্রহণ (Accept)');
+    const acceptBtn = screen.getByRole('button', { name: 'Accept suggestion' });
     fireEvent.click(acceptBtn);
 
     await waitFor(() => {
-      expect(screen.getByText(/Boat recommendation ACCEPTED/i)).toBeInTheDocument();
+      expect(screen.getByText(/Boat recommendation accepted for review/i)).toBeInTheDocument();
     });
   });
 });

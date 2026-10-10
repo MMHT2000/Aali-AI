@@ -14,13 +14,15 @@ import { AuditViewer } from './AuditViewer';
 import { OperationsOverview } from './OperationsOverview';
 import { getOperationsSnapshot, OperationMapPoint, OperationsMode } from '../lib/operations-client';
 import { apiFetch } from '../lib/authenticated-fetch';
-import { canAccessControlRoomRoute } from '../lib/control-room-access';
+import { canAccessControlRoomRoute, getRoleHomePath } from '../lib/control-room-access';
+import { ViewerSituationSummary } from './ViewerSituationSummary';
 import { checkApiHealth, ApiHealthResponse } from '../lib/api-client';
 import './ControlRoom.css';
 
 interface ControlRoomProps { session: UserSession; onLogout: () => void }
 const routes = [
   { path: '/control-room/map', label: 'Situation room', group: 'OPERATIONS', icon: Map },
+  { path: '/control-room/viewer', label: 'Situation summary', group: 'OPERATIONS', icon: Activity },
   { path: '/control-room/responder', label: 'SOS & incidents', group: 'RESPONSE', icon: Radio },
   { path: '/control-room/field', label: 'Field reports', group: 'RESPONSE', icon: ClipboardList },
   { path: '/control-room/alerts', label: 'Warnings & approvals', group: 'PREPAREDNESS', icon: AlertTriangle },
@@ -72,13 +74,13 @@ export function ControlRoom({ session, onLogout }: ControlRoomProps) {
     };
   }, []);
   const allowed = (path: string) => canAccessControlRoomRoute(path, session.role);
-  const fallback = visible[0]?.path ?? '/login';
+  const fallback = getRoleHomePath(session.role);
   const apiLabel = health?.status === 'ok' ? 'Connected' : healthChecked ? 'Unavailable' : 'Checking';
 
   return <div className="control-shell">
     <a className="skip-link" href="#main-content">Skip to workspace</a>
     <header className="control-topbar">
-      <Link className="control-brand" to={{ pathname: '/control-room/map', search: location.search }} aria-label="Aali AI situation room home">
+      <Link className="control-brand" to={{ pathname: fallback, search: location.search }} aria-label="Aali AI role workspace home">
         <span className="brand-mark" aria-hidden="true">A</span>
         <span className="brand-copy"><strong>AALI <span>OPERATIONS</span></strong><small>Feni district coordination</small></span>
       </Link>
@@ -113,12 +115,6 @@ export function ControlRoom({ session, onLogout }: ControlRoomProps) {
         <button className="logout-button" onClick={onLogout} aria-label="Sign out"><LogOut size={16} /><span>Sign out</span></button>
       </div>
     </header>
-    <aside className="prototype-ribbon" role="note" aria-label="Prototype disclosure">
-      <strong>DEMO ENVIRONMENT</strong>
-      <span>Synthetic scenario data</span>
-      <span>Not an emergency service</span>
-      <span>Warnings and dispatch require authorized human approval</span>
-    </aside>
     <div className="control-body">
       <aside className="control-sidebar">
         <nav className="control-navigation" aria-label="Operations workspaces">
@@ -134,6 +130,7 @@ export function ControlRoom({ session, onLogout }: ControlRoomProps) {
       <main className="control-content" id="main-content" tabIndex={-1} aria-label={`${activeRoute?.label ?? 'Operations'} workspace`}>
         <Routes>
         <Route path="/control-room/map" element={allowed('/control-room/map') ? <OperationsOverview mode={mode} eventId={eventId} /> : <Navigate to={{ pathname: fallback, search: location.search }} replace />} />
+        <Route path="/control-room/viewer" element={allowed('/control-room/viewer') ? <ViewerSituationSummary mode={mode} eventId={eventId} /> : <Navigate to={{ pathname: fallback, search: location.search }} replace />} />
         <Route path="/control-room/responder" element={allowed('/control-room/responder') ? <ResponderDashboard mode={mode} eventId={eventId} /> : <Navigate to={{ pathname: fallback, search: location.search }} replace />} />
         <Route path="/control-room/alerts" element={allowed('/control-room/alerts') ? <FloodReplayWarning mode={mode} eventId={eventId} session={session} /> : <Navigate to={{ pathname: fallback, search: location.search }} replace />} />
         <Route path="/control-room/replay" element={allowed('/control-room/replay') ? <FloodReplayWarning mode={mode} eventId={eventId} session={session} /> : <Navigate to={{ pathname: fallback, search: location.search }} replace />} />

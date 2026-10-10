@@ -30,8 +30,14 @@ describe('RolesGuard', () => {
     expect(guard.canActivate(context)).toBe(true);
   });
 
-  it('should allow ADMIN supervisor access even if route requires AUTHORITY', () => {
+  it('does not implicitly grant ADMIN access to an AUTHORITY-only route', () => {
     jest.spyOn(reflector, 'getAllAndOverride').mockReturnValue([UserRole.AUTHORITY]);
+    const context = createMockContext(UserRole.ADMIN);
+    expect(() => guard.canActivate(context)).toThrow(ForbiddenException);
+  });
+
+  it('allows ADMIN when the route explicitly grants ADMIN', () => {
+    jest.spyOn(reflector, 'getAllAndOverride').mockReturnValue([UserRole.AUTHORITY, UserRole.ADMIN]);
     const context = createMockContext(UserRole.ADMIN);
     expect(guard.canActivate(context)).toBe(true);
   });

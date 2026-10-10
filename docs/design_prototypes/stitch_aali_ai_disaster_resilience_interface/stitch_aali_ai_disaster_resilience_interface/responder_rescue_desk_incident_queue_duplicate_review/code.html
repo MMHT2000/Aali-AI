@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_dashboard" name="shell-type"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={"darkMode":"class","theme":{"extend":{"colors":{"surface-container-highest":"#2f3543","surface-variant":"#2f3543","on-surface":"#dde2f5","surface-dim":"#0d1320","secondary-container":"#29a195","outline":"#89929b","error":"#ffb4ab","on-surface-variant":"#bfc7d2","on-tertiary-container":"#5c0004","on-tertiary-fixed":"#410002","inverse-on-surface":"#2a303f","secondary":"#6bd8cb","on-primary-container":"#002c47","tertiary-fixed-dim":"#ffb4ab","inverse-surface":"#dde2f5","on-error":"#690005","surface-container-lowest":"#080e1b","surface-bright":"#333948","surface-container":"#1a1f2d","on-background":"#dde2f5","on-primary-fixed-variant":"#004b73","error-container":"#93000a","on-secondary-fixed":"#00201d","on-secondary-fixed-variant":"#005049","surface":"#0d1320","surface-tint":"#93ccff","tertiary-container":"#ff544a","primary-fixed":"#cce5ff","outline-variant":"#3f4850","secondary-fixed":"#89f5e7","on-secondary":"#003732","background":"#0d1320","on-primary-fixed":"#001d31","primary-fixed-dim":"#93ccff","on-tertiary-fixed-variant":"#93000b","primary-container":"#3198dc","tertiary-fixed":"#ffdad6","on-secondary-container":"#00302b","secondary-fixed-dim":"#6bd8cb","on-error-container":"#ffdad6","surface-container-low":"#161b29","surface-container-high":"#242a38","on-tertiary":"#690005","primary":"#93ccff","inverse-primary":"#006398","on-primary":"#003351","tertiary":"#ffb4ab"},"borderRadius":{"DEFAULT":"0.125rem","lg":"0.25rem","xl":"0.5rem","full":"0.75rem"},"spacing":{"space-xl":"1.5rem","space-lg":"1rem","margin":"0.75rem","space-sm":"0.375rem","margin-desktop":"1rem","gutter-desktop":"1rem","gutter":"0.75rem","space-md":"0.75rem","space-xs":"0.25rem"},"fontFamily":{"label-sm":["JetBrains Mono"],"headline-xl-mobile":["Inter"],"body-lg":["Inter"],"label-md":["JetBrains Mono"],"headline-xl":["Inter"],"label-lg":["JetBrains Mono"],"headline-lg":["Inter"],"telemetry-numeral":["JetBrains Mono"],"headline-md":["Inter"],"body-md":["Inter"],"body-sm":["Inter"]},"fontSize":{"label-sm":["10px",{"lineHeight":"12px","letterSpacing":"0.06em","fontWeight":"600"}],"headline-xl-mobile":["24px",{"lineHeight":"30px","letterSpacing":"-0.01em","fontWeight":"700"}],"body-lg":["15px",{"lineHeight":"22px","letterSpacing":"0em","fontWeight":"400"}],"label-md":["11px",{"lineHeight":"14px","letterSpacing":"0.04em","fontWeight":"500"}],"headline-xl":["32px",{"lineHeight":"38px","letterSpacing":"-0.02em","fontWeight":"700"}],"label-lg":["13px",{"lineHeight":"16px","letterSpacing":"0.02em","fontWeight":"500"}],"headline-lg":["24px",{"lineHeight":"30px","letterSpacing":"-0.01em","fontWeight":"600"}],"telemetry-numeral":["20px",{"lineHeight":"24px","letterSpacing":"-0.02em","fontWeight":"700"}],"headline-md":["18px",{"lineHeight":"24px","letterSpacing":"-0.005em","fontWeight":"600"}],"body-md":["13px",{"lineHeight":"18px","letterSpacing":"0em","fontWeight":"400"}],"body-sm":["12px",{"lineHeight":"16px","letterSpacing":"0.01em","fontWeight":"400"}]}}}}</script></head><body class="bg-background font-body-md text-body-md text-on-surface antialiased"><div class="fixed top-0 left-0 right-0 z-50 flex flex-col"><div class="h-6 bg-surface-container-lowest px-gutter-desktop flex items-center justify-between font-label-sm text-label-sm"><div class="flex items-center gap-space-md overflow-hidden text-ellipsis whitespace-nowrap"><span class="flex items-center gap-space-xs text-secondary"><span class="material-symbols-outlined text-[12px]">radio_button_checked</span><span>APP GATEWAY: CONNECTED · 38MS</span></span><span class="text-outline">|</span><span class="text-on-surface-variant">Hydro Feeds: 2/5 Online · FFWC: Unavailable</span><span class="text-outline">|</span><span class="text-on-surface-variant">Last Sync: 14:28:12 BST</span></div><div class="flex items-center gap-space-xs text-tertiary font-label-sm text-label-sm tracking-wider uppercase bg-tertiary-container/20 px-space-xs"><span class="material-symbols-outlined text-[13px] text-tertiary">warning</span><span>DECISION-SUPPORT PROTOTYPE · NOT AN EMERGENCY SERVICE · HUMAN REVIEW MANDATORY</span></div></div><header class="h-16 bg-surface-container-low px-gutter-desktop flex items-center justify-between gap-space-lg"><div class="flex items-center gap-space-md"><div class="flex flex-col"><div class="flex items-center gap-space-xs"><span class="font-headline-md text-headline-md text-primary tracking-tight font-bold">AALI AI</span><span class="text-outline font-label-md text-label-md">/</span><span class="font-headline-md text-headline-md text-on-surface tracking-wide">FENI DISTRICT RESCUE DESK</span></div><span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Muhuri Basin Tactical Response Unit · Zone-04</span></div></div><div class="hidden xl:flex items-center gap-space-lg"><div class="flex items-center gap-space-xs bg-surface-container-highest px-space-md py-space-xs"><span class="material-symbols-outlined text-primary text-[18px]">layers</span><div class="flex flex-col"><span class="font-label-sm text-label-sm text-on-surface-variant uppercase">Active Event</span><span class="font-label-md text-label-md text-on-surface font-semibold tracking-wide">MUHURI BASIN FLASH FLOOD EVENT 2024</span></div><span class="material-symbols-outlined text-on-surface-variant text-[18px] ml-space-xs">arrow_drop_down</span></div><div class="flex items-center bg-surface-container p-space-xs"><span class="px-space-md py-space-xs font-label-sm text-label-sm text-on-surface-variant">LIVE SOURCES 2/5</span><span class="px-space-md py-space-xs font-label-sm text-label-sm bg-secondary-container text-on-secondary-container flex items-center gap-space-xs font-semibold"><span class="material-symbols-outlined text-[13px]">token</span>EXERCISE MODE</span><span class="px-space-md py-space-xs font-label-sm text-label-sm text-on-surface-variant">HISTORICAL</span></div></div><div class="flex items-center gap-space-md"><div class="text-right hidden sm:flex flex-col"><span class="font-label-md text-label-md text-on-surface font-semibold">Maj. S. Hossain</span><span class="font-label-sm text-label-sm text-on-surface-variant">TACTICAL DISPATCH &amp; FIELD RESCUE DESK</span></div><div class="bg-surface-container-high px-space-sm py-space-xs font-label-sm text-label-sm text-primary uppercase hidden md:block">ROLE: Responder (Rescue Desk)</div><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></header><div class="h-10 bg-surface-container px-gutter-desktop flex items-center"><nav class="flex items-center gap-space-xs h-full" data-active-classes="bg-surface-container-highest text-primary font-semibold"><a aria-current="page" class="h-full px-space-lg flex items-center transition-colors whitespace-nowrap bg-surface-container-highest text-primary font-semibold" data-path="rescue-queue" href="#">Rescue Queue (Active 6)</a><a class="h-full px-space-lg flex items-center font-label-md text-label-md text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors whitespace-nowrap" data-path="duplicate-candidate-review" href="#">Duplicate Candidate Review (2)</a><a class="h-full px-space-lg flex items-center font-label-md text-label-md text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors whitespace-nowrap" data-path="field-units-and-staging" href="#">Field Units &amp; Staging</a><a class="h-full px-space-lg flex items-center font-label-md text-label-md text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors whitespace-nowrap" data-path="comms-log" href="#">Comms Log</a><a class="h-full px-space-lg flex items-center font-label-md text-label-md text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors whitespace-nowrap" data-path="desk-audit-log" href="#">Desk Audit Log</a></nav></div></div><aside class="fixed left-0 top-[120px] bottom-0 w-72 bg-surface-container-low z-40 flex flex-col justify-between p-space-md"><div class="flex flex-col gap-space-lg overflow-y-auto"><div class="flex flex-col gap-space-xs"><span class="font-label-sm text-label-sm text-outline uppercase tracking-wider px-space-sm mb-space-xs">RESCUE DESK WORKSPACES</span><nav class="flex flex-col gap-space-xs" data-active-classes="bg-surface-container-high text-primary font-semibold"><a aria-current="page" class="flex items-center justify-between px-space-md py-space-sm transition-colors bg-surface-container-high text-primary font-semibold" data-path="rescue-queue" href="#"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[16px]">inbox</span><span>Triage &amp; Incident Queue</span></div><span class="font-label-sm text-label-sm bg-tertiary-container/30 text-tertiary px-space-xs">6 ACT</span></a><a class="flex items-center justify-between px-space-md py-space-sm font-label-md text-label-md text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="duplicate-candidate-review" href="#"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[16px]">content_copy</span><span>Duplicate Merging Review</span></div><span class="font-label-sm text-label-sm bg-surface-container-highest text-on-surface-variant px-space-xs">2 REV</span></a><a class="flex items-center justify-between px-space-md py-space-sm font-label-md text-label-md text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="field-units-and-staging" href="#"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[16px]">sailing</span><span>Staged Watercraft &amp; Units</span></div></a><a class="flex items-center justify-between px-space-md py-space-sm font-label-md text-label-md text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="shelter-evac-manifests" href="#"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[16px]">night_shelter</span><span>Shelter Evac Manifests</span></div></a></nav></div><div class="flex flex-col gap-space-xs"><span class="font-label-sm text-label-sm text-outline uppercase tracking-wider px-space-sm mb-space-xs">FIELD TEAMS (SECTOR-04)</span><div class="flex flex-col gap-space-xs"><div class="flex items-center justify-between px-space-md py-space-sm bg-surface-container"><div class="flex flex-col"><span class="font-label-md text-label-md text-on-surface">Parshuram Boat Unit 01</span><span class="font-label-sm text-label-sm text-secondary">En Route · ETA 12m</span></div><span class="material-symbols-outlined text-[16px] text-secondary">near_me</span></div><div class="flex items-center justify-between px-space-md py-space-sm bg-surface-container"><div class="flex flex-col"><span class="font-label-md text-label-md text-on-surface">Fulgazi Skiff Squad</span><span class="font-label-sm text-label-sm text-outline">Staged at CP-North</span></div><span class="material-symbols-outlined text-[16px] text-outline">anchor</span></div><div class="flex items-center justify-between px-space-md py-space-sm bg-surface-container"><div class="flex flex-col"><span class="font-label-md text-label-md text-on-surface">Chhagalnaiya Volunteer Scout</span><span class="font-label-sm text-label-sm text-primary">Active · Surveying</span></div><span class="material-symbols-outlined text-[16px] text-primary">radar</span></div></div></div></div><div class="bg-surface-container p-space-md flex flex-col gap-space-xs"><div class="flex items-center gap-space-xs text-secondary"><span class="material-symbols-outlined text-[14px]">satellite_alt</span><span class="font-label-sm text-label-sm font-semibold tracking-wide uppercase">COMMS CONTINUITY</span></div><p class="font-label-sm text-label-sm text-on-surface-variant leading-tight">VHF CH-08 / PACKET RADIO ONLINE · Repeater Parshuram-01 Failover active</p></div></aside><div class="pl-72"><main class="w-full pt-[120px] bg-background min-h-screen"><div class="flex flex-col w-full">
+<!-- Top Exercise Harness & Quick Filter Bar -->
+<div class="bg-surface-container-low px-gutter-desktop py-space-sm flex flex-col xl:flex-row items-start xl:items-center justify-between gap-space-md">
+<div class="flex flex-wrap items-center gap-space-sm">
+<span class="inline-flex items-center gap-space-xs px-space-sm py-0.5 bg-tertiary-container/20 text-tertiary font-label-sm text-label-sm uppercase tracking-wider">
+<span class="material-symbols-outlined text-[13px]">tune</span>
+<span>EXERCISE MODE: FENI RISING WATER SCENARIO · DETERMINISTIC TEST HARNESS #SIM-992</span>
+</span>
+<span class="text-outline font-label-sm text-label-sm">|</span>
+<span class="text-on-surface-variant font-label-sm text-label-sm">Sector: Muhuri Basin (Parshuram / Fulgazi)</span>
+<span class="text-outline font-label-sm text-label-sm">|</span>
+<span class="inline-flex items-center gap-space-xs text-secondary font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-[12px]">schedule</span>
+<span>SIM TIME: T+02:44:10</span>
+</span>
+</div>
+<!-- Live Filters & Search Input -->
+<div class="flex flex-wrap items-center gap-space-sm w-full xl:w-auto">
+<div class="relative flex-1 xl:w-72">
+<span class="material-symbols-outlined absolute left-2 top-1.5 text-outline text-[16px]">search</span>
+<input class="w-full bg-surface-container-lowest text-on-surface font-label-md text-label-md pl-7 pr-space-sm py-1 placeholder-outline focus:outline-none" placeholder="Search SOS ID, village, contact..." type="text"/>
+</div>
+<div class="flex items-center bg-surface-container-lowest p-0.5">
+<button class="px-space-sm py-1 font-label-sm text-label-sm bg-surface-container-high text-primary font-semibold flex items-center gap-1">
+<span>All</span>
+<span class="bg-primary/20 px-1 py-0.2 text-[9px]">6</span>
+</button>
+<button class="px-space-sm py-1 font-label-sm text-label-sm text-on-surface-variant hover:text-on-surface flex items-center gap-1">
+<span>Pending Triage</span>
+<span class="bg-tertiary/20 text-tertiary px-1 py-0.2 text-[9px]">3</span>
+</button>
+<button class="px-space-sm py-1 font-label-sm text-label-sm text-on-surface-variant hover:text-on-surface flex items-center gap-1">
+<span>Duplicates</span>
+<span class="bg-secondary-container/40 text-secondary px-1 py-0.2 text-[9px]">2</span>
+</button>
+<button class="px-space-sm py-1 font-label-sm text-label-sm text-on-surface-variant hover:text-on-surface flex items-center gap-1">
+<span>Staged</span>
+<span class="bg-surface-container-highest px-1 py-0.2 text-[9px]">1</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Main Dual-Pane Console -->
+<div class="grid grid-cols-1 xl:grid-cols-12 gap-space-sm p-gutter-desktop">
+<!-- LEFT PANE: Triage Incident Queue (Col 1-4) -->
+<div class="xl:col-span-4 flex flex-col gap-space-sm">
+<!-- Queue Header with Sort Controls -->
+<div class="bg-surface-container-low p-space-sm flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-primary text-[18px]">emergency_home</span>
+<span class="font-headline-md text-headline-md text-on-surface">RESCUE TRIAGE QUEUE</span>
+<span class="font-label-sm text-label-sm bg-surface-container-highest text-primary px-space-xs py-0.5">6 INGESTED</span>
+</div>
+<div class="flex items-center gap-1">
+<span class="font-label-sm text-label-sm text-outline">SORT:</span>
+<select class="bg-surface-container-highest text-on-surface font-label-sm text-label-sm px-1 py-0.5 focus:outline-none">
+<option>Urgency (Desc)</option>
+<option>Ingestion Time</option>
+<option>People Trapped</option>
+</select>
+</div>
+</div>
+<!-- Incident Queue Cards Stream -->
+<div class="flex flex-col gap-space-xs overflow-y-auto max-h-[calc(100vh-210px)] pr-1">
+<!-- CARD 1: Selected Active Target SOS-7K4M -->
+<div class="bg-surface-container-high p-space-md flex flex-col gap-space-xs cursor-pointer relative shadow-md">
+<div class="flex items-start justify-between gap-space-sm">
+<div class="flex items-center gap-space-xs">
+<span class="font-label-lg text-label-lg text-primary font-bold">SOS-7K4M</span>
+<span class="font-label-sm text-label-sm px-space-xs py-0.5 bg-secondary-container/30 text-secondary tracking-widest uppercase">SYNTHETIC EXERCISE</span>
+</div>
+<span class="font-label-sm text-label-sm px-space-xs py-0.5 bg-tertiary-container text-on-tertiary font-bold flex items-center gap-1">
+<span class="material-symbols-outlined text-[12px]">medical_services</span>
+              CRITICAL · MEDICAL
+            </span>
+</div>
+<div class="flex flex-col gap-0.5">
+<div class="flex items-center gap-space-xs text-on-surface font-body-md text-body-md font-semibold">
+<span class="material-symbols-outlined text-[15px] text-tertiary">location_on</span>
+<span>Chandgazi Village, Parshuram Upazila</span>
+</div>
+<div class="font-label-sm text-label-sm text-outline flex items-center gap-space-md pl-space-md">
+<span>COORD: 23.1182° N, 91.4289° E</span>
+<span>RATE: +0.4m/hr</span>
+</div>
+</div>
+<div class="bg-surface-container-low p-space-xs flex items-center justify-between text-on-surface-variant font-label-sm text-label-sm">
+<div class="flex items-center gap-space-sm">
+<span class="flex items-center gap-1 text-on-surface font-bold">
+<span class="material-symbols-outlined text-[14px] text-primary">groups</span>
+                4 Total
+              </span>
+<span>(1 Insulin-Dependent, 1 Child)</span>
+</div>
+<span class="text-tertiary font-bold">Rooftop Risk</span>
+</div>
+<!-- Duplicate Suggestion Notice Flag -->
+<div class="bg-surface-container-lowest p-space-xs flex items-center justify-between text-secondary font-label-sm text-label-sm">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-[15px]">difference</span>
+<span>DUPLICATE DETECTED: #SOS-7K4M-B</span>
+</div>
+<span class="text-secondary font-bold">89% Match</span>
+</div>
+<div class="flex items-center justify-between font-label-sm text-label-sm pt-space-xs text-outline">
+<span class="flex items-center gap-1 text-tertiary">
+<span class="material-symbols-outlined text-[13px]">pending</span>
+              Needs Human Review
+            </span>
+<span>Elapsed: 18m · T+14:21 BST</span>
+</div>
+</div>
+<!-- CARD 2: SOS-8J2P -->
+<div class="bg-surface-container p-space-md flex flex-col gap-space-xs hover:bg-surface-container-high transition-colors cursor-pointer">
+<div class="flex items-start justify-between gap-space-sm">
+<div class="flex items-center gap-space-xs">
+<span class="font-label-lg text-label-lg text-on-surface font-bold">SOS-8J2P</span>
+<span class="font-label-sm text-label-sm px-space-xs py-0.5 bg-surface-container-highest text-on-surface-variant">SYNTHETIC EXERCISE</span>
+</div>
+<span class="font-label-sm text-label-sm px-space-xs py-0.5 bg-surface-container-highest text-tertiary font-semibold flex items-center gap-1">
+<span class="material-symbols-outlined text-[12px]">warning</span>
+              HIGH URGENCY
+            </span>
+</div>
+<div class="flex flex-col gap-0.5">
+<div class="flex items-center gap-space-xs text-on-surface font-body-md text-body-md">
+<span class="material-symbols-outlined text-[15px] text-outline">location_on</span>
+<span>North Anandapur, Fulgazi Upazila</span>
+</div>
+<div class="font-label-sm text-label-sm text-outline pl-space-md">
+              6 Persons on tin roof · Water at plinth +1.8m
+            </div>
+</div>
+<div class="flex items-center justify-between font-label-sm text-label-sm pt-space-xs text-outline">
+<span class="text-secondary flex items-center gap-1">
+<span class="material-symbols-outlined text-[13px]">sailing</span>
+              Rec: Fulgazi Skiff Unit
+            </span>
+<span>Elapsed: 34m</span>
+</div>
+</div>
+<!-- CARD 3: SOS-3M9X -->
+<div class="bg-surface-container p-space-md flex flex-col gap-space-xs hover:bg-surface-container-high transition-colors cursor-pointer">
+<div class="flex items-start justify-between gap-space-sm">
+<div class="flex items-center gap-space-xs">
+<span class="font-label-lg text-label-lg text-on-surface font-bold">SOS-3M9X</span>
+<span class="font-label-sm text-label-sm px-space-xs py-0.5 bg-surface-container-highest text-on-surface-variant">SYNTHETIC EXERCISE</span>
+</div>
+<span class="font-label-sm text-label-sm px-space-xs py-0.5 bg-tertiary-container/30 text-tertiary flex items-center gap-1">
+<span class="material-symbols-outlined text-[12px]">wrong_location</span>
+              UNCONFIRMED
+            </span>
+</div>
+<div class="flex flex-col gap-0.5">
+<div class="flex items-center gap-space-xs text-on-surface-variant font-body-md text-body-md">
+<span class="material-symbols-outlined text-[15px] text-tertiary">warning_amber</span>
+<span>Location Unavailable (Cell Ping: TK-98)</span>
+</div>
+<div class="font-label-sm text-label-sm text-outline pl-space-md">
+              2 Persons · Low-battery mobile drop during call
+            </div>
+</div>
+<div class="bg-surface-container-low p-space-xs text-tertiary font-label-sm text-label-sm flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">radar</span>
+            Requires Field Scout Physical Verification
+          </div>
+<div class="flex items-center justify-between font-label-sm text-label-sm pt-space-xs text-outline">
+<span>Source: Cell Triangulation</span>
+<span>Elapsed: 41m</span>
+</div>
+</div>
+<!-- CARD 4: SOS-9X1L -->
+<div class="bg-surface-container p-space-md flex flex-col gap-space-xs hover:bg-surface-container-high transition-colors cursor-pointer">
+<div class="flex items-start justify-between gap-space-sm">
+<div class="flex items-center gap-space-xs">
+<span class="font-label-lg text-label-lg text-on-surface font-bold">SOS-9X1L</span>
+<span class="font-label-sm text-label-sm px-space-xs py-0.5 bg-surface-container-highest text-on-surface-variant">SYNTHETIC EXERCISE</span>
+</div>
+<span class="font-label-sm text-label-sm px-space-xs py-0.5 bg-tertiary-container text-on-tertiary font-bold flex items-center gap-1">
+<span class="material-symbols-outlined text-[12px]">vital_signs</span>
+              SEVERE · PREGNANCY
+            </span>
+</div>
+<div class="flex flex-col gap-0.5">
+<div class="flex items-center gap-space-xs text-on-surface font-body-md text-body-md">
+<span class="material-symbols-outlined text-[15px] text-tertiary">location_on</span>
+<span>Anandapur High School Perimeter</span>
+</div>
+<div class="font-label-sm text-label-sm text-outline pl-space-md">
+              8 Persons (1 in Active Labor) · Isolation risk
+            </div>
+</div>
+<div class="flex items-center justify-between font-label-sm text-label-sm pt-space-xs text-outline">
+<span class="text-primary flex items-center gap-1">
+<span class="material-symbols-outlined text-[13px]">hourglass_top</span>
+              Boat R-02 Recommended · Pending Authority Sign-off
+            </span>
+<span>Elapsed: 52m</span>
+</div>
+</div>
+</div>
+<!-- Ground Reality Summary Micro-Panel -->
+<div class="bg-surface-container-low p-space-sm flex items-center justify-between font-label-sm text-label-sm text-outline">
+<span>FIELD CAPACITY UTILIZATION:</span>
+<div class="flex items-center gap-space-sm">
+<span class="text-secondary font-bold">3 BOATS STAGED</span>
+<span>·</span>
+<span class="text-tertiary font-bold">1 EN ROUTE</span>
+</div>
+</div>
+</div>
+<!-- CENTER & RIGHT DUAL WORKSPACE (Col 5-12) -->
+<div class="xl:col-span-8 flex flex-col gap-space-sm">
+<!-- Workspace Incident Header Bar -->
+<div class="bg-surface-container-low p-space-md flex flex-col lg:flex-row items-start lg:items-center justify-between gap-space-md">
+<div class="flex flex-col gap-space-xs">
+<div class="flex items-center flex-wrap gap-space-sm">
+<span class="font-headline-lg text-headline-lg text-primary font-bold">SOS-7K4M</span>
+<span class="bg-surface-container-highest text-secondary font-label-sm text-label-sm px-space-sm py-0.5 font-bold">SYNTHETIC EXERCISE</span>
+<span class="bg-tertiary-container/30 text-tertiary font-label-sm text-label-sm px-space-sm py-0.5 flex items-center gap-1 font-semibold">
+<span class="material-symbols-outlined text-[13px]">error</span>
+              URGENT · 4 PERSONS TRAPPED
+            </span>
+</div>
+<div class="flex items-center flex-wrap gap-space-md font-label-sm text-label-sm text-on-surface-variant">
+<span>PROVENANCE: Citizen SMS Gateway via Ingestion Engine #SIM-992</span>
+<span>·</span>
+<span>RECEPTION: 14:21:44 BST (22m ago)</span>
+<span>·</span>
+<span class="text-secondary">VERIFICATION: Dual-pass Algorithmic Confirmed</span>
+</div>
+</div>
+<!-- Triage Primary Action Buttons -->
+<div class="flex items-center flex-wrap gap-space-xs w-full lg:w-auto">
+<button class="bg-surface-container-high hover:bg-surface-container-highest text-on-surface px-space-md py-1.5 font-label-md text-label-md flex items-center gap-space-xs transition-colors">
+<span class="material-symbols-outlined text-[16px] text-primary">satellite_alt</span>
+<span>Request Scout Check</span>
+</button>
+<button class="bg-surface-container-high hover:bg-surface-container-highest text-on-surface px-space-md py-1.5 font-label-md text-label-md flex items-center gap-space-xs transition-colors">
+<span class="material-symbols-outlined text-[16px] text-tertiary">contact_support</span>
+<span>Flag More Info</span>
+</button>
+<button class="bg-primary hover:bg-primary-container text-on-primary font-bold px-space-md py-1.5 font-label-md text-label-md flex items-center gap-space-xs transition-colors">
+<span class="material-symbols-outlined text-[16px]">task_alt</span>
+<span>Acknowledge Triage</span>
+</button>
+</div>
+</div>
+<!-- SECTION 1: DUPLICATE CANDIDATE ADJUDICATION (SIDE-BY-SIDE REVIEW) -->
+<div class="bg-surface-container p-space-md flex flex-col gap-space-md">
+<!-- Header & Matching Logic Explainer -->
+<div class="flex flex-col gap-space-xs">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-secondary text-[20px]">content_copy</span>
+<span class="font-headline-md text-headline-md text-on-surface font-semibold tracking-wide">
+                DUPLICATE CANDIDATE REVIEW &amp; MERGE ADJUDICATION
+              </span>
+</div>
+<span class="font-label-sm text-label-sm bg-secondary-container/20 text-secondary px-space-sm py-0.5 font-bold">
+              MATCH ENGINE CONFIDENCE: 89%
+            </span>
+</div>
+<div class="bg-surface-container-lowest p-space-sm flex items-start gap-space-sm text-on-surface-variant font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-[16px] text-secondary mt-0.5">psychology</span>
+<span>
+              Algorithmic match identified based on spatial proximity (delta ~110m), matching contact patronymic/surname ("Hossain"), and proximate ingestion window (T+02m 18s). <strong class="text-on-surface">Responder human adjudication required: Verify if both reports represent the same physical household roof before merging telemetry.</strong>
+</span>
+</div>
+</div>
+<!-- Side-by-Side Comparison Columns -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-space-md">
+<!-- Column A: Primary Ingestion (Target) -->
+<div class="bg-surface-container-low p-space-md flex flex-col gap-space-sm relative">
+<div class="flex items-center justify-between pb-space-xs bg-surface-container-high px-space-sm py-1 -mt-space-md -mx-space-md">
+<span class="font-label-md text-label-md text-primary font-bold">PRIMARY INGESTION: #SOS-7K4M</span>
+<span class="font-label-sm text-label-sm bg-primary/20 text-primary px-1 font-bold">MASTER TARGET</span>
+</div>
+<div class="grid grid-cols-2 gap-x-2 gap-y-1 font-label-sm text-label-sm">
+<span class="text-outline">INGEST TIME:</span>
+<span class="text-on-surface font-semibold text-right">14:21:44 BST</span>
+<span class="text-outline">REPORTER:</span>
+<span class="text-on-surface font-semibold text-right">Anwar Hossain (Brother)</span>
+<span class="text-outline">PHONE / ID:</span>
+<span class="text-on-surface font-mono text-right">+880 1711-829***</span>
+<span class="text-outline">SOURCE:</span>
+<span class="text-secondary text-right">SMS Gateway #SIM-992</span>
+</div>
+<div class="bg-surface-container p-space-xs flex flex-col gap-0.5 font-label-sm text-label-sm">
+<span class="text-outline font-semibold">GEOGRAPHIC FIX:</span>
+<span class="text-on-surface font-semibold">Chandgazi Primary School Road, Parshuram</span>
+<span class="font-mono text-primary text-[10px]">23.1182° N, 91.4289° E (Accurate: 18m)</span>
+</div>
+<div class="bg-surface-container-highest p-space-xs flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-outline">POPULATION AT RISK:</span>
+<span class="font-label-md text-label-md text-on-surface font-bold text-tertiary">4 (1 Elderly Diabetic, 2 Adults, 1 Minor)</span>
+</div>
+<div class="flex flex-col gap-1">
+<span class="font-label-sm text-label-sm text-outline font-semibold">RAW SITUATION REPORT:</span>
+<p class="font-body-sm text-body-sm text-on-surface bg-surface-container-lowest p-space-sm italic">
+                "Water reached ground floor lintel. Roof access via wooden ladder. Mother needs insulin kept cold. Current is very rapid from east levee."
+              </p>
+</div>
+</div>
+<!-- Column B: Candidate Duplicate -->
+<div class="bg-surface-container-low p-space-md flex flex-col gap-space-sm relative">
+<div class="flex items-center justify-between pb-space-xs bg-surface-container-high px-space-sm py-1 -mt-space-md -mx-space-md">
+<span class="font-label-md text-label-md text-secondary font-bold">CANDIDATE DUPLICATE: #SOS-7K4M-B</span>
+<span class="font-label-sm text-label-sm bg-secondary-container/40 text-secondary px-1 font-bold">POTENTIAL MERGE</span>
+</div>
+<div class="grid grid-cols-2 gap-x-2 gap-y-1 font-label-sm text-label-sm">
+<span class="text-outline">INGEST TIME:</span>
+<span class="text-on-surface font-semibold text-right">14:24:02 BST (+02m 18s)</span>
+<span class="text-outline">REPORTER:</span>
+<span class="text-on-surface font-semibold text-right">Nasreen Sultana (Neighbor)</span>
+<span class="text-outline">PHONE / ID:</span>
+<span class="text-on-surface font-mono text-right">+880 1819-440***</span>
+<span class="text-outline">SOURCE:</span>
+<span class="text-secondary text-right">Volunteer Portal #VOL-09</span>
+</div>
+<div class="bg-surface-container p-space-xs flex flex-col gap-0.5 font-label-sm text-label-sm">
+<span class="text-outline font-semibold">GEOGRAPHIC FIX (DELTA: ~110m):</span>
+<span class="text-on-surface font-semibold">Beside Chandgazi Primary School, House 14</span>
+<span class="font-mono text-secondary text-[10px]">23.1190° N, 91.4295° E (Accurate: 35m)</span>
+</div>
+<div class="bg-surface-container-highest p-space-xs flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-outline">POPULATION AT RISK:</span>
+<span class="font-label-md text-label-md text-on-surface font-bold text-tertiary">3-4 (Elderly lady with medical issue mentioned)</span>
+</div>
+<div class="flex flex-col gap-1">
+<span class="font-label-sm text-label-sm text-outline font-semibold">RAW SITUATION REPORT:</span>
+<p class="font-body-sm text-body-sm text-on-surface bg-surface-container-lowest p-space-sm italic">
+                "Hossain family trapped on tin shed roof next to primary school. Strong current from levee breach. Woman is sick."
+              </p>
+</div>
+</div>
+</div>
+<!-- Adjudication Decision Bar & Justification Input -->
+<div class="bg-surface-container-low p-space-md flex flex-col gap-space-sm">
+<div class="flex flex-col gap-1">
+<label class="font-label-sm text-label-sm text-outline uppercase font-semibold">
+              Mandatory Reviewer Audit Justification (Recorded to Desk Audit Log):
+            </label>
+<input class="w-full bg-surface-container-lowest text-on-surface font-label-sm text-label-sm p-space-sm focus:outline-none" type="text" value="Confirmed identical location &amp; medical description with neighbor. Retaining SOS-7K4M as primary master incident."/>
+</div>
+<div class="flex flex-wrap items-center justify-between gap-space-sm pt-space-xs">
+<div class="flex items-center gap-space-xs text-outline font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-[15px]">verified_user</span>
+<span>Reviewer: Maj. S. Hossain · Rescue Desk Officer</span>
+</div>
+<div class="flex flex-wrap items-center gap-space-xs">
+<button class="bg-surface-container-high hover:bg-surface-container-highest text-on-surface-variant hover:text-on-surface px-space-md py-1.5 font-label-md text-label-md transition-colors">
+                Defer: Dispatch Field Scout Verification First
+              </button>
+<button class="bg-surface-container-high hover:bg-surface-container-highest text-tertiary px-space-md py-1.5 font-label-md text-label-md transition-colors">
+                Reject Candidate: Mark as Distinct House
+              </button>
+<button class="bg-secondary-container hover:bg-secondary text-on-secondary-container font-bold px-space-lg py-1.5 font-label-md text-label-md flex items-center gap-space-xs transition-colors">
+<span class="material-symbols-outlined text-[16px]">merge_type</span>
+<span>Confirm Merge &amp; Link to Master (SOS-7K4M)</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- SECTION 2: TACTICAL RESOURCE DECISION SUPPORT & SHELTER MANIFEST -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-space-sm">
+<!-- Recommended Tactical Watercraft (Decision Support Only) -->
+<div class="bg-surface-container p-space-md flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-primary text-[18px]">directions_boat</span>
+<span class="font-headline-md text-headline-md text-on-surface">RECOMMENDED WATERCRAFT</span>
+</div>
+<span class="bg-surface-container-highest text-secondary font-label-sm text-label-sm px-space-xs py-0.5">
+              SUGGESTED · HUMAN REVIEW REQUIRED
+            </span>
+</div>
+<!-- Mandatory Decision Support Constraint Warning -->
+<div class="bg-surface-container-lowest p-space-xs flex items-center gap-space-xs text-tertiary font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-[14px] flex-shrink-0">gavel</span>
+<span>Mandatory Protocol: Rescue Desk provides recommendations only. No automated dispatch. Forward to Operational Authority for task order.</span>
+</div>
+<div class="bg-surface-container-low p-space-sm flex flex-col gap-space-xs">
+<div class="flex items-start justify-between">
+<div>
+<span class="font-label-lg text-label-lg text-primary font-bold">Boat Unit F-03 (Fire Service)</span>
+<p class="font-label-sm text-label-sm text-outline">Rigid Inflatable 40HP · Equipped with Medical Stretcher &amp; Cold Box</p>
+</div>
+<span class="bg-surface-container-highest text-secondary font-label-sm text-label-sm px-space-xs py-0.5">STAGED · READY</span>
+</div>
+<div class="grid grid-cols-3 gap-space-xs pt-space-xs font-label-sm text-label-sm">
+<div class="bg-surface-container p-space-xs flex flex-col">
+<span class="text-outline">STAGING POINT</span>
+<span class="text-on-surface font-semibold">Parshuram Ghat</span>
+</div>
+<div class="bg-surface-container p-space-xs flex flex-col">
+<span class="text-outline">DISTANCE / ETA</span>
+<span class="text-on-surface font-semibold">2.8 km · 18 min</span>
+</div>
+<div class="bg-surface-container p-space-xs flex flex-col">
+<span class="text-outline">MAX CAPACITY</span>
+<span class="text-secondary font-semibold">6 Pax + Crew</span>
+</div>
+</div>
+</div>
+<button class="w-full bg-primary-container hover:bg-primary text-on-primary font-bold py-2 px-space-md font-label-md text-label-md flex items-center justify-center gap-space-xs transition-colors">
+<span class="material-symbols-outlined text-[16px]">send_time_extension</span>
+<span>Approve Asset Recommendation &amp; Forward to Authority</span>
+</button>
+</div>
+<!-- Shelter Allocation & Evac Routing Context -->
+<div class="bg-surface-container p-space-md flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-secondary text-[18px]">night_shelter</span>
+<span class="font-headline-md text-headline-md text-on-surface">TARGET SHELTER CONTEXT</span>
+</div>
+<span class="font-label-sm text-label-sm text-outline">ZONE-04 CAPACITY: 69%</span>
+</div>
+<div class="bg-surface-container-low p-space-sm flex flex-col gap-space-xs">
+<div class="flex items-start justify-between">
+<div>
+<span class="font-label-md text-label-md text-on-surface font-bold">Parshuram Govt College Shelter</span>
+<p class="font-label-sm text-label-sm text-outline">Designated Medical Evac Hub #02 · Generator &amp; Cold Storage Active</p>
+</div>
+<span class="font-label-sm text-label-sm bg-surface-container-highest text-secondary px-space-xs py-0.5">OPEN</span>
+</div>
+<!-- Capacity Bar Indicator -->
+<div class="flex flex-col gap-1 pt-space-xs">
+<div class="flex items-center justify-between font-label-sm text-label-sm">
+<span class="text-outline">Occupancy: 312 / 450 Persons</span>
+<span class="text-primary font-semibold">138 Beds Remaining</span>
+</div>
+<div class="w-full bg-surface-container-lowest h-2 overflow-hidden flex">
+<div class="bg-secondary h-full" style="width: 69%;"></div>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-space-xs pt-space-xs font-label-sm text-label-sm">
+<div class="bg-surface-container p-space-xs flex flex-col">
+<span class="text-outline">TRANSIT DISTANCE</span>
+<span class="text-on-surface font-semibold">1.4 km Overland / Floodway</span>
+</div>
+<div class="bg-surface-container p-space-xs flex flex-col">
+<span class="text-outline">TRANSFER ACCESS</span>
+<span class="text-secondary font-semibold">High-Clearance Tractor / Skiff</span>
+</div>
+</div>
+</div>
+<!-- Comms & History Chronology -->
+<div class="flex flex-col gap-1 font-label-sm text-label-sm text-on-surface-variant">
+<span class="text-outline font-semibold uppercase">Incident Review Audit Trail:</span>
+<div class="flex flex-col gap-0.5 bg-surface-container-lowest p-space-xs">
+<div class="flex items-center justify-between">
+<span class="font-mono text-outline">14:21 BST</span>
+<span class="text-on-surface truncate">Ingested via Citizen SMS Gateway (#SIM-992)</span>
+</div>
+<div class="flex items-center justify-between">
+<span class="font-mono text-outline">14:25 BST</span>
+<span class="text-secondary truncate">Auto-match triggered for #SOS-7K4M-B (Score: 89%)</span>
+</div>
+<div class="flex items-center justify-between">
+<span class="font-mono text-outline">14:30 BST</span>
+<span class="text-primary truncate">Assigned to Responder Desk Maj. S. Hossain for triage review</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div></main></div></body></html>

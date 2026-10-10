@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/><meta content="mobile_stack" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700&amp;family=Roboto+Flex:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/><script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script><script id="tailwind-config">tailwind.config = {
+  darkMode: "class",
+  theme: {
+    extend: {
+      colors: {
+        "inverse-on-surface": "#eff1f2",
+        "on-background": "#191c1d",
+        "secondary-fixed-dim": "#ffb4ab",
+        "surface-variant": "#e1e3e4",
+        "on-secondary-fixed": "#410002",
+        "on-surface-variant": "#3f484a",
+        "outline": "#6f797b",
+        "on-tertiary-container": "#ffd185",
+        "surface-container-lowest": "#ffffff",
+        "surface-container-low": "#f2f4f5",
+        "inverse-primary": "#85d2e0",
+        "tertiary-fixed": "#ffdeaa",
+        "surface-container-high": "#e7e8e9",
+        "on-secondary-fixed-variant": "#930009",
+        "primary": "#004e58",
+        "on-secondary": "#ffffff",
+        "error-container": "#ffdad6",
+        "tertiary-fixed-dim": "#f1be65",
+        "on-tertiary-fixed-variant": "#5f4100",
+        "on-surface": "#191c1d",
+        "on-tertiary-fixed": "#271900",
+        "on-tertiary": "#ffffff",
+        "secondary-container": "#da342d",
+        "on-primary": "#ffffff",
+        "secondary": "#b61718",
+        "surface-dim": "#d8dadb",
+        "on-error-container": "#93000a",
+        "surface-container": "#eceeef",
+        "on-primary-fixed": "#001f24",
+        "surface-container-highest": "#e1e3e4",
+        "primary-container": "#006874",
+        "surface-tint": "#016874",
+        "inverse-surface": "#2e3132",
+        "surface": "#f8f9fa",
+        "tertiary-container": "#7d5700",
+        "on-error": "#ffffff",
+        "on-primary-fixed-variant": "#004f58",
+        "primary-fixed": "#a2effd",
+        "error": "#ba1a1a",
+        "primary-fixed-dim": "#85d2e0",
+        "secondary-fixed": "#ffdad5",
+        "on-primary-container": "#97e4f2",
+        "background": "#f8f9fa",
+        "on-secondary-container": "#fffbff",
+        "tertiary": "#5f4100",
+        "surface-bright": "#f8f9fa",
+        "outline-variant": "#bec8ca"
+      },
+      borderRadius: {
+        "DEFAULT": "0.25rem",
+        "lg": "0.5rem",
+        "xl": "0.75rem",
+        "full": "9999px"
+      },
+      spacing: {
+        "space-lg": "1.5rem",
+        "space-xl": "2rem",
+        "gutter": "1rem",
+        "space-sm": "0.5rem",
+        "margin-sm": "0.75rem",
+        "gutter-sm": "0.75rem",
+        "space-xs": "0.25rem",
+        "space-md": "1rem",
+        "margin": "1rem"
+      },
+      fontFamily: {
+        "label-lg": ["Roboto Flex", "sans-serif"],
+        "body-sm": ["Noto Sans", "sans-serif"],
+        "label-sm": ["Roboto Flex", "sans-serif"],
+        "body-lg": ["Noto Sans", "sans-serif"],
+        "headline-lg": ["Roboto Flex", "sans-serif"],
+        "label-md": ["Roboto Flex", "sans-serif"],
+        "body-md": ["Noto Sans", "sans-serif"],
+        "headline-lg-mobile": ["Roboto Flex", "sans-serif"],
+        "headline-sm": ["Roboto Flex", "sans-serif"],
+        "headline-md": ["Roboto Flex", "sans-serif"]
+      }
+    }
+  }
+};</script><style>
+@layer base {
+  html, body {
+    width: 100vw;
+    margin: 0;
+    padding: 0;
+  }
+  body {
+    overscroll-behavior: none;
+  }
+}
+::-webkit-scrollbar {
+  display: none;
+}
+</style></head><body class="bg-surface dark:bg-[#111415] font-body-md text-on-surface dark:text-[#e1e3e4] flex flex-col min-h-screen transition-colors duration-200 select-none"><!-- Android 14 Status Bar --><div class="w-full h-8 px-6 pt-1 flex items-center justify-between text-on-surface dark:text-[#e1e3e4] text-xs font-semibold select-none z-50"><span class="font-medium tracking-tight">10:00</span><div class="flex items-center gap-1.5"><span class="material-symbols-outlined text-[15px]">signal_cellular_4_bar</span><span class="material-symbols-outlined text-[15px]">wifi</span><span class="material-symbols-outlined text-[17px] rotate-90">battery_full</span></div></div><!-- M3 Top App Bar --><header class="w-full z-40 bg-surface/95 dark:bg-[#111415]/95 backdrop-blur-md px-3 h-14 flex items-center justify-between border-b border-surface-variant/40 dark:border-white/5"><div class="flex items-center gap-2 flex-1 min-w-0"><button aria-label="Go back" class="w-10 h-10 rounded-full flex items-center justify-center text-on-surface dark:text-[#e1e3e4] hover:bg-surface-container dark:hover:bg-white/10 active:scale-95 transition-all" onclick="history.back()"><span class="material-symbols-outlined text-[22px]">arrow_back</span></button><div class="flex flex-col truncate"><h1 class="font-headline-sm text-[17px] leading-tight text-on-surface dark:text-[#f8f9fa] font-bold truncate">Request Help / জরুরি সহায়তা</h1></div></div><div class="flex items-center gap-1"><button aria-label="Switch language" class="h-8 px-2.5 rounded-full bg-surface-container-high dark:bg-[#222729] text-on-surface dark:text-[#e1e3e4] font-label-md text-label-md flex items-center gap-1 hover:brightness-95 transition"><span class="text-primary dark:text-[#85d2e0] font-bold text-xs">EN</span><span class="text-outline text-xs">|</span><span class="text-on-surface-variant dark:text-[#9ea7a9] text-xs font-medium">বাং</span></button><button aria-label="Toggle Dark Mode" class="w-10 h-10 rounded-full flex items-center justify-center text-on-surface dark:text-[#e1e3e4] hover:bg-surface-container dark:hover:bg-white/10 active:scale-90 transition-all" id="dark-toggle-btn"><span class="material-symbols-outlined text-[20px]" id="dark-icon">dark_mode</span></button></div></header><main class="flex-1 flex flex-col w-full max-w-md mx-auto px-4 py-4 pb-24 justify-between"><!-- Step Indicator & Headings --><div class="flex flex-col gap-4"><div class="flex flex-col gap-2"><div class="flex items-center justify-between text-xs"><span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 dark:bg-[#85d2e0]/15 text-primary dark:text-[#85d2e0] font-bold tracking-wide uppercase font-label-sm"><span class="w-1.5 h-1.5 rounded-full bg-primary dark:bg-[#85d2e0]"></span>Step 1 of 3: Headcount / লোকসংখ্যা</span><span class="text-on-surface-variant dark:text-[#9ea7a9] font-medium text-xs">33%</span></div><!-- M3 Linear Progress Bar --><div class="w-full bg-surface-container-high dark:bg-[#252a2c] h-1.5 rounded-full overflow-hidden"><div class="bg-primary dark:bg-[#85d2e0] h-full rounded-full transition-all duration-300" style="width: 33.33%;"></div></div></div><div class="text-center pt-2"><h2 class="font-headline-lg-mobile text-[26px] text-on-surface dark:text-[#eff1f2] font-bold tracking-tight">How many people?</h2><p class="font-body-md text-on-surface-variant dark:text-[#a6afb1] mt-1 text-[13.5px]">Include infants, children, and elderly</p></div><!-- M3 Surface Container High Card --><div class="bg-surface-container-lowest dark:bg-[#1a1e20] rounded-[28px] p-6 shadow-sm border border-surface-container-highest/60 dark:border-white/5 flex flex-col gap-6 items-center"><div class="flex items-center justify-between w-full px-1"><button aria-label="Decrease people count" class="w-16 h-16 rounded-[22px] bg-surface-container dark:bg-[#262c2e] hover:bg-surface-container-high dark:hover:bg-[#30373a] active:scale-95 transition-all duration-150 flex items-center justify-center text-on-surface dark:text-[#e1e3e4] shadow-sm active:bg-surface-dim" id="btn-decrement" onclick="changeCount(-1)" type="button"><span class="material-symbols-outlined text-[30px]">remove</span></button><div class="flex flex-col items-center justify-center select-none"><span class="font-headline-lg text-[52px] leading-none text-on-surface dark:text-[#f8f9fa] font-black tracking-tight" id="people-count-display">4</span><span class="font-label-md text-label-md text-on-surface-variant dark:text-[#9ea7a9] mt-2 font-medium">People / ৪ জন</span></div><button aria-label="Increase people count" class="w-16 h-16 rounded-[22px] bg-primary dark:bg-[#85d2e0] hover:bg-primary-container dark:hover:bg-[#68bed0] active:scale-95 transition-all duration-150 flex items-center justify-center text-on-primary dark:text-[#00363e] shadow-md" id="btn-increment" onclick="changeCount(1)" type="button"><span class="material-symbols-outlined text-[30px]">add</span></button></div><!-- M3 Preset Filter Chips / Segmented buttons --><div class="grid grid-cols-3 gap-2 w-full pt-1" id="preset-group"><button class="preset-chip py-2.5 px-2 rounded-xl text-center font-label-md text-[12px] font-medium transition-all duration-150 flex items-center justify-center gap-1 bg-surface-container dark:bg-[#222729] text-on-surface dark:text-[#c4cbd0] hover:bg-surface-container-high dark:hover:bg-[#2b3133]" onclick="setCount(1, this)" type="button"><span class="check-icon material-symbols-outlined text-[16px] hidden">check</span><span>Just me (1)</span></button><button class="preset-chip py-2.5 px-2 rounded-xl text-center font-label-md text-[12px] font-semibold transition-all duration-150 flex items-center justify-center gap-1 bg-primary text-on-primary dark:bg-[#85d2e0] dark:text-[#00363e] shadow-sm" onclick="setCount(4, this)" type="button"><span class="check-icon material-symbols-outlined text-[16px]">check</span><span>Small family (3–5)</span></button><button class="preset-chip py-2.5 px-2 rounded-xl text-center font-label-md text-[12px] font-medium transition-all duration-150 flex items-center justify-center gap-1 bg-surface-container dark:bg-[#222729] text-on-surface dark:text-[#c4cbd0] hover:bg-surface-container-high dark:hover:bg-[#2b3133]" onclick="setCount(8, this)" type="button"><span class="check-icon material-symbols-outlined text-[16px] hidden">check</span><span>Large group (6+)</span></button></div></div></div><!-- M3 Callout Info banner --><div class="mt-4 p-3.5 rounded-2xl bg-surface-container-low dark:bg-[#161a1b] border border-surface-container-high dark:border-white/5 flex items-start gap-3"><span class="material-symbols-outlined text-primary dark:text-[#85d2e0] text-[20px] mt-0.5 shrink-0">info</span><p class="font-body-sm text-[12px] text-on-surface-variant dark:text-[#9ea7a9] leading-relaxed">This headcount ensures adequate rations, water, and emergency medical kits are allocated by rescue units.</p></div></main><!-- Persistent Bottom Container / Sheet --><div class="fixed bottom-0 inset-x-0 bg-surface/95 dark:bg-[#111415]/95 backdrop-blur-xl border-t border-surface-variant/40 dark:border-white/5 z-40 px-4 pt-3 pb-2"><div class="max-w-md mx-auto flex flex-col gap-2.5"><button class="w-full h-12 bg-primary hover:bg-primary-container dark:bg-[#85d2e0] dark:hover:bg-[#a2effd] text-on-primary dark:text-[#00363e] rounded-full font-label-lg text-label-lg flex items-center justify-center gap-2 shadow-md active:scale-[0.98] transition-all duration-150 font-bold" type="button"><span>Next: Urgent Needs → / পরবর্তী: প্রয়োজনীয় সহায়তা →</span></button><!-- Android Gesture Bar --><div class="w-full flex items-center justify-center pt-2 pb-1.5"><div class="w-28 h-1 bg-on-surface/40 dark:bg-white/40 rounded-full"></div></div></div></div><script>
+let count = 4;
+const bengaliDigits = {'0':'০','1':'১','2':'২','3':'৩','4':'৪','5':'৫','6':'৬','7':'৭','8':'৮','9':'৯'};
+
+function toBengali(num) {
+  return String(num).split('').map(d => bengaliDigits[d] || d).join('');
+}
+
+function updateDisplay() {
+  const display = document.getElementById('people-count-display');
+  const bnDisplay = display.nextElementSibling;
+  display.textContent = count;
+  bnDisplay.textContent = `People / ${toBengali(count)} জন`;
+}
+
+function changeCount(delta) {
+  count = Math.max(1, count + delta);
+  updateDisplay();
+  updateChipStyles(null);
+}
+
+function setCount(val, element) {
+  count = val;
+  updateDisplay();
+  updateChipStyles(element);
+}
+
+function updateChipStyles(activeBtn) {
+  const chips = document.querySelectorAll('.preset-chip');
+  chips.forEach(chip => {
+    const icon = chip.querySelector('.check-icon');
+    if (chip === activeBtn) {
+      chip.className = "preset-chip py-2.5 px-2 rounded-xl text-center font-label-md text-[12px] font-semibold transition-all duration-150 flex items-center justify-center gap-1 bg-primary text-on-primary dark:bg-[#85d2e0] dark:text-[#00363e] shadow-sm";
+      if (icon) icon.classList.remove('hidden');
+    } else {
+      chip.className = "preset-chip py-2.5 px-2 rounded-xl text-center font-label-md text-[12px] font-medium transition-all duration-150 flex items-center justify-center gap-1 bg-surface-container dark:bg-[#222729] text-on-surface dark:text-[#c4cbd0] hover:bg-surface-container-high dark:hover:bg-[#2b3133]";
+      if (icon) icon.classList.add('hidden');
+    }
+  });
+}
+
+// Dark Mode Toggle Logic
+const darkToggleBtn = document.getElementById('dark-toggle-btn');
+const darkIcon = document.getElementById('dark-icon');
+const htmlEl = document.documentElement;
+
+darkToggleBtn.addEventListener('click', () => {
+  if (htmlEl.classList.contains('dark')) {
+    htmlEl.classList.remove('dark');
+    htmlEl.classList.add('light');
+    darkIcon.textContent = 'dark_mode';
+  } else {
+    htmlEl.classList.remove('light');
+    htmlEl.classList.add('dark');
+    darkIcon.textContent = 'light_mode';
+  }
+});
+</script></body></html>

@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_dashboard" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=JetBrains+Mono:wght@100..900&display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{colors:{"tertiary-fixed":"#ffdad6","on-tertiary-fixed":"#410002","on-background":"#dde2f5","on-secondary-fixed":"#00201d","surface-bright":"#333948","surface-variant":"#2f3543","secondary-fixed":"#89f5e7","outline":"#89929b","on-primary-fixed-variant":"#004b73","on-surface":"#dde2f5","on-secondary-fixed-variant":"#005049","secondary":"#6bd8cb","on-tertiary":"#690005","primary":"#93ccff","on-secondary-container":"#00302b","primary-container":"#3198dc","inverse-on-surface":"#2a303f","secondary-container":"#29a195","surface-container-low":"#161b29","primary-fixed-dim":"#93ccff","surface-container-highest":"#2f3543","surface-container-high":"#242a38","tertiary":"#ffb4ab","on-secondary":"#003732","secondary-fixed-dim":"#6bd8cb","surface-container":"#1a1f2d","background":"#0d1320","inverse-surface":"#dde2f5","tertiary-container":"#ff544a","on-error":"#690005","on-primary-container":"#002c47","surface":"#0d1320","outline-variant":"#3f4850","error-container":"#93000a","on-surface-variant":"#bfc7d2","error":"#ffb4ab","inverse-primary":"#006398","surface-tint":"#93ccff","on-tertiary-container":"#5c0004","on-primary":"#003351","surface-container-lowest":"#080e1b","on-error-container":"#ffdad6","surface-dim":"#0d1320","primary-fixed":"#cce5ff","tertiary-fixed-dim":"#ffb4ab","on-primary-fixed":"#001d31","on-tertiary-fixed-variant":"#93000b"},borderRadius:{DEFAULT:"0.125rem",lg:"0.25rem",xl:"0.5rem",full:"0.75rem"},spacing:{margin:"0.75rem","space-xs":"0.25rem","gutter-desktop":"1rem",gutter:"0.75rem","space-xl":"1.5rem","space-lg":"1rem","space-md":"0.75rem","space-sm":"0.375rem","margin-desktop":"1rem"},fontFamily:{"label-lg":["JetBrains Mono"],"body-md":["Inter"],"headline-xl-mobile":["Inter"],"headline-md":["Inter"],"headline-xl":["Inter"],"body-lg":["Inter"],"headline-lg":["Inter"],"body-sm":["Inter"],"label-md":["JetBrains Mono"],"label-sm":["JetBrains Mono"],"telemetry-numeral":["JetBrains Mono"]},fontSize:{"label-lg":["13px",{lineHeight:"16px",letterSpacing:"0.02em",fontWeight:"500"}],"body-md":["13px",{lineHeight:"18px",letterSpacing:"0em",fontWeight:"400"}],"headline-xl-mobile":["24px",{lineHeight:"30px",letterSpacing:"-0.01em",fontWeight:"700"}],"headline-md":["18px",{lineHeight:"24px",letterSpacing:"-0.005em",fontWeight:"600"}],"headline-xl":["32px",{lineHeight:"38px",letterSpacing:"-0.02em",fontWeight:"700"}],"body-lg":["15px",{lineHeight:"22px",letterSpacing:"0em",fontWeight:"400"}],"headline-lg":["24px",{lineHeight:"30px",letterSpacing:"-0.01em",fontWeight:"600"}],"body-sm":["12px",{lineHeight:"16px",letterSpacing:"0.01em",fontWeight:"400"}],"label-md":["11px",{lineHeight:"14px",letterSpacing:"0.04em",fontWeight:"500"}],"label-sm":["10px",{lineHeight:"12px",letterSpacing:"0.06em",fontWeight:"600"}],"telemetry-numeral":["20px",{lineHeight:"24px",letterSpacing:"-0.02em",fontWeight:"700"}]}}}};</script></head><body class="bg-background font-body-md text-on-surface antialiased"><header class="fixed top-0 left-0 right-0 z-50 bg-surface-container-lowest/95 backdrop-blur-md"><div class="w-full px-margin-desktop py-space-xs bg-surface-container-low flex flex-wrap items-center justify-between gap-gutter"><div class="flex items-center gap-space-md"><div class="flex items-center gap-space-xs font-label-sm text-label-sm uppercase tracking-wider text-secondary"><span class="inline-block w-1.5 h-1.5 rounded-full bg-secondary animate-pulse"></span><span>App Gateway: Connected</span><span class="text-outline">·</span><span class="text-on-surface-variant font-telemetry-numeral text-label-sm">42ms</span></div><div class="h-3 w-px bg-outline-variant"></div><div class="flex items-center gap-space-xs font-label-sm text-label-sm text-on-surface-variant"><span class="text-outline">Hydro Feeds:</span><span class="text-secondary font-label-sm font-semibold">2/5 Online</span><span class="text-outline">·</span><span class="text-error font-label-sm">FFWC: Unavailable</span></div><div class="h-3 w-px bg-outline-variant"></div><div class="flex items-center gap-space-xs font-label-sm text-label-sm text-on-surface-variant"><span>Last Sync:</span><span class="font-telemetry-numeral text-on-surface">14:28:12 BST</span></div></div><div class="flex items-center gap-space-sm bg-surface-container px-space-sm py-0.5 rounded"><span class="material-symbols-outlined text-tertiary text-[14px]">warning</span><span class="font-label-sm text-label-sm uppercase text-on-surface-variant tracking-wide">Decision-Support Prototype · Not an Emergency Service · Human Review Mandatory</span></div></div><div class="h-16 w-full px-margin-desktop flex items-center justify-between gap-gutter"><div class="flex items-center gap-gutter"><img alt="Aali AI Command Emblem" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1UDwVHtjLOuAiZTIprvbQExY8ap3y9hwyOqlL4J3GO0A_IPRl7YlLdXj_mREjka42i5lD5pksDHM8FHFJrAhGuUnT2OkzCpNlRADu8pf_Su2TXiEDrg4Xpc4klRSqiZkJLHp4tqS9ZC2SHPnLYMOM2R0sghWEaxE1tryZJOLjNpvsIw6GCbR8FKMXlFeY3XFWN-bImCNbM8eYof_hGx6XlwhJbPwLsXz3ZUNFD-_ixpyuA35gLPpm1_gw"/><div class="flex flex-col"><div class="flex items-center gap-space-xs"><span class="font-label-md text-label-md font-bold text-on-surface uppercase tracking-wider">Aali AI</span><span class="text-outline-variant">/</span><span class="font-label-sm text-label-sm bg-surface-container-high text-primary px-1.5 py-0.5 rounded uppercase">Feni District Operations</span></div><span class="font-label-sm text-label-sm text-on-surface-variant">Muhuri Basin Hydrological Sector · Zone-04</span></div><div class="hidden xl:flex items-center gap-space-xs bg-surface-container px-space-sm py-1 rounded"><span class="material-symbols-outlined text-primary text-[16px]">layers</span><select class="bg-transparent font-label-sm text-label-sm text-on-surface uppercase focus:outline-none cursor-pointer"><option class="bg-surface-container text-on-surface" selected="">Muhuri Basin Flash Flood Event 2024</option><option class="bg-surface-container text-on-surface">Feni Rising Water Exercise</option><option class="bg-surface-container text-on-surface">Live Monitor Feni Sadar & Parshuram</option></select></div></div><div class="flex items-center gap-gutter"><div class="hidden md:flex items-center bg-surface-container-low p-1 rounded font-label-sm text-label-sm"><button class="flex items-center gap-1.5 px-space-sm py-1 rounded bg-secondary-container text-on-secondary-container font-semibold"><span class="inline-block w-1.5 h-1.5 rounded-full bg-secondary animate-pulse"></span><span>LIVE SOURCES</span><span class="text-[9px] bg-surface-container-lowest px-1 rounded text-on-surface">2/5</span></button><button class="flex items-center gap-1.5 px-space-sm py-1 rounded text-on-surface-variant hover:text-on-surface"><span class="font-label-sm text-tertiary">▨</span><span>EXERCISE</span></button><button class="flex items-center gap-1.5 px-space-sm py-1 rounded text-on-surface-variant hover:text-on-surface"><span class="font-label-sm text-outline">◆</span><span>HISTORICAL</span></button></div><div class="flex items-center gap-space-md"><div class="flex items-center gap-space-xs bg-surface-container px-space-sm py-1 rounded"><span class="material-symbols-outlined text-secondary text-[16px]">badge</span><div class="flex flex-col text-left"><span class="font-label-sm text-label-sm text-on-surface font-semibold">Dr. K. Rahman</span><span class="font-label-sm text-[9px] text-primary uppercase">Authority · District Ops Room</span></div></div><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div></div><div class="w-full px-margin-desktop bg-surface-container-lowest flex items-center justify-between overflow-x-auto"><nav class="flex items-center gap-1 py-1 font-label-sm text-label-sm" data-active-classes="bg-primary-container text-on-primary-container font-bold rounded"><a aria-current="page" class="px-space-md py-1.5 transition-colors whitespace-nowrap bg-primary-container text-on-primary-container font-bold rounded" data-path="situation-room" href="#">Situation Room</a><a class="px-space-md py-1.5 rounded text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors whitespace-nowrap" data-path="sos-incident-queue" href="#">SOS & Incident Queue</a><a class="px-space-md py-1.5 rounded text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors whitespace-nowrap" data-path="water-gages-layers" href="#">Water Gages & Layers</a><a class="px-space-md py-1.5 rounded text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors whitespace-nowrap" data-path="warnings-bulletins" href="#">Warnings & Bulletins</a><a class="px-space-md py-1.5 rounded text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors whitespace-nowrap" data-path="exercise-controls" href="#">Exercise Controls</a><a class="px-space-md py-1.5 rounded text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors whitespace-nowrap" data-path="audit-log" href="#">Audit Log</a></nav><div class="flex items-center gap-space-xs font-label-sm text-label-sm text-outline"><span class="text-on-surface-variant uppercase">Role:</span><select class="bg-surface-container text-on-surface px-space-xs py-0.5 rounded text-label-sm focus:outline-none cursor-pointer"><option selected="">Authority (District Ops)</option><option>Responder (Rescue Desk)</option><option>Volunteer (Field Desk)</option><option>Recovery Coordinator</option><option>Viewer (Public Read-Only)</option><option>Admin (System Oversight)</option></select></div></div></header><aside class="fixed left-0 top-28 bottom-0 w-64 bg-surface-container-lowest z-40 flex flex-col justify-between py-space-md px-space-sm"><div class="flex flex-col gap-space-md"><div class="px-space-sm"><span class="font-label-sm text-label-sm text-outline uppercase tracking-wider">Operational Sectors</span></div><nav class="flex flex-col gap-1 font-label-sm text-label-sm" data-active-classes="bg-primary-container text-on-primary-container font-semibold rounded"><a aria-current="page" class="flex items-center justify-between px-space-sm py-2 bg-primary-container text-on-primary-container font-semibold rounded" data-path="situation-room" href="#"><div class="flex items-center gap-space-xs"><span class="material-symbols-outlined text-[16px]">radar</span><span>Parshuram Levee</span></div><span class="font-telemetry-numeral text-[11px] text-tertiary">EDL +0.8m</span></a><a class="flex items-center justify-between px-space-sm py-2 rounded text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface" data-path="sos-incident-queue" href="#"><div class="flex items-center gap-space-xs"><span class="material-symbols-outlined text-[16px]">emergency_home</span><span>Feni Sadar Urban</span></div><span class="font-telemetry-numeral text-[11px] text-secondary">38 SOS</span></a><a class="flex items-center justify-between px-space-sm py-2 rounded text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface" data-path="water-gages-layers" href="#"><div class="flex items-center gap-space-xs"><span class="material-symbols-outlined text-[16px]">tsunami</span><span>Fulgazi Bridge</span></div><span class="font-telemetry-numeral text-[11px] text-tertiary">DL +1.4m</span></a><a class="flex items-center justify-between px-space-sm py-2 rounded text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface" data-path="warnings-bulletins" href="#"><div class="flex items-center gap-space-xs"><span class="material-symbols-outlined text-[16px]">campaign</span><span>Chhagalnaiya Sector</span></div><span class="font-telemetry-numeral text-[11px] text-on-surface-variant">Active</span></a></nav><div class="mt-space-md px-space-sm"><span class="font-label-sm text-label-sm text-outline uppercase tracking-wider">Role Consoles</span><div class="mt-space-xs flex flex-col gap-1"><a class="flex items-center gap-space-xs px-space-sm py-1.5 rounded text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface text-label-sm" data-path="rescue-desk" href="#"><span class="material-symbols-outlined text-[14px]">support</span><span>Responder Console</span></a><a class="flex items-center gap-space-xs px-space-sm py-1.5 rounded text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface text-label-sm" data-path="verification-tasks" href="#"><span class="material-symbols-outlined text-[14px]">fact_check</span><span>Volunteer Field Portal</span></a><a class="flex items-center gap-space-xs px-space-sm py-1.5 rounded text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface text-label-sm" data-path="village-damage-needs" href="#"><span class="material-symbols-outlined text-[14px]">inventory</span><span>Recovery Ledger</span></a><a class="flex items-center gap-space-xs px-space-sm py-1.5 rounded text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface text-label-sm" data-path="system-health" href="#"><span class="material-symbols-outlined text-[14px]">admin_panel_settings</span><span>Admin Oversight</span></a></div></div></div><div class="p-space-sm bg-surface-container rounded"><div class="flex items-center justify-between font-label-sm text-label-sm"><span class="text-on-surface-variant uppercase">Comms Continuity</span><span class="text-secondary">ONLINE</span></div><div class="mt-1 text-[11px] font-body-sm text-on-surface-variant leading-tight">Repeater Parshuram-01 Failover Active via HF-Link</div></div></aside><div class="pl-64"><main class="relative pt-28 w-full min-h-screen bg-background px-margin-desktop py-space-lg"><div class="flex flex-col w-full">
+<!-- Mode Banner: Historical Reconstruction Operational Notice -->
+<section class="w-full bg-surface-container-lowest p-gutter rounded shadow-sm mb-space-md">
+<div class="flex flex-col xl:flex-row xl:items-center justify-between gap-space-md">
+<div class="flex items-start sm:items-center gap-space-md">
+<div class="flex items-center justify-center w-10 h-10 rounded bg-tertiary-container/20 text-tertiary flex-shrink-0">
+<span class="material-symbols-outlined text-headline-md">history_toggle_off</span>
+</div>
+<div class="flex flex-col">
+<div class="flex items-center gap-space-xs flex-wrap">
+<span class="font-label-sm text-label-sm uppercase tracking-wider px-1.5 py-0.5 rounded bg-tertiary text-on-tertiary font-bold">RECONSTRUCTION MODE</span>
+<span class="font-label-md text-label-md text-primary font-bold">ACTIVE EVENT: August 2024 Feni Flash Flood Reconstruction</span>
+<span class="font-label-sm text-label-sm text-outline">· REF: HIST-FENI-2024-08</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">
+            HISTORICAL RECONSTRUCTION · SOURCE VERIFICATION INCOMPLETE — Factual timeline gaps exist due to power and telemetry blackouts during peak deluge. For post-disaster analysis and planning only.
+          </p>
+</div>
+</div>
+<div class="flex items-center gap-space-xs flex-shrink-0 bg-surface-container px-space-md py-1.5 rounded">
+<span class="font-label-sm text-label-sm text-outline uppercase">Integrity Index:</span>
+<span class="font-telemetry-numeral text-label-lg text-tertiary font-bold">43% CONFIRMED</span>
+<span class="material-symbols-outlined text-tertiary text-body-md" title="High volume of retroactive and uncalibrated data entries">warning</span>
+</div>
+</div>
+</section>
+<!-- Interactive Timeline Scrubber Bar -->
+<section class="w-full bg-surface-container-low rounded p-space-md shadow-sm mb-space-md flex flex-col gap-space-sm">
+<div class="flex flex-wrap items-center justify-between gap-space-md">
+<div class="flex items-center gap-space-md">
+<div class="flex items-center gap-1">
+<button class="flex items-center justify-center w-8 h-8 rounded bg-primary text-on-primary hover:bg-primary-fixed transition-colors" id="playback-btn" onclick="togglePlayback()" title="Play / Pause Replay">
+<span class="material-symbols-outlined text-body-lg" id="play-icon">pause</span>
+</button>
+<button class="flex items-center justify-center w-7 h-7 rounded bg-surface-container text-on-surface hover:bg-surface-variant transition-colors" onclick="stepScrubber(-2)" title="Step Back 2 Hours">
+<span class="material-symbols-outlined text-body-md">fast_rewind</span>
+</button>
+<button class="flex items-center justify-center w-7 h-7 rounded bg-surface-container text-on-surface hover:bg-surface-variant transition-colors" onclick="stepScrubber(2)" title="Step Forward 2 Hours">
+<span class="material-symbols-outlined text-body-md">fast_forward</span>
+</button>
+</div>
+<div class="flex items-center gap-space-xs bg-surface-container px-space-md py-1 rounded">
+<span class="font-label-sm text-label-sm text-outline uppercase">Scrubber Point:</span>
+<span class="font-telemetry-numeral text-label-lg text-secondary font-bold" id="currentTimeDisplay">Aug 23 04:00 BST</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">(+38.0h in event)</span>
+</div>
+</div>
+<div class="flex items-center gap-space-md flex-wrap">
+<div class="flex items-center gap-1 bg-surface-container-lowest p-1 rounded">
+<span class="font-label-sm text-label-sm text-outline px-1 uppercase">Speed:</span>
+<button class="speed-toggle px-2 py-0.5 rounded bg-primary-container text-on-primary-container font-label-sm text-label-sm font-bold" onclick="setSpeed(1, this)">1x</button>
+<button class="speed-toggle px-2 py-0.5 rounded text-on-surface-variant hover:text-on-surface font-label-sm text-label-sm" onclick="setSpeed(5, this)">5x</button>
+<button class="speed-toggle px-2 py-0.5 rounded text-on-surface-variant hover:text-on-surface font-label-sm text-label-sm" onclick="setSpeed(20, this)">20x</button>
+</div>
+<div class="flex items-center gap-space-xs text-tertiary bg-tertiary-container/10 px-space-md py-1 rounded">
+<span class="material-symbols-outlined text-label-md">signal_disconnected</span>
+<span class="font-label-sm text-label-sm uppercase font-semibold">18H Telemetry Blackout in Progress</span>
+</div>
+</div>
+</div>
+<!-- Timeline Phase Markers & Range Slider -->
+<div class="relative w-full pt-1 pb-1">
+<!-- Phases Visual Segments -->
+<div class="grid grid-cols-12 gap-0.5 h-6 w-full rounded overflow-hidden text-label-sm font-label-sm select-none">
+<div class="col-span-2 bg-surface-container flex items-center justify-center text-outline truncate px-1" title="Aug 20: Baseline, Pre-event normal stage">
+          Pre-event Aug 20
+        </div>
+<div class="col-span-3 bg-secondary-container/40 text-on-surface flex items-center justify-center truncate px-1" title="Aug 21 - Aug 22 22:00: Rapid stage surge +3.4m">
+          Rapid Inundation Aug 21-22
+        </div>
+<div class="col-span-4 bg-tertiary-container/30 text-tertiary flex items-center justify-center truncate px-1 font-bold" title="Aug 22 22:00 - Aug 23 16:00: Severe outage, washed sensors">
+          Peak Blackout Aug 22 22:00 - Aug 23 16:00 [DATA GAP]
+        </div>
+<div class="col-span-3 bg-surface-container-high text-on-surface-variant flex items-center justify-center truncate px-1" title="Aug 24 - 25: Crest release and discharge">
+          Receding Phase Aug 24-25
+        </div>
+</div>
+<!-- Native/Styled Range Input for Playback Scrubbing -->
+<div class="relative mt-2">
+<input class="w-full h-2 bg-surface-container-highest rounded appearance-none cursor-pointer accent-primary" id="timeScrubber" max="120" min="0" oninput="updateScrubber(this.value)" step="1" type="range" value="38"/>
+<!-- Marker ticks underneath -->
+<div class="flex justify-between font-label-sm text-label-sm text-outline mt-1 px-1">
+<span>Aug 20 00:00 (T+0)</span>
+<span>Aug 21 12:00</span>
+<span class="text-tertiary font-bold">Aug 22 22:00 [OUTAGE]</span>
+<span class="text-secondary font-bold">Aug 23 04:00 (Scrubber)</span>
+<span class="text-tertiary font-bold">Aug 23 16:00 [RESTORED]</span>
+<span>Aug 25 00:00 (T+120h)</span>
+</div>
+</div>
+</div>
+<!-- Blackout Callout Note -->
+<div class="w-full bg-surface-container-lowest p-space-sm rounded flex items-center justify-between gap-space-md">
+<div class="flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-tertiary text-body-md flex-shrink-0">portable_wifi_off</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">
+<strong class="text-tertiary font-label-sm uppercase">Telemetry Blackout (18 hours):</strong> No water gauge data recorded at Parshuram or Fulgazi between 22:00 Aug 22 and 16:00 Aug 23 due to tower power failures and physical washout.
+        </span>
+</div>
+<span class="font-label-sm text-label-sm text-outline whitespace-nowrap">Source: Feni PDB & WDB Post-event Logs</span>
+</div>
+</section>
+<!-- Main Split Layout (65% / 35%) -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-gutter w-full">
+<!-- LEFT PANE: 65% Reconstructed GIS Map & Field Evidence -->
+<section class="lg:col-span-8 flex flex-col gap-space-md">
+<!-- Map Visual Container -->
+<div class="relative w-full rounded bg-surface-container-lowest overflow-hidden shadow-sm min-h-[580px] flex flex-col">
+<!-- Map Canvas Header Bar -->
+<div class="absolute top-0 left-0 right-0 z-20 bg-surface-container-lowest/90 backdrop-blur-md px-space-md py-space-xs flex flex-wrap items-center justify-between gap-space-sm">
+<div class="flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-primary text-body-md">map</span>
+<span class="font-label-md text-label-md font-bold uppercase tracking-wider text-on-surface">Muhuri & Selonia Basin Reconstruction Matrix</span>
+<span class="font-label-sm text-label-sm bg-surface-container-high px-1.5 py-0.5 rounded text-outline">Scale: 1:45,000</span>
+</div>
+<div class="flex items-center gap-space-xs">
+<span class="px-2 py-0.5 rounded font-label-sm text-label-sm bg-tertiary-container/20 text-tertiary">
+              ▲ Reconstruction · Not an operational picture
+            </span>
+</div>
+</div>
+<!-- Simulated Map Visual Workspace -->
+<div class="relative w-full h-[580px] bg-surface-container-high flex items-center justify-center overflow-hidden" data-location="Feni District, Bangladesh" style="">
+<!-- Background SVG Vector Basin Simulation with Inundation Hatching -->
+<svg class="absolute inset-0 w-full h-full pointer-events-none" xmlns="http://www.w3.org/2000/svg">
+<defs>
+<!-- Dotted hatch pattern for reconstructed extent -->
+<pattern height="12" id="flood-hatch" patterntransform="rotate(45)" patternunits="userSpaceOnUse" width="12">
+<circle cx="2" cy="2" fill="#3198dc" opacity="0.65" r="1.2"></circle>
+<circle cx="8" cy="8" fill="#6bd8cb" opacity="0.5" r="1.2"></circle>
+<line opacity="0.3" stroke="#93ccff" stroke-dasharray="2 3" stroke-width="0.75" x1="0" x2="12" y1="6" y2="6"></line>
+</pattern>
+<!-- Deep deluge patch pattern -->
+<pattern height="8" id="deep-flood" patternunits="userSpaceOnUse" width="8">
+<circle cx="4" cy="4" fill="#ff544a" opacity="0.4" r="1.5"></circle>
+</pattern>
+</defs>
+<!-- Background District Gridlines -->
+<path d="M 0 100 L 900 100 M 0 200 L 900 200 M 0 300 L 900 300 M 0 400 L 900 400 M 0 500 L 900 500" stroke="#1a1f2d" stroke-width="1"></path>
+<path d="M 150 0 L 150 600 M 300 0 L 300 600 M 450 0 L 450 600 M 600 0 L 600 600 M 750 0 L 750 600" stroke="#1a1f2d" stroke-width="1"></path>
+<!-- Muhuri River Geometry (Historical Path) -->
+<path d="M 180 0 C 210 120, 290 190, 360 270 C 440 360, 480 430, 520 600" fill="none" opacity="0.8" stroke="#29a195" stroke-width="6"></path>
+<!-- Selonia River Branch -->
+<path d="M 460 0 C 470 110, 430 190, 360 270" fill="none" opacity="0.7" stroke="#29a195" stroke-width="3.5"></path>
+<!-- Reconstructed Inundated Areas (Dotted Hatch Polygon) -->
+<path d="M 150 80 Q 280 90, 360 170 Q 490 230, 560 380 Q 610 510, 450 560 Q 310 500, 260 380 Q 190 270, 150 80 Z" fill="url(#flood-hatch)" opacity="0.85" stroke="#3198dc" stroke-dasharray="4 3" stroke-width="1.5"></path>
+<!-- Breached Core Zone (Parshuram pocket) -->
+<path d="M 310 170 Q 380 200, 420 260 Q 360 320, 290 250 Z" fill="url(#deep-flood)" opacity="0.9" stroke="#ff544a" stroke-dasharray="2 2" stroke-width="1.5"></path>
+<!-- Submerged Embankment lines -->
+<path d="M 280 180 L 390 290" stroke="#ffb4ab" stroke-dasharray="6 4" stroke-width="2"></path>
+</svg>
+<!-- Interactive Marker 1: Hist-SOS-109 (Parshuram Sub-station) -->
+<div class="absolute top-[210px] left-[320px] z-30 group cursor-pointer" onclick="selectMarker('Hist-SOS-109')">
+<div class="relative flex items-center justify-center">
+<span class="absolute w-8 h-8 rounded-full bg-tertiary/20 animate-ping"></span>
+<div class="flex items-center gap-1 bg-surface-container-lowest text-on-surface px-2 py-1 rounded shadow-md border-l-2 border-l-tertiary hover:bg-surface-container transition-transform group-hover:scale-105">
+<span class="material-symbols-outlined text-tertiary text-label-lg">emergency</span>
+<span class="font-label-sm text-label-sm font-bold">Hist-SOS-109</span>
+</div>
+</div>
+<!-- Tooltip Popover -->
+<div class="hidden group-hover:flex flex-col w-72 bg-surface-container-lowest p-space-sm rounded shadow-xl absolute top-8 left-0 z-40">
+<div class="flex items-center justify-between font-label-sm text-label-sm">
+<span class="text-tertiary font-bold uppercase">Parshuram Sub-station</span>
+<span class="text-outline">Aug 23 ~03:30 BST</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface mt-1">
+                12 people trapped on upper transformer platform. Rescued via civilian power boat at dawn.
+              </p>
+<div class="mt-space-xs pt-1 border-t border-surface-container flex items-center justify-between font-label-sm text-[9px] text-on-surface-variant">
+<span>PROVENANCE: Responder Field Notebook (Logged Aug 26)</span>
+<span class="text-tertiary font-semibold">RETROACTIVE</span>
+</div>
+</div>
+</div>
+<!-- Interactive Marker 2: Hist-Gage-01 (Muhuri River Gauge Washout) -->
+<div class="absolute top-[310px] left-[420px] z-30 group cursor-pointer" onclick="selectMarker('Hist-Gage-01')">
+<div class="relative flex items-center justify-center">
+<div class="flex items-center gap-1 bg-surface-container-lowest text-on-surface px-2 py-1 rounded shadow-md border-l-2 border-l-error hover:bg-surface-container transition-transform group-hover:scale-105">
+<span class="material-symbols-outlined text-error text-label-lg">sensors_off</span>
+<span class="font-label-sm text-label-sm font-bold text-error">Hist-Gage-01: Muhuri</span>
+</div>
+</div>
+<!-- Tooltip Popover -->
+<div class="hidden group-hover:flex flex-col w-80 bg-surface-container-lowest p-space-sm rounded shadow-xl absolute top-8 left-0 z-40">
+<div class="flex items-center justify-between font-label-sm text-label-sm">
+<span class="text-error font-bold uppercase">Muhuri Gauge Station</span>
+<span class="text-outline">Aug 22 21:45 BST</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface mt-1">
+                Last recorded telemetry: <strong class="text-error font-telemetry-numeral">13.4m</strong> (+1.4m above Extreme Danger Level). Sensor submerged and superstructure washed out at 21:52 BST.
+              </p>
+<div class="mt-space-xs pt-1 border-t border-surface-container flex items-center justify-between font-label-sm text-[9px] text-on-surface-variant">
+<span>STATUS: Telemetry Lost · Station Destroyed</span>
+<span class="text-error font-semibold">BLACKOUT COMMENCE</span>
+</div>
+</div>
+</div>
+<!-- Interactive Marker 3: Hist-SOS-112 (Fulgazi Embankment Breach) -->
+<div class="absolute top-[390px] left-[260px] z-30 group cursor-pointer" onclick="selectMarker('Hist-SOS-112')">
+<div class="flex items-center gap-1 bg-surface-container-lowest text-on-surface px-2 py-1 rounded shadow-md border-l-2 border-l-primary hover:bg-surface-container transition-transform group-hover:scale-105">
+<span class="material-symbols-outlined text-primary text-label-lg">water_loss</span>
+<span class="font-label-sm text-label-sm font-bold">Hist-Embank-04</span>
+</div>
+<div class="hidden group-hover:flex flex-col w-72 bg-surface-container-lowest p-space-sm rounded shadow-xl absolute top-8 left-0 z-40">
+<span class="font-label-sm text-label-sm text-primary font-bold uppercase">North Fulgazi Breach Section</span>
+<p class="font-body-sm text-body-sm text-on-surface mt-1">
+                Estimated 45m dike failure inferred from upstream water drop & retroactive civilian drone survey footage.
+              </p>
+<span class="font-label-sm text-[9px] text-outline mt-1">INFERRED TIME: Aug 23 01:15 BST · CONFIDENCE: MEDIUM</span>
+</div>
+</div>
+<!-- Map Legend Overlay (Bottom Left) -->
+<div class="absolute bottom-space-md left-space-md bg-surface-container-lowest/95 backdrop-blur-md p-space-sm rounded shadow-lg max-w-xs z-30">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-outline block mb-1">Layer Nomenclature</span>
+<div class="flex flex-col gap-1 font-label-sm text-label-sm">
+<div class="flex items-center gap-space-xs">
+<span class="w-3.5 h-3.5 rounded bg-primary-container/40 border border-dashed border-primary inline-block"></span>
+<span class="text-on-surface-variant">Reconstructed flood extent (Post-event crowdsourced estimate · uncalibrated)</span>
+</div>
+<div class="flex items-center gap-space-xs">
+<span class="w-3.5 h-3.5 rounded bg-tertiary-container/30 border border-dotted border-tertiary inline-block"></span>
+<span class="text-on-surface-variant">Severe Inundation Pocket (>2.5m depth)</span>
+</div>
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-tertiary text-[14px]">emergency</span>
+<span class="text-on-surface-variant">Retroactive Rescue Log</span>
+</div>
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-error text-[14px]">sensors_off</span>
+<span class="text-on-surface-variant">Submerged / Destroyed Sensor</span>
+</div>
+</div>
+</div>
+<!-- Coordinates & Sector Telemetry Overlay (Bottom Right) -->
+<div class="absolute bottom-space-md right-space-md bg-surface-container-lowest/90 px-space-md py-1 rounded text-right font-label-sm text-label-sm text-outline z-30">
+<div>LAT 23°00'44"N · LON 91°24'02"E</div>
+<div class="text-secondary font-telemetry-numeral text-[11px]">SCRUBBER FRAME: 38h_OF_120h</div>
+</div>
+</div>
+<!-- Selected Entity Quick Inspection Strip -->
+<div class="bg-surface-container p-space-sm flex items-center justify-between gap-space-md" id="inspector-strip">
+<div class="flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-tertiary text-body-md">manage_search</span>
+<span class="font-label-sm text-label-sm text-on-surface">Inspecting: <strong class="text-secondary" id="inspect-id">Hist-SOS-109 (Parshuram Sub-station)</strong></span>
+<span class="font-label-sm text-label-sm bg-surface-container-high px-1.5 py-0.5 rounded text-outline" id="inspect-tag">FIELD NOTEBOOK TRANSCRIBED</span>
+</div>
+<div class="flex items-center gap-space-xs font-label-sm text-label-sm text-outline">
+<span>Reliability Score:</span>
+<span class="text-secondary font-bold" id="inspect-score">68 / 100</span>
+</div>
+</div>
+</div>
+<!-- Historical Physical Context Images -->
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-space-md">
+<div class="bg-surface-container-low rounded p-space-sm flex gap-space-md items-center shadow-sm">
+<img class="w-24 h-20 object-cover rounded bg-surface-container flex-shrink-0" data-alt="Dramatic aerial photo of the flooded Muhuri River basin in Bangladesh during the August 2024 monsoon flood, submerged rural brick houses and tree canopies surrounded by rushing brown muddy floodwaters under stormy dark grey monsoon clouds." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD1lH2Cn_6xvIiKM1UOXTJAcIst96Th6j7T-lWCxkjWJeJE49P8pAy1c4LxH0lcwnKblWgpsLQXuHe_yJrJ7UnBHEDD6h20E6B57M0wI9ThvG7NNlTL4aDFcuMBgbDiPczWAYPX7nS3wNMcods079ZxGwyiNdvrP2z7vDF-uM4BMN0Z5n7MC_Tc1hBRNYuKcGgf2K8JSxuEJzCvoGF8nIvxUbvV3TIytWLrrsP-xMJOQI8FHVydwjvB"/>
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-outline uppercase">Field Reconstruction Photo #01</span>
+<span class="font-body-sm text-body-sm font-semibold text-on-surface mt-0.5">Parshuram Embankment Washout</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant mt-1">Photo captured via volunteer handheld Aug 24 10:15 BST. Confirmed dike failure zone.</span>
+</div>
+</div>
+<div class="bg-surface-container-low rounded p-space-sm flex gap-space-md items-center shadow-sm">
+<img class="w-24 h-20 object-cover rounded bg-surface-container flex-shrink-0" data-alt="Close up photograph of a damaged yellow hydrological staff water level gauge post bent and submerged under turbulent brown flood water with washed away riverbank infrastructure and disconnected solar telemetry unit during Bangladesh flash flood." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDkmNMO7RHWyDOizPaKzSqvhCP9hhIW-RBJaUTX-l-MAzxPX0LeP1QdmDLC6s7qAa64zpgbqWZ0tmhEbg1zIxrdX7c4T-VAge-Bg2vjBurF8uYhpm86JSWGhRLMKE2rLfknbxHjobV_qIoNrFd9yrGXq-cxPjvNEU3ZNQSRrtIco5AQmK1cxVwRgIO3ZrnLmTm07pXzLQULMSR7pdrg0XlreSBW8-fpw55aO9xHu3pzAjnKW1jbkmet"/>
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-outline uppercase">Field Reconstruction Photo #02</span>
+<span class="font-body-sm text-body-sm font-semibold text-on-surface mt-0.5">Muhuri River Gauge Staff Condition</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant mt-1">Post-event inspection Aug 27. Telemetry transmission antenna severed by floating debris.</span>
+</div>
+</div>
+</div>
+</section>
+<!-- RIGHT PANE: 35% Reconstruction Audit & Gap Ledger -->
+<section class="lg:col-span-4 flex flex-col gap-space-md">
+<!-- Card 1: Timeline Integrity Summary -->
+<div class="w-full bg-surface-container-low rounded p-space-md shadow-sm flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-secondary text-body-md">verified_user</span>
+<h3 class="font-headline-md text-headline-md text-on-surface">Timeline Integrity Summary</h3>
+</div>
+<span class="font-label-sm text-label-sm bg-surface-container px-1.5 py-0.5 rounded text-outline uppercase">Audit v2.4</span>
+</div>
+<!-- Metrics Grid -->
+<div class="grid grid-cols-2 gap-space-sm mt-1">
+<div class="bg-surface-container p-space-sm rounded">
+<span class="font-label-sm text-label-sm text-outline block">Total Historical Records</span>
+<span class="font-telemetry-numeral text-headline-md text-on-surface font-bold">142</span>
+<span class="font-label-sm text-[10px] text-on-surface-variant block mt-0.5">Aggregated post-flood</span>
+</div>
+<div class="bg-surface-container p-space-sm rounded">
+<span class="font-label-sm text-label-sm text-secondary block">Verified Records</span>
+<div class="flex items-baseline gap-1">
+<span class="font-telemetry-numeral text-headline-md text-secondary font-bold">61</span>
+<span class="font-label-sm text-label-sm text-secondary">(43%)</span>
+</div>
+<span class="font-label-sm text-[10px] text-on-surface-variant block mt-0.5">Dual-source corroboration</span>
+</div>
+<div class="bg-surface-container p-space-sm rounded">
+<span class="font-label-sm text-label-sm text-tertiary block">Unverified / Anecdotal</span>
+<div class="flex items-baseline gap-1">
+<span class="font-telemetry-numeral text-headline-md text-tertiary font-bold">81</span>
+<span class="font-label-sm text-label-sm text-tertiary">(57%)</span>
+</div>
+<span class="font-label-sm text-[10px] text-on-surface-variant block mt-0.5">Single narrative / notebook</span>
+</div>
+<div class="bg-surface-container p-space-sm rounded">
+<span class="font-label-sm text-label-sm text-error block">Major Telemetry Gaps</span>
+<span class="font-telemetry-numeral text-headline-md text-error font-bold">2</span>
+<span class="font-label-sm text-[10px] text-on-surface-variant block mt-0.5">Combined 31 hrs lost</span>
+</div>
+</div>
+<!-- Visual Proportion Gauge Bar -->
+<div class="mt-space-xs">
+<div class="flex justify-between font-label-sm text-label-sm mb-1 text-on-surface-variant">
+<span>Verified Corroboration Ratio</span>
+<span class="font-telemetry-numeral text-secondary">43%</span>
+</div>
+<div class="w-full h-2 rounded bg-surface-container overflow-hidden flex">
+<div class="h-full bg-secondary" style="width: 43%;"></div>
+<div class="h-full bg-tertiary" style="width: 57%;"></div>
+</div>
+<div class="flex justify-between font-label-sm text-[10px] text-outline mt-1">
+<span>43% Verified Feeds</span>
+<span>57% Post-hoc Anecdotal</span>
+</div>
+</div>
+<!-- Telemetry Blackout Windows Detail -->
+<div class="bg-surface-container-lowest p-space-sm rounded mt-space-xs flex flex-col gap-1">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-outline">Identified Blackout Windows:</span>
+<div class="flex items-start gap-space-xs font-label-sm text-body-sm text-on-surface-variant">
+<span class="text-tertiary font-bold">GAP-01:</span>
+<span>Aug 22 22:00 – Aug 23 16:00 (18h) · Muhuri & Selonia Hydro Line down.</span>
+</div>
+<div class="flex items-start gap-space-xs font-label-sm text-body-sm text-on-surface-variant">
+<span class="text-tertiary font-bold">GAP-02:</span>
+<span>Aug 23 11:30 – Aug 24 00:30 (13h) · Feni Sadar South cellular BTS generator submerged.</span>
+</div>
+</div>
+</div>
+<!-- Card 2: Chronological Incident Log at Scrubber Point -->
+<div class="w-full bg-surface-container-low rounded p-space-md shadow-sm flex flex-col flex-grow">
+<div class="flex items-center justify-between pb-space-sm">
+<div>
+<h3 class="font-headline-md text-headline-md text-on-surface">Chronological Incident Log</h3>
+<span class="font-label-sm text-label-sm text-outline">At Scrubber Point (Aug 23 04:00 BST)</span>
+</div>
+<span class="font-label-sm text-label-sm bg-surface-container px-2 py-0.5 rounded text-secondary font-bold">
+            6 Incidents Active
+          </span>
+</div>
+<!-- Scrollable Incident List with Strict Provenance Tokens -->
+<div class="flex flex-col gap-space-sm overflow-y-auto max-h-[380px] pr-1">
+<!-- Incident Item 1 -->
+<div class="bg-surface-container p-space-sm rounded hover:bg-surface-variant transition-colors cursor-pointer" onclick="selectMarker('Hist-SOS-109')">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm font-bold text-tertiary">Hist-SOS-109 · Parshuram</span>
+<span class="font-label-sm text-label-sm text-outline font-telemetry-numeral">03:30 BST</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface mt-1 leading-snug">
+              Parshuram Sub-station evacuation. 12 people on transformer platform rescued by civilian engine skiff.
+            </p>
+<div class="flex items-center justify-between mt-2 pt-1 border-t border-surface-container-high font-label-sm text-[10px]">
+<span class="px-1.5 py-0.2 rounded bg-tertiary/15 text-tertiary font-semibold uppercase">
+                Field Notebook Transcribed
+              </span>
+<span class="text-outline">Recorded: Aug 26 14:00</span>
+</div>
+</div>
+<!-- Incident Item 2 -->
+<div class="bg-surface-container p-space-sm rounded hover:bg-surface-variant transition-colors cursor-pointer" onclick="selectMarker('Hist-Gage-01')">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm font-bold text-error">Hist-Gage-01 · Muhuri Staff</span>
+<span class="font-label-sm text-label-sm text-outline font-telemetry-numeral">03:45 BST</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface mt-1 leading-snug">
+              Physical gauge completely submerged. Last manual mark estimated at 14.1m by local watchman before evacuation.
+            </p>
+<div class="flex items-center justify-between mt-2 pt-1 border-t border-surface-container-high font-label-sm text-[10px]">
+<span class="px-1.5 py-0.2 rounded bg-surface-container-highest text-on-surface-variant uppercase">
+                Delayed SMS Ingestion
+              </span>
+<span class="text-error font-semibold">T+27h Delay</span>
+</div>
+</div>
+<!-- Incident Item 3 -->
+<div class="bg-surface-container p-space-sm rounded hover:bg-surface-variant transition-colors cursor-pointer">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm font-bold text-primary">Hist-SOS-115 · Chhagalnaiya</span>
+<span class="font-label-sm text-label-sm text-outline font-telemetry-numeral">02:18 BST</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface mt-1 leading-snug">
+              Hospital ward flooded to knee height. Emergency patients shifted to 1st floor roof. Generator lost fuel.
+            </p>
+<div class="flex items-center justify-between mt-2 pt-1 border-t border-surface-container-high font-label-sm text-[10px]">
+<span class="px-1.5 py-0.2 rounded bg-secondary-container/20 text-secondary uppercase font-semibold">
+                Cell Tower Ping Reconstruction
+              </span>
+<span class="text-outline">BTS: CHHAG-04</span>
+</div>
+</div>
+<!-- Incident Item 4 -->
+<div class="bg-surface-container p-space-sm rounded hover:bg-surface-variant transition-colors cursor-pointer">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm font-bold text-tertiary">Hist-SOS-118 · Fulgazi West</span>
+<span class="font-label-sm text-label-sm text-outline font-telemetry-numeral">01:40 BST</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface mt-1 leading-snug">
+              Family of 5 stranded on tin roof. Voice call disconnected abruptly mid-transmission.
+            </p>
+<div class="flex items-center justify-between mt-2 pt-1 border-t border-surface-container-high font-label-sm text-[10px]">
+<span class="px-1.5 py-0.2 rounded bg-tertiary/15 text-tertiary font-semibold uppercase">
+                Field Notebook Transcribed
+              </span>
+<span class="text-outline">Unverified Single Entry</span>
+</div>
+</div>
+</div>
+<!-- Export & Lineage Audit Actions -->
+<div class="pt-space-md mt-auto flex flex-col sm:flex-row gap-space-xs">
+<button class="flex-1 flex items-center justify-center gap-1.5 px-space-md py-2 rounded bg-primary text-on-primary hover:bg-primary-fixed font-body-sm font-semibold transition-colors" onclick="exportReconstructionDataset()">
+<span class="material-symbols-outlined text-body-lg">download</span>
+<span>Export Reconstruction Dataset (.CSV)</span>
+</button>
+<button class="flex items-center justify-center gap-1.5 px-space-md py-2 rounded bg-surface-container hover:bg-surface-container-high text-on-surface font-body-sm font-semibold transition-colors" onclick="openLineageModal()">
+<span class="material-symbols-outlined text-body-lg">account_tree</span>
+<span>Inspect Lineage</span>
+</button>
+</div>
+</div>
+</section>
+</div>
+<!-- Interactive Provenance / Lineage Modal Dialog (Hidden by Default) -->
+<div class="fixed inset-0 z-50 bg-surface-container-lowest/80 backdrop-blur-sm hidden items-center justify-center p-space-md" id="lineageModal">
+<div class="w-full max-w-2xl bg-surface-container-low rounded p-space-lg shadow-xl flex flex-col gap-space-md">
+<div class="flex items-center justify-between pb-space-sm border-b border-surface-container">
+<div class="flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-primary text-headline-md">account_tree</span>
+<div>
+<h4 class="font-headline-md text-headline-md text-on-surface">Source Lineage & Verification Chain</h4>
+<span class="font-label-sm text-label-sm text-outline">Dataset Audit Ref: HIST-FENI-2024-AUG-v2.4</span>
+</div>
+</div>
+<button class="w-8 h-8 rounded bg-surface-container text-on-surface-variant hover:text-on-surface flex items-center justify-center" onclick="closeLineageModal()">
+<span class="material-symbols-outlined text-body-md">close</span>
+</button>
+</div>
+<div class="flex flex-col gap-space-sm font-body-sm text-body-sm text-on-surface-variant">
+<p>
+          Historical entries in this session combine real-time sensor recordings, manual logbooks from volunteer speedboats, and post-event cellular CDR forensics after power restoration on August 25.
+        </p>
+<div class="bg-surface-container p-space-sm rounded">
+<span class="font-label-sm text-label-sm text-on-surface font-bold uppercase block mb-1">Chain of Custody Hierarchy:</span>
+<ol class="list-decimal list-inside space-y-1 font-label-sm text-label-sm text-on-surface-variant">
+<li><strong class="text-secondary">Class A (Direct Hydro Telemetry):</strong> BWDB digital pressure sensors (terminated at 21:45 Aug 22 due to station loss).</li>
+<li><strong class="text-primary">Class B (Telecom CDR Pings):</strong> BTS location triangulation of emergency short-codes during intermittent tower connectivity.</li>
+<li><strong class="text-tertiary">Class C (Responder Notebooks):</strong> Field logs handwritten during crisis, entered into digital portal between Aug 26–29.</li>
+</ol>
+</div>
+<div class="p-space-sm bg-tertiary-container/10 rounded text-tertiary font-label-sm text-label-sm">
+<strong>LEGAL DISCLAIMER:</strong> Uncalibrated crowdsourced flood extents are derived from satellite SAR imagery & local narrative consensus. Not valid for insurance settlement adjudication without field surveyor stamp.
+        </div>
+</div>
+<div class="flex justify-end gap-space-xs pt-space-xs">
+<button class="px-space-md py-1.5 rounded bg-surface-container hover:bg-surface-variant text-on-surface font-body-sm font-semibold" onclick="closeLineageModal()">
+          Dismiss
+        </button>
+</div>
+</div>
+</div>
+</div>
+<script>
+  let isPlaying = true;
+  let scrubberValue = 38;
+  let playbackSpeed = 1;
+  let playbackInterval = null;
+
+  const timeDisplay = document.getElementById('currentTimeDisplay');
+  const scrubberInput = document.getElementById('timeScrubber');
+  const playIcon = document.getElementById('play-icon');
+
+  function calculateTimeLabel(hoursFromZero) {
+    // T=0 is Aug 20 00:00 BST
+    const baseDate = new Date(Date.UTC(2024, 7, 20, 0, 0, 0)); // Aug 20 00:00
+    const targetDate = new Date(baseDate.getTime() + hoursFromZero * 3600 * 1000);
+    
+    const day = targetDate.getUTCDate();
+    const hrs = String(targetDate.getUTCHours()).padStart(2, '0');
+    return `Aug ${day} ${hrs}:00 BST`;
+  }
+
+  function updateScrubber(val) {
+    scrubberValue = parseInt(val, 10);
+    timeDisplay.textContent = calculateTimeLabel(scrubberValue);
+  }
+
+  function stepScrubber(delta) {
+    scrubberValue = Math.min(120, Math.max(0, scrubberValue + delta));
+    scrubberInput.value = scrubberValue;
+    updateScrubber(scrubberValue);
+  }
+
+  function togglePlayback() {
+    isPlaying = !isPlaying;
+    if (isPlaying) {
+      playIcon.textContent = 'pause';
+      startPlayback();
+    } else {
+      playIcon.textContent = 'play_arrow';
+      clearInterval(playbackInterval);
+    }
+  }
+
+  function setSpeed(speedMultiplier, btnElement) {
+    playbackSpeed = speedMultiplier;
+    document.querySelectorAll('.speed-toggle').forEach(btn => {
+      btn.classList.remove('bg-primary-container', 'text-on-primary-container', 'font-bold');
+      btn.classList.add('text-on-surface-variant');
+    });
+    btnElement.classList.add('bg-primary-container', 'text-on-primary-container', 'font-bold');
+    btnElement.classList.remove('text-on-surface-variant');
+
+    if (isPlaying) {
+      clearInterval(playbackInterval);
+      startPlayback();
+    }
+  }
+
+  function startPlayback() {
+    clearInterval(playbackInterval);
+    playbackInterval = setInterval(() => {
+      if (scrubberValue >= 120) {
+        scrubberValue = 0;
+      } else {
+        scrubberValue += 1;
+      }
+      scrubberInput.value = scrubberValue;
+      updateScrubber(scrubberValue);
+    }, Math.max(100, 1000 / playbackSpeed));
+  }
+
+  function selectMarker(id) {
+    const idEl = document.getElementById('inspect-id');
+    const tagEl = document.getElementById('inspect-tag');
+    const scoreEl = document.getElementById('inspect-score');
+
+    if (id === 'Hist-SOS-109') {
+      idEl.textContent = 'Hist-SOS-109 (Parshuram Sub-station)';
+      tagEl.textContent = 'FIELD NOTEBOOK TRANSCRIBED';
+      scoreEl.textContent = '68 / 100';
+    } else if (id === 'Hist-Gage-01') {
+      idEl.textContent = 'Hist-Gage-01 (Muhuri River Gauge)';
+      tagEl.textContent = 'TELEMETRY RECORD TO WASHOUT';
+      scoreEl.textContent = '94 / 100';
+    } else if (id === 'Hist-SOS-112') {
+      idEl.textContent = 'Hist-Embank-04 (North Fulgazi Breach)';
+      tagEl.textContent = 'INFERRED POST-EVENT RECONSTRUCTION';
+      scoreEl.textContent = '52 / 100';
+    }
+  }
+
+  function openLineageModal() {
+    const modal = document.getElementById('lineageModal');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+  }
+
+  function closeLineageModal() {
+    const modal = document.getElementById('lineageModal');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+  }
+
+  function exportReconstructionDataset() {
+    const csvContent = "data:text/csv;charset=utf-8," 
+      + "Record_ID,Timestamp_BST,Location,Source_Class,Verification_Status,Water_Level_Meters,Description\n"
+      + "Hist-SOS-109,2024-08-23 03:30,Parshuram Sub-station,Notebook,Unverified,N/A,12 evacuated from transformer\n"
+      + "Hist-Gage-01,2024-08-22 21:45,Muhuri Staff,Telemetry,Verified_Direct,13.4,Gauge submerged and washed out\n"
+      + "Hist-SOS-115,2024-08-23 02:18,Chhagalnaiya,BTS_Ping,Corroborated,N/A,Hospital ward ground flood\n"
+      + "Hist-Embank-04,2024-08-23 01:15,Fulgazi North,Inferred,Uncalibrated,N/A,45m dike failure inferred\n";
+    
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "Feni_Aug2024_Reconstruction_Audit.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+
+  // Start initial auto-play
+  startPlayback();
+</script></main></div></body></html>

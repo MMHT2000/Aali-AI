@@ -39,15 +39,28 @@ export class SosController {
     return this.sosService.decodePacket(dto);
   }
 
+  @Post('sos/packet')
+  @Public()
+  @ApiOperation({ summary: 'Submit an emergency SOS via ASCII Disaster Packet string directly' })
+  @ApiResponse({ status: 201, description: 'SOS report created from Disaster Packet' })
+  async createSosFromPacket(@Body() dto: DecodePacketDto, @Request() req: { user?: { id?: string } }) {
+    const result = await this.sosService.createSosFromPacket(dto.packet, req.user?.id);
+    return {
+      status: 'success',
+      report: result.report,
+      idempotentDuplicate: result.isDuplicate,
+    };
+  }
+
   @Get('sos')
-  @Roles(UserRole.AUTHORITY, UserRole.RESPONDER, UserRole.ADMIN)
+  @Roles(UserRole.AUTHORITY, UserRole.RESPONDER)
   @ApiOperation({ summary: 'List recent SOS reports' })
   async getReports() {
     return this.sosService.getReports();
   }
 
   @Get('sos/:id')
-  @Roles(UserRole.AUTHORITY, UserRole.RESPONDER, UserRole.ADMIN)
+  @Roles(UserRole.AUTHORITY, UserRole.RESPONDER)
   @ApiOperation({ summary: 'Get a single SOS report by ID' })
   async getReportById(@Param('id') id: string) {
     const report = await this.sosService.getReportById(id);

@@ -27,11 +27,6 @@ export class RolesGuard implements CanActivate {
       throw new ForbiddenException('User context or role not present on request');
     }
 
-    // ADMIN has supervisor authority over all roles
-    if (user.role === UserRole.ADMIN) {
-      return true;
-    }
-
     const hasRole = requiredRoles.includes(user.role);
     if (!hasRole) {
       throw new ForbiddenException(

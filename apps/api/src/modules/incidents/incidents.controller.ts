@@ -20,21 +20,21 @@ export class IncidentsController {
   constructor(private readonly incidentsService: IncidentsService) {}
 
   @Get()
-  @Roles(UserRole.AUTHORITY, UserRole.RESPONDER, UserRole.ADMIN)
+  @Roles(UserRole.AUTHORITY, UserRole.RESPONDER)
   @ApiOperation({ summary: 'List all open incidents with confidence and boat priority' })
   async getIncidents(@Query() query: OperationsSnapshotQueryDto) {
     return this.incidentsService.getIncidents(query.eventId);
   }
 
   @Get('silent-areas')
-  @Roles(UserRole.AUTHORITY, UserRole.RESPONDER, UserRole.ADMIN)
+  @Roles(UserRole.AUTHORITY, UserRole.RESPONDER)
   @ApiOperation({ summary: 'List high-risk silent areas requiring verification by safe means' })
   getSilentAreas(@Query() query: OperationsSnapshotQueryDto) {
     return this.incidentsService.getSilentVillages(query.eventId);
   }
 
   @Get(':id')
-  @Roles(UserRole.AUTHORITY, UserRole.RESPONDER, UserRole.ADMIN)
+  @Roles(UserRole.AUTHORITY, UserRole.RESPONDER)
   @ApiOperation({ summary: 'Get details for a specific incident' })
   async getIncidentById(@Param('id') id: string) {
     const inc = await this.incidentsService.getIncidentById(id);
@@ -45,7 +45,7 @@ export class IncidentsController {
   }
 
   @Post(':id/duplicate-candidates/:candidateId/review')
-  @Roles(UserRole.RESPONDER, UserRole.ADMIN)
+  @Roles(UserRole.RESPONDER)
   @ApiOperation({ summary: 'Operator review for duplicate match candidate (ACCEPT or REJECT)' })
   async reviewDuplicate(
     @Param('id') incidentId: string,
@@ -63,7 +63,7 @@ export class IncidentsController {
   }
 
   @Post(':id/split')
-  @Roles(UserRole.RESPONDER, UserRole.ADMIN)
+  @Roles(UserRole.RESPONDER)
   @ApiOperation({ summary: 'Operator unmerge/split action: separates linked report into new incident' })
   async splitIncident(
     @Param('id') incidentId: string,
@@ -79,7 +79,7 @@ export class IncidentsController {
   }
 
   @Post(':id/boat-recommendation/review')
-  @Roles(UserRole.RESPONDER, UserRole.ADMIN)
+  @Roles(UserRole.RESPONDER)
   @ApiOperation({ summary: 'Operator human review for suggested boat dispatch (ACCEPT or REJECT, no auto-dispatch)' })
   async reviewBoatRecommendation(
     @Param('id') incidentId: string,
@@ -91,6 +91,24 @@ export class IncidentsController {
       body.decision,
       body.reason || 'Responder review on boat recommendation',
       req.user.id,
+    );
+  }
+
+  @Post(':id/review')
+  @Roles(UserRole.RESPONDER)
+  @ApiOperation({ summary: 'Unified incident triage review endpoint' })
+  async reviewIncident(
+    @Param('id') incidentId: string,
+    @Body() body: { action?: string; decision?: 'ACCEPT' | 'REJECT'; note?: string; reason?: string },
+    @Request() req: { user: { id: string } },
+  ) {
+    const decision = body.decision || (body.action === 'CONFIRM' ? 'ACCEPT' : 'REJECT');
+    const reason = body.reason || body.note || 'Responder triage confirmation';
+    return this.incidentsService.reviewBoatSuggestion(
+      incidentId,
+      decision,
+      reason,
+      req.user?.id || 'responder-mobile-unit',
     );
   }
 }
