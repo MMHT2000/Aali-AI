@@ -17,6 +17,7 @@ import { apiFetch } from '../lib/authenticated-fetch';
 import { canAccessControlRoomRoute, getRoleHomePath } from '../lib/control-room-access';
 import { ViewerSituationSummary } from './ViewerSituationSummary';
 import { checkApiHealth, ApiHealthResponse } from '../lib/api-client';
+import { JudgeDemoRunner } from './JudgeDemoRunner';
 import './ControlRoom.css';
 
 interface ControlRoomProps { session: UserSession; onLogout: () => void }
@@ -115,6 +116,7 @@ export function ControlRoom({ session, onLogout }: ControlRoomProps) {
         <button className="logout-button" onClick={onLogout} aria-label="Sign out"><LogOut size={16} /><span>Sign out</span></button>
       </div>
     </header>
+    <JudgeDemoRunner currentMode={mode} onSetMode={setOperatingContext} />
     <div className="control-body">
       <aside className="control-sidebar">
         <nav className="control-navigation" aria-label="Operations workspaces">
