@@ -38,3 +38,4 @@ For current project specifications and deliverables, refer to:
 * **[docs/ARCHITECTURE.md](../docs/ARCHITECTURE.md):** Monolith design, boundaries, and data flows.
 * **[docs/API_CONTRACT.md](../docs/API_CONTRACT.md):** REST endpoints, DTO validations, and SSE specifications.
 * **[docs/judging/FINAL_VERDICT.md](../docs/judging/FINAL_VERDICT.md):** 96/100 verified judge panel evaluation.
+

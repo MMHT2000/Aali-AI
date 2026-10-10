@@ -1,104 +1,66 @@
-# AALI AI (আলি এআই) — Flash-Flood Resilience Platform
 
-> **“When the towers die, the SOS doesn’t.”**  
-> *Early warning, zero-tower rescue, and fair recovery for Feni & Sylhet in the satellite-to-phone era.*  
-> **Track 1: Climate Resilience & Humanitarian Action · Hack for Humanity 2026**
+> AALI AI   Feni & Sylhet Flash-Flood Resilience
+When the towers die, the SOS doesn’t.
+Early warning, zero-tower rescue, and fair recovery for Feni & Sylhet, built for the satellite-to-phone era.   Hack for Humanity 2026 · Track 1: Climate Resilience · Team: Aali AI Resilience Core
 
----
 
-## 1. The Ground Reality: One Night in Feni & Sylhet
+> ONE NIGHT IN FENI & SYLHET (a composite scene built from reported accounts [2])
+Rain from the Indian hills has fallen for days. On 21 August 2024 the water reaches the villages, and by nightfall a school shelter is full of families. The lights are out. Within two days 605–616 of Feni’s 653 mobile towers are dead [1], and one of the few ways out of the district is a handful of volunteer radio operators [2]. Similar communication collapse isolated Sylhet in 2022 and 2024. A father holds up his phone: no bars. Now picture the same room with Aali. His phone sends one SMS, straight to a satellite if it must. A rescue officer sees it appear on a map, merged with two others from the same school, with a confidence score and a boat ranked to it.
 
-Rain from the upstream Meghalaya and Tripura hills had fallen relentlessly. On 21 August 2024, the water inundated Parshuram and Fulgazi, filling schools and rooftops with marooned families. Within 48 hours, **616 of Feni’s 653 mobile towers (92.6%) collapsed** as backup battery power failed [1]. Telemetered river gauges stopped transmitting as the Muhuri river crested **+6.92m above danger level** [3]. Responders faced complete blackout; hotlines jammed at 12 calls/min with zero shared visibility [7]. A father held up his phone: zero bars.
 
-**Now picture that scene with Aali AI:** His phone transmits a single 42-byte ASCII distress packet directly to satellite or surviving tower. On the control room map, his report appears instantly—de-duplicated, confidence-scored, and ranked to a rescue boat with night spotlight. Nobody phoned anyone.
+| 605–616 / 653 Feni towers down by 23–24 Aug 2024 [1] | +6.92 m in 15 h Muhuri rise at Parshuram, July 2025 [3] | 4–8 hours typical tower battery backup, then silence [4] | 1 SMS is all an SOS needs to carry |
+| --- | --- | --- | --- |
 
-| 616 / 653 (92.6%) | +6.92 m in 15 Hours | 42 Bytes | 8–24 Hours Lead Time |
-| :---: | :---: | :---: | :---: |
-| **Feni Towers Dead (BTRC) [1]** | **Muhuri Rise at Parshuram [3]** | **ASCII Disaster Packet (1 SMS)** | **Via Blank-Gauge Rule** |
 
----
 
-## 2. System Architecture & The 3-Phase Operational Lifecycle
+> WHY NOW. On 7 Oct 2026 Banglalink launched satellite-to-phone: any 4G phone, no dish [5]. Bangladesh is drafting its National Emergency Telecommunication Plan and a cell-broadcast warning system [6], yet in 2024 the national emergency telecom system promised after the 2022 Sylhet flood still did not exist [4]. The signal now exists. What is missing is the system that turns it into a warning, an SOS and a rescue map.
 
-**WHY NOW:** On 7 October 2026, Banglalink launched commercial Starlink Direct-to-Cell (D2C) in Bangladesh—enabling any standard 4G phone to reach low-earth satellites with no dish [5]. Aali AI provides the operational decision-support software to turn this breakthrough into life-saving action.
 
-```text
-┌─────────────────────────────────┐      ┌──────────────────────────────┐
-│        EDGE SOS CLIENTS         │      │       TELECOM GATEWAY        │
-│ • 3-Tap Resident App (Flutter)  │ ───► │ • SMPP v3.4 Shortcode 1090   │
-│ • 42-Byte SMS (Any 2G SIM)      │      │ • 7-Bit GSM PDU Extraction   │
-│ • Starlink D2C Satellite Link   │      │ • Multi-Endpoint Auto-Latch  │
-│ • Offline SQLite Queue Buffer   │      │ • Ingestion REST Bridge      │
-└─────────────────────────────────┘      └──────────────┬───────────────┘
-                                                        │
-┌─────────────────────────────────┐      ┌──────────────▼───────────────┐
-│     WEB SITUATION ROOM (VITE)   │      │   DETERMINISTIC CORES & NLP  │
-│ • Live SSE Stream Map (Leaflet) │ ◄─── │ • Blank-Gauge Rule (60m fail)│
-│ • Mosque Loudspeaker Audio PA   │      │ • Gemini Flash Dialect NLP   │
-│ • Human Rescue Boat Sign-Off    │      │ • Deterministic Regex Engine │
-│ • Post-Flood Relief Ledger      │      │ • Boat Priority & Fuel Checks│
-└─────────────────────────────────┘      └──────────────────────────────┘
-```
+| BEFORE · warn earlier An alert that survives a dead gauge Three signals for the Muhuri and Surma rivers: gauge rate-of-rise, satellite rainfall, and a volunteer’s SMS reading from a staff gauge. A silent gauge raises the alert. Ward-level Bangla warnings go out through operators, backed by automated mosque loudspeaker (মাইকিং) audio synthesis. | DURING · get the SOS out A rescue map that works with no tower One-SMS SOS, over towers or satellite, lands on Aali automatically. Duplicates merge, silent villages are flagged (no calls is not safety) and scarce boats are ranked with night spotlight checks (zero auto-dispatch). In 2024 the Red Crescent hotline took 10–12 calls a minute with no shared picture [7]. | AFTER · recover fairly Aid that reaches the right village once The same record becomes a recovery board by village: damage, broken tube wells, needs ranked, aid delivered with SHA-256 anti-fraud idempotency keys. 2024: 70,415 houses submerged and Tk 533.59 crore lost [8]. |
+| --- | --- | --- |
 
----
 
-## 3. The Solution in Three Operational Moves
 
-| BEFORE · Surviving a Blank Gauge | DURING · Rescue with Zero Towers | AFTER · Fair Recovery & Relief |
-| :--- | :--- | :--- |
-| **• 3-Signal Fusion:** Combines BWDB Muhuri/Surma gauges, satellite rainfall (JAXA GSMaP / BMD), and volunteer staff readings.<br/>**• Blank-Gauge Rule:** When water surges, river sensors often sever. If a gauge goes silent for $\ge 60$ min while rain $>75\text{ mm}$, alert auto-escalates to **`ACT` (Red)**. Silence is never treated as safety.<br/>**• Audio Siren/মাইকিং:** Localized Bengali mosque loudspeaker alerts synthesized for uncharged phones. | **• 42-Byte ASCII Packet:** Distress report compresses into 1 standard SMS or satellite burst.<br/>**• Dialect NLP:** Gemini Flash converts Noakhali/Sylheti dialect into schema JSON; deterministic local regex fallback guarantees zero downtime.<br/>**• Human-in-the-Loop Boats:** Prioritizes stranded families (elderly, infants, roof entrapment, night spotlight, 22km fuel limit). **ZERO auto-dispatch.** | **• Tube-Well Ledger:** Tracks submerged drinking water sources (BBS 2022 Census weighted).<br/>**• Cryptographic Anti-Fraud:** SHA-256 idempotency key prevents relief embezzlement or double-claiming.<br/>**• Silent-Village Detection:** Flags communities with high hazard but zero reports (absence of calls $\neq$ proof of safety). |
+### WHERE AI DOES THE WORK, and where it stays out
 
----
 
-## 4. The 42-Byte ASCII Disaster Packet: Precision Engineering
+| 1 · UNDERSTAND Reads a panicked Bangla or Banglish SOS, dialect and voice notes included, into fields: people, elderly, child, trapped, place words. An operator confirms; local deterministic regex engine fallback guarantees zero downtime. | 2 · MERGE Matches reports about the same household even when worded differently, using text similarity plus place and time, so one family is not dispatched twice. | 3 · COMMUNICATE Drafts the ward-specific Bangla warning and a one-line reason for each boat ranking. An authority approves before anything is sent. |
+| --- | --- | --- |
 
-When mobile networks collapse, high-bandwidth data drops to 0 kbps. Aali AI encodes full distress telemetry into an ultra-dense 42-byte ASCII packet that comfortably fits within a single 160-character 7-bit GSM SMS or narrowband satellite frame:
 
-```text
-A1|S|w7cx000|04|E1C0M0T1|261011-0246|SOS7|0NTV
-```
+Alert levels, confidence and boat priority are transparent rules, not AI, because a mistake there costs lives. If the AI is down, a local model on the control-room laptop and then a keyword parser take over.
 
-| Field | Segment | Technical Definition & Operational Function |
-| :--- | :---: | :--- |
-| **Protocol & Type** | `A1` \| `S` | Version `A1` allows backward compatibility; `S` indicates Emergency SOS (`R` = Road hazard, `N` = Need, `G` = Gauge observation). |
-| **Geohash-7** | `w7cx000` | Compresses GPS latitude/longitude to a $153\text{ m} \times 153\text{ m}$ bounding box without requesting map tiles or cellular triangulation. |
-| **Vulnerabilities** | `04` \| `E1C0M0T1` | Headcount (4 people). Bitflags: `E1` = Elderly present, `C0` = No infants, `M0` = No acute medication, `T1` = Trapped on roof/tree. |
-| **Checksum & ID** | `SOS7` \| `0NTV` | Unique short identifier `SOS7` + CRC-16/CCITT-FALSE 4-character Base36 checksum (`0NTV`) preventing corrupt packet ingestion. |
+How it works
 
----
 
-## 5. The Institutional Premise: The Aali Emergency Compact
+### THE AALI COMPACT: the one assumption this idea rests on
 
-Technology cannot succeed without institutional alignment. Aali AI is premised on a three-party emergency compact activated during declared flood events (mirroring Jamaica’s 2025 Starlink activation during Hurricane Melissa [9]):
 
-| Stakeholder | Operational Commitment | Institutional Benefit & Value |
-| :--- | :--- | :--- |
-| **Government (BTRC, DDM, BWDB)** | Declares flood emergency for named upazilas; signs official alerts; owns the immutable audit trail. | Unified multi-agency situational awareness; zero reliance on blind hotlines. |
-| **Telecoms (Banglalink, GP, Robi)** | Opens satellite D2C emergency roaming to all SIMs; forwards SOS packets to Aali; zero-rates mobile app. | Fulfills ITU Early Warnings for All mandate; high-impact humanitarian showcase. |
-| **Responders (Red Crescent, FSCD)** | Operates Web Command Room; manages rescue boat inventory; confirms field rescues and relief. | Eliminates dangerous blind dispatch; protects volunteer boat crews. |
+| Party | What it provides | What it gets | Who |
+| --- | --- | --- | --- |
+| Government | Declares a flood emergency for named upazilas, shares gauge data, approves every warning, owns the audit log. | One verified picture, draft alerts ready for approval. | BTRC, DDM, BWDB-FFWC |
+| Operators | In a declared flood, open satellite-to-phone to all subscribers in the area, forward SOS messages to Aali automatically, carry Bangla alerts by SMS (cell broadcast later), zero-rate the app. | A ready emergency use case for the satellite service; one standard message format. | Banglalink first, then the other operators |
+| Responders | Work from one dashboard, keep the boat register current, confirm cases and deliveries. | Ranked, merged, mapped requests instead of a blind hotline. | Red Crescent, Fire Service, upazila officers |
 
----
 
-## 6. Ethical AI Boundaries: What AI Does vs. What Remains Deterministic
+Why the premise is plausible
 
-* **Where AI Does the Work:** (1) Reads unstructured dialect Bengali/Banglish SOS text and audio into schema JSON; (2) Semantic text-similarity matching for duplicate reports; (3) Drafts localized evacuation warnings and boat dispatch reasoning.
-* **Where AI is Strictly Barred (100% Deterministic Code):** Flood warning levels (`Watch`/`Warning`/`Act`), confidence scoring ($0-100\%$), boat prioritization math, and relief entitlement are **100% transparent deterministic domain code**. An AI hallucination never risks a human life. **ZERO auto-dispatch:** All operations require an authenticated human signature.
+National direction: Bangladesh is developing an emergency telecom plan and cell-broadcast warnings with BTRC, DDM and the ITU [6]. Cell broadcast is one-way; the SOS return path is what Aali adds.
 
----
+Precedent: after Hurricane Melissa (Oct 2025), Liberty Caribbean switched on satellite messaging for its Jamaican customers [9]. Aali proposes the next step: every operator, one declared flood.
 
-## 7. Verified Full-Stack Prototype Status & Physical Final Readiness
+Why all operators: Banglalink holds about one in five mobile subscriptions [11]. A flood does not check which SIM a family has.
 
-| Subsystem | Technology Stack & Endpoints | Verification Status & Hardware Evidence |
-| :--- | :--- | :--- |
-| **Backend API** | NestJS 10, TypeORM, MySQL 8.4 (`:3001`/`:3002`) | **113 / 113 Tests Passed** (26 suites). SSE stream, strict RBAC, HMAC privacy hashing. |
-| **Web Situation Room** | React 18, Vite, Leaflet, Dark UI (`:5173`/`:5174`) | **48 / 48 Tests Passed** (13 suites). 1-Click Demo Director, emergency alert banner. |
-| **Tactile Mobile App** | Flutter 3.x, Material 3, Vector Canvas | **16 / 16 Tests Passed**. Verified on physical Android 13+ device via wireless ADB (`192.168.0.110`). |
-| **SMPP Telecom Gateway**| Node.js TCP PDU Server (`:2775`) | Shortcode 1090 GSM 03.38 PDU parsing and REST bridge operational. |
 
-* **Honest Simulation Disclosures:** Carrier satellite-to-phone spectrum is simulated via local Wi-Fi uplink (`STARLINK_D2C_WIFI`); cell tower blackout is simulated via control toggles; flood hydrograph is reconstructed from published BWDB/FFWC observations.
-* **Physical Final Readiness (October 23, 2026):** The system is completely stage-rehearsed with dual-screen scrcpy mobile mirroring, 1-click Demo Director HUD, portable loudspeaker amp connection, and full multi-district (Feni & Sylhet) support.
+### HONEST SCOPE
 
----
+Real in the prototype: the Flutter mobile app verified on physical Android 13+ device via wireless ADB, the 42-byte SMS packet, 3-signal alert logic, Gemini Flash dialect NLP with local regex fallback, duplicate matching, SMPP telecom gateway, and web situation room. Simulated and labelled: the tower failure, the operator forwarding (a gateway phone stands in), the satellite leg, and the flood replay rebuilt from published readings. The satellite service is live but untested in a flood, so we say “designed for it”, not “proven”. Aali supports decisions; authorities issue warnings.
 
-### Sources & References
-[1] BTRC via Daily Star, Dhaka Tribune, Jagonews, 23–24 Aug 2024. [2] TBS Panorama on amateur radio in Feni; Prothom Alo, 23 Aug 2024. [3] UNB, Feni embankment collapse, July 2025. [4] Daily Star, 26 Aug 2024. [5] BSS, Daily Star, Prothom Alo, 7 Oct 2026. [6] ITU, WMO and UNDRR, Bangladesh Early Warnings for All roadmap. [7] IFRC, 7 Oct 2024. [8] Daily Star/UNB, Sept 2024. [9] Liberty Latin America, 29 Oct 2025. [11] BTRC subscriber data via Wikipedia, June 2025.
+We measure: alert lead time in the replay; SOS delivered with zero internet; taps and seconds to send; AI field accuracy on 30 synthetic Bangla messages; duplicates merged correctly; silent village flagged; 113 backend API tests, 48 web tests, and 16 mobile tests 100% passing.
+
+
+| HUMAN IMPACT Hits the three moments that cost lives in Feni: a late warning, a silent night, a blind recovery. About 1.7 million residents, shelter managers, upazila officers, Red Crescent. | FEASIBLE NOW No new hardware: ordinary phones, a web app, public data (FFWC, BMD, GSMaP rainfall, OpenStreetMap) and a satellite service that is already live. | SCALABLE Only the flood rule is local. The packet, dashboard and compact travel to other hill-fed flash-flood districts (10–12 lost towers in 2024), then the nation. |
+| --- | --- | --- |
+
+
+Sources: [1] BTRC via Daily Star, Dhaka Tribune, Jagonews, 23–24 Aug 2024. [2] TBS Panorama on amateur radio in Feni; Prothom Alo, 23 Aug 2024. [3] UNB, Feni embankment collapse, July 2025. [4] Daily Star, 26 Aug 2024. [5] BSS, Daily Star, Prothom Alo, 7 Oct 2026. [6] ITU, WMO and UNDRR, Bangladesh Early Warnings for All roadmap. [7] IFRC, 7 Oct 2024. [8] Daily Star/UNB, Sept 2024. [9] Liberty Latin America, 29 Oct 2025. [11] BTRC subscriber data via Wikipedia, June 2025.
