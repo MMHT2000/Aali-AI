@@ -239,11 +239,12 @@ export class AlertsService implements OnModuleInit {
     if (eventId) {
       return allWarnings.filter((w) => w.event_id === eventId);
     }
-    if (districtCode === 'SYLHET_DIST') {
+    const normalizedDistrict = districtCode?.toUpperCase();
+    if (normalizedDistrict === 'SYLHET_DIST' || normalizedDistrict === 'SYLHET') {
       const sylhetEventIds = ['11111111-1111-1111-1111-111111111104', '11111111-1111-1111-1111-111111111105'];
       return allWarnings.filter((w) => Boolean(w.event_id && sylhetEventIds.includes(w.event_id)) || w.body_bn?.includes('সুরমা') || w.body_bn?.includes('কোম্পানীগঞ্জ'));
     }
-    if (districtCode === 'FENI_DIST') {
+    if (normalizedDistrict === 'FENI_DIST' || normalizedDistrict === 'FENI') {
       const feniEventIds = ['11111111-1111-1111-1111-111111111101', '11111111-1111-1111-1111-111111111102', '11111111-1111-1111-1111-111111111103'];
       return allWarnings.filter((w) => Boolean(w.event_id && feniEventIds.includes(w.event_id)) || w.body_bn?.includes('মুহুরী') || w.body_bn?.includes('পরশুরাম'));
     }

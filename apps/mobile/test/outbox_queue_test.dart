@@ -12,7 +12,7 @@ void main() {
   test('Outbox queue persists packets to SharedPreferences and survives restarts', () async {
     final prefs = await SharedPreferences.getInstance();
 
-    final testPacket = 'A1|S|wh0r2q8|05|E1M0|0821-1430|7Q2K|1A2B';
+    const testPacket = 'A1|S|wh0r2q8|05|E1M0|0821-1430|7Q2K|1A2B';
     final payload = jsonEncode({
       'clientReportId': 'SOS-OFFLINE-01',
       'packet': testPacket,

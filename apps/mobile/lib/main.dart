@@ -3,11 +3,14 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'nid_validator.dart';
 import 'packet_encoder.dart';
 import 'feni_map_widget.dart';
+
+const MethodChannel _audioChannel = MethodChannel('aali.audio/player');
 
 void main() {
   runApp(const AaliResidentApp());
@@ -175,6 +178,9 @@ class AppRootController extends StatefulWidget {
 class _AppRootControllerState extends State<AppRootController> {
   AppScreen _currentScreen = AppScreen.welcomeRoleSelection;
 
+  // District Tenancy
+  String _selectedDistrict = 'FENI'; // 'FENI' or 'SYLHET'
+
   // Connection endpoints
   String _apiBase = const String.fromEnvironment('AALI_API_URL',
       defaultValue: 'http://127.0.0.1:3001/api/v1');
@@ -220,10 +226,23 @@ class _AppRootControllerState extends State<AppRootController> {
     super.dispose();
   }
 
+  Future<void> _toggleDistrict() async {
+    final next = _selectedDistrict == 'FENI' ? 'SYLHET' : 'FENI';
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('aali_district', next);
+    if (!mounted) return;
+    setState(() {
+      _selectedDistrict = next;
+      _selectedVillage = next == 'FENI' ? 'Parshuram Bazar' : 'Companiganj Thana Sadar (কোম্পানীগঞ্জ)';
+      _activeBroadcastWarning = null;
+    });
+    await _fetchLatestWarnings();
+  }
+
   Future<void> _fetchLatestWarnings() async {
     try {
       final client = HttpClient()..connectionTimeout = const Duration(seconds: 2);
-      final req = await client.getUrl(Uri.parse('$_apiBase/warnings'));
+      final req = await client.getUrl(Uri.parse('$_apiBase/warnings?districtCode=$_selectedDistrict'));
       final resp = await req.close();
       if (resp.statusCode == 200) {
         final body = await resp.transform(utf8.decoder).join();
@@ -265,10 +284,15 @@ class _AppRootControllerState extends State<AppRootController> {
   Future<void> _loadStoredPreferences() async {
     final prefs = await SharedPreferences.getInstance();
     final savedUrl = prefs.getString('aali_api_url');
+    final savedDistrict = prefs.getString('aali_district') ?? 'FENI';
     final activeUrl = await _probeBestApiBase(savedUrl ?? _apiBase);
     if (!mounted) return;
     setState(() {
       _apiBase = activeUrl;
+      _selectedDistrict = savedDistrict;
+      if (savedDistrict == 'SYLHET') {
+        _selectedVillage = 'Companiganj Thana Sadar (কোম্পানীগঞ্জ)';
+      }
       _residentName = prefs.getString('aali_resident_name') ?? '';
       _residentPhone = prefs.getString('aali_resident_phone') ?? '';
       _residentNid = prefs.getString('aali_resident_nid') ?? '';
@@ -726,8 +750,10 @@ class _AppRootControllerState extends State<AppRootController> {
       case AppScreen.welcomeRoleSelection:
         return WelcomeRoleSelectionView(
           isBengali: widget.isBengali,
+          selectedDistrict: _selectedDistrict,
           onToggleTheme: widget.onToggleTheme,
           onToggleLanguage: widget.onToggleLanguage,
+          onToggleDistrict: _toggleDistrict,
           onOpenServerSettings: _showServerSettingsDialog,
           onOpenStaffSignIn: () => _showStaffSignInDialog(),
           onSelectRole: (role) {
@@ -744,8 +770,10 @@ class _AppRootControllerState extends State<AppRootController> {
       case AppScreen.residentHome:
         return ResidentHomeView(
           isBengali: widget.isBengali,
+          districtCode: _selectedDistrict,
           onToggleTheme: widget.onToggleTheme,
           onToggleLanguage: widget.onToggleLanguage,
+          onToggleDistrict: _toggleDistrict,
           onBack: () => _navigateTo(AppScreen.welcomeRoleSelection),
           onStartSos: () => _navigateTo(AppScreen.sosDistressRequest),
           onOpenStaffSignIn: () => _navigateTo(AppScreen.responderDesk),
@@ -767,8 +795,10 @@ class _AppRootControllerState extends State<AppRootController> {
       case AppScreen.sosDistressRequest:
         return SosDistressRequestView(
           isBengali: widget.isBengali,
+          selectedDistrict: _selectedDistrict,
           onToggleTheme: widget.onToggleTheme,
           onToggleLanguage: widget.onToggleLanguage,
+          onDistrictChanged: (d) => setState(() => _selectedDistrict = d),
           onBack: () => _navigateTo(AppScreen.residentHome),
           peopleCount: _peopleCount,
           onPeopleCountChanged: (val) => setState(() => _peopleCount = val),
@@ -805,14 +835,11 @@ class _AppRootControllerState extends State<AppRootController> {
       case AppScreen.responderDesk:
         return ResponderDeskView(
           isBengali: widget.isBengali,
+          districtCode: _selectedDistrict,
           onToggleTheme: widget.onToggleTheme,
           onToggleLanguage: widget.onToggleLanguage,
+          onToggleDistrict: _toggleDistrict,
           onBack: () => _navigateTo(AppScreen.welcomeRoleSelection),
-          onSwitchTab: (tab) {
-            if (tab == 'SOS') _navigateTo(AppScreen.residentHome);
-            if (tab == 'VOLUNTEER') _navigateTo(AppScreen.volunteerDesk);
-            if (tab == 'SETTINGS') _navigateTo(AppScreen.welcomeRoleSelection);
-          },
           unit4Dispatched: _unit4Dispatched,
           apiBase: _apiBase,
           responderToken: _responderToken,
@@ -838,8 +865,10 @@ class _AppRootControllerState extends State<AppRootController> {
       case AppScreen.volunteerDesk:
         return VolunteerDeskView(
           isBengali: widget.isBengali,
+          districtCode: _selectedDistrict,
           onToggleTheme: widget.onToggleTheme,
           onToggleLanguage: widget.onToggleLanguage,
+          onToggleDistrict: _toggleDistrict,
           onBack: () => _navigateTo(AppScreen.welcomeRoleSelection),
           onOpenServerSettings: _showServerSettingsDialog,
           onOpenStaffSignIn: () => _showStaffSignInDialog(defaultRole: 'VOLUNTEER'),
@@ -855,8 +884,10 @@ class _AppRootControllerState extends State<AppRootController> {
 // =============================================================================
 class WelcomeRoleSelectionView extends StatelessWidget {
   final bool isBengali;
+  final String selectedDistrict;
   final VoidCallback onToggleTheme;
   final VoidCallback onToggleLanguage;
+  final VoidCallback onToggleDistrict;
   final ValueChanged<String> onSelectRole;
   final VoidCallback? onOpenServerSettings;
   final VoidCallback? onOpenStaffSignIn;
@@ -864,8 +895,10 @@ class WelcomeRoleSelectionView extends StatelessWidget {
   const WelcomeRoleSelectionView({
     super.key,
     required this.isBengali,
+    required this.selectedDistrict,
     required this.onToggleTheme,
     required this.onToggleLanguage,
+    required this.onToggleDistrict,
     required this.onSelectRole,
     this.onOpenServerSettings,
     this.onOpenStaffSignIn,
@@ -919,7 +952,7 @@ class WelcomeRoleSelectionView extends StatelessWidget {
 
   Widget _buildTopAppBar(BuildContext context, bool isDark) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
         color: isDark ? M3Colors.darkSurface : M3Colors.surface,
         border: Border(
@@ -930,21 +963,20 @@ class WelcomeRoleSelectionView extends StatelessWidget {
         ),
       ),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Expanded(
             child: Row(
               children: [
                 Container(
-                  width: 36,
-                  height: 36,
+                  width: 32,
+                  height: 32,
                   decoration: BoxDecoration(
                     color: isDark ? M3Colors.darkPrimaryContainer : M3Colors.primaryContainer,
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(10),
                   ),
-                  child: const Icon(Icons.water_drop, color: Colors.white, size: 20),
+                  child: const Icon(Icons.water_drop, color: Colors.white, size: 18),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 6),
                 Expanded(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -953,16 +985,16 @@ class WelcomeRoleSelectionView extends StatelessWidget {
                       Text(
                         'Aali আলি',
                         style: TextStyle(
-                          fontSize: 16,
+                          fontSize: 14,
                           fontWeight: FontWeight.bold,
                           color: isDark ? M3Colors.darkOnSurface : M3Colors.onSurface,
                         ),
                       ),
                       Text(
-                        'Feni Flood Command',
+                        selectedDistrict == 'SYLHET' ? 'Sylhet Command' : 'Feni Flood Command',
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                          fontSize: 10.5,
+                          fontSize: 10,
                           color: isDark ? M3Colors.darkOnSurfaceVariant : M3Colors.onSurfaceVariant,
                         ),
                       ),
@@ -972,80 +1004,88 @@ class WelcomeRoleSelectionView extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 4),
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              IconButton(
-                onPressed: onToggleTheme,
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
-                icon: Icon(
-                  isDark ? Icons.light_mode : Icons.dark_mode,
-                  color: isDark ? Colors.amber : M3Colors.onSurfaceVariant,
-                  size: 20,
-                ),
-              ),
-              const SizedBox(width: 4),
+              // District Tenancy Toggle Button
               InkWell(
-                onTap: onToggleLanguage,
-                borderRadius: BorderRadius.circular(20),
+                key: const Key('toggle-district-btn'),
+                onTap: onToggleDistrict,
+                borderRadius: BorderRadius.circular(16),
                 child: Container(
-                  height: 28,
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  height: 26,
+                  padding: const EdgeInsets.symmetric(horizontal: 6),
                   decoration: BoxDecoration(
-                    color: isDark ? M3Colors.darkSurfaceContainerHigh : M3Colors.surfaceContainerHigh,
-                    borderRadius: BorderRadius.circular(20),
+                    color: (isDark ? M3Colors.darkPrimary : M3Colors.primary).withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(16),
                     border: Border.all(
-                      color: isDark ? M3Colors.darkOutlineVariant : M3Colors.outlineVariant,
+                      color: isDark ? M3Colors.darkPrimary : M3Colors.primary,
+                      width: 1.1,
                     ),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
+                      Icon(Icons.location_on, size: 12, color: isDark ? M3Colors.darkPrimary : M3Colors.primary),
+                      const SizedBox(width: 2),
                       Text(
-                        'EN',
+                        selectedDistrict == 'SYLHET' ? 'সিলেট' : 'ফেনী',
                         style: TextStyle(
-                          fontSize: 11,
+                          fontSize: 10.5,
                           fontWeight: FontWeight.bold,
-                          color: !isBengali
-                              ? (isDark ? M3Colors.darkPrimary : M3Colors.primary)
-                              : (isDark ? M3Colors.darkOnSurfaceVariant : M3Colors.onSurfaceVariant),
-                        ),
-                      ),
-                      const Text(' | ', style: TextStyle(color: Colors.grey, fontSize: 10)),
-                      Text(
-                        'বাংলা',
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.bold,
-                          color: isBengali
-                              ? (isDark ? M3Colors.darkPrimary : M3Colors.primary)
-                              : (isDark ? M3Colors.darkOnSurfaceVariant : M3Colors.onSurfaceVariant),
+                          color: isDark ? M3Colors.darkPrimary : M3Colors.primary,
                         ),
                       ),
                     ],
                   ),
                 ),
               ),
+              const SizedBox(width: 3),
+              IconButton(
+                onPressed: onToggleTheme,
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+                icon: Icon(
+                  isDark ? Icons.light_mode : Icons.dark_mode,
+                  color: isDark ? Colors.amber : M3Colors.onSurfaceVariant,
+                  size: 18,
+                ),
+              ),
+              const SizedBox(width: 2),
+              InkWell(
+                onTap: onToggleLanguage,
+                borderRadius: BorderRadius.circular(16),
+                child: Container(
+                  height: 26,
+                  padding: const EdgeInsets.symmetric(horizontal: 6),
+                  decoration: BoxDecoration(
+                    color: isDark ? M3Colors.darkSurfaceContainerHigh : M3Colors.surfaceContainerHigh,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: isDark ? M3Colors.darkOutlineVariant : M3Colors.outlineVariant,
+                    ),
+                  ),
+                  child: Center(
+                    child: Text(
+                      isBengali ? 'বাং' : 'EN',
+                      style: TextStyle(
+                        fontSize: 10.5,
+                        fontWeight: FontWeight.bold,
+                        color: isDark ? M3Colors.darkPrimary : M3Colors.primary,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
               if (onOpenServerSettings != null) ...[
-                const SizedBox(width: 4),
+                const SizedBox(width: 2),
                 IconButton(
                   onPressed: onOpenServerSettings,
                   padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
-                  icon: const Icon(Icons.settings_ethernet, size: 20),
+                  constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+                  icon: const Icon(Icons.settings_ethernet, size: 18),
                   tooltip: 'Server Setup',
-                ),
-              ],
-              if (onOpenStaffSignIn != null) ...[
-                const SizedBox(width: 4),
-                IconButton(
-                  onPressed: onOpenStaffSignIn,
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
-                  icon: const Icon(Icons.badge_outlined, size: 20),
-                  tooltip: 'Staff Sign In',
                 ),
               ],
             ],
@@ -1579,7 +1619,7 @@ class WelcomeRoleSelectionView extends StatelessWidget {
           ),
           const SizedBox(height: 6),
           Text(
-            'Aali AI · Feni District Disaster Resilience · Offline-first local storage enabled',
+            'Aali AI · ${selectedDistrict == 'SYLHET' ? 'Sylhet District' : 'Feni District'} Disaster Resilience · Offline-first local storage enabled',
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 11.5,
@@ -1646,8 +1686,10 @@ class WelcomeRoleSelectionView extends StatelessWidget {
 // =============================================================================
 class ResidentHomeView extends StatefulWidget {
   final bool isBengali;
+  final String districtCode;
   final VoidCallback onToggleTheme;
   final VoidCallback onToggleLanguage;
+  final VoidCallback? onToggleDistrict;
   final VoidCallback onBack;
   final VoidCallback onStartSos;
   final VoidCallback onOpenStaffSignIn;
@@ -1664,8 +1706,10 @@ class ResidentHomeView extends StatefulWidget {
   const ResidentHomeView({
     super.key,
     required this.isBengali,
+    this.districtCode = 'FENI',
     required this.onToggleTheme,
     required this.onToggleLanguage,
+    this.onToggleDistrict,
     required this.onBack,
     required this.onStartSos,
     required this.onOpenStaffSignIn,
@@ -1698,10 +1742,18 @@ class _ResidentHomeViewState extends State<ResidentHomeView> {
     _nameController = TextEditingController(text: widget.residentName);
     _phoneController = TextEditingController();
     _nidController = TextEditingController(text: widget.residentNid);
+    _audioChannel.setMethodCallHandler((call) async {
+      if (call.method == 'onPlaybackComplete') {
+        if (mounted) setState(() => _isPlayingWarningAudio = false);
+      }
+    });
   }
 
   @override
   void dispose() {
+    try {
+      _audioChannel.invokeMethod('stop');
+    } catch (_) {}
     _nameController.dispose();
     _phoneController.dispose();
     _nidController.dispose();
@@ -1729,22 +1781,39 @@ class _ResidentHomeViewState extends State<ResidentHomeView> {
     widget.onSaveProfile(name, phone, nid);
   }
 
-  void _playLoudspeakerAudio() {
-    setState(() {
-      _isPlayingWarningAudio = !_isPlayingWarningAudio;
-    });
-
+  Future<void> _playLoudspeakerAudio() async {
     if (_isPlayingWarningAudio) {
+      try {
+        await _audioChannel.invokeMethod('stop');
+      } catch (e) {
+        debugPrint('Audio stop failed: $e');
+      }
+      if (mounted) setState(() => _isPlayingWarningAudio = false);
+      return;
+    }
+
+    setState(() => _isPlayingWarningAudio = true);
+
+    final isSylhet = widget.districtCode.toUpperCase() == 'SYLHET';
+
+    try {
+      await _audioChannel.invokeMethod('play', {'track': isSylhet ? 'sylhet' : 'feni'});
+    } catch (e) {
+      debugPrint('Audio play failed: $e');
+    }
+
+    if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('🔊 মসজিদ ও মাইক লাউডস্পিকার জরুরি ঘোষণা বাজছে (Loudspeaker Broadcast Playing)...'),
-          backgroundColor: Color(0xFF0284C7),
-          duration: Duration(seconds: 4),
+        SnackBar(
+          content: Text(
+            isSylhet
+                ? '🔊 সিলেট সুরমা অববাহিকা জরুরি ঘোষণা লাউডস্পিকারে বাজছে (Sylhet Evacuation Audio Playing)...'
+                : '🔊 ফেনী মুহুরী অববাহিকা জরুরি ঘোষণা লাউডস্পিকারে বাজছে (Feni Evacuation Audio Playing)...',
+          ),
+          backgroundColor: const Color(0xFF0284C7),
+          duration: const Duration(seconds: 5),
         ),
       );
-      Future.delayed(const Duration(seconds: 6), () {
-        if (mounted) setState(() => _isPlayingWarningAudio = false);
-      });
     }
   }
 
@@ -1766,113 +1835,133 @@ class _ResidentHomeViewState extends State<ResidentHomeView> {
                   children: [
                     const SizedBox(height: 12),
                     // Active DC Evacuation Warning Loudspeaker Card (Broadcast live from Command Center)
-                    if (widget.broadcastWarning != null)
-                      Container(
-                        margin: const EdgeInsets.only(bottom: 14),
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: isDark ? const Color(0xFF2C0B0E) : const Color(0xFFFFECEB),
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: Colors.red.shade700, width: 1.5),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.red.withValues(alpha: 0.15),
-                              blurRadius: 10,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Row(
-                                  children: [
-                                    Container(
-                                      padding: const EdgeInsets.all(6),
-                                      decoration: BoxDecoration(
-                                        color: Colors.red.shade700,
-                                        shape: BoxShape.circle,
-                                      ),
-                                      child: const Icon(Icons.campaign, color: Colors.white, size: 18),
+                    Builder(
+                      builder: (context) {
+                        final isSylhet = widget.districtCode.toUpperCase() == 'SYLHET';
+                        final defaultBody = isSylhet
+                            ? 'জরুরি বন্যা সতর্কতা [সুরমা অববাহিকা]: মেঘালয় ও চেরাপুঞ্জির অতিবৃষ্টি এবং পাহাড়ি ঢলে সুরমা নদীর পানি বিপদসীমার উপর দিয়ে প্রবাহিত হচ্ছে। কোম্পানীগঞ্জ ও গোয়াইনঘাট এলাকার নিম্নাঞ্চলের বাসিন্দাদের অবিলম্বে নিকটস্থ আশ্রয়কেন্দ্রে অবস্থান নিতে অনুরোধ করা হচ্ছে।'
+                            : 'জরুরি বন্যা সতর্কতা [মুহুরী অববাহিকা]: উজানের অতিবৃষ্টি ও পাহাড়ি ঢলে মুহুরী নদীর পানি বিপদসীমা অতিক্রম করেছে। পরশুরাম ও ফুলগাজী এলাকার বাসিন্দাদের অবিলম্বে নিকটস্থ পরশুরাম মডেল হাই স্কুল আশ্রয়কেন্দ্রে অবস্থান নিতে অনুরোধ করা হচ্ছে।';
+                        final bodyRaw = widget.broadcastWarning?['body_bn']?.toString();
+                        final matchesDistrict = bodyRaw != null && (isSylhet
+                            ? (bodyRaw.contains('সুরমা') || bodyRaw.contains('সিলেট') || bodyRaw.contains('কোম্পানীগঞ্জ') || bodyRaw.contains('গোয়াইনঘাট'))
+                            : (bodyRaw.contains('মুহুরী') || bodyRaw.contains('ফেনী') || bodyRaw.contains('পরশুরাম') || bodyRaw.contains('ফুলগাজী')));
+                        final warningBody = matchesDistrict ? bodyRaw! : defaultBody;
+                        final warningState = widget.broadcastWarning?['state']?.toString() ?? 'APPROVED';
+
+                        return Container(
+                          margin: const EdgeInsets.only(bottom: 14),
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: isDark ? const Color(0xFF2C0B0E) : const Color(0xFFFFECEB),
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(color: Colors.red.shade700, width: 1.5),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.red.withValues(alpha: 0.15),
+                                blurRadius: 10,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Expanded(
+                                    child: Row(
+                                      children: [
+                                        Container(
+                                          padding: const EdgeInsets.all(5),
+                                          decoration: BoxDecoration(
+                                            color: Colors.red.shade700,
+                                            shape: BoxShape.circle,
+                                          ),
+                                          child: const Icon(Icons.campaign, color: Colors.white, size: 16),
+                                        ),
+                                        const SizedBox(width: 6),
+                                        Expanded(
+                                          child: Text(
+                                            isSylhet ? '⚡ SYLHET DC BROADCAST' : '⚡ FENI DC BROADCAST',
+                                            overflow: TextOverflow.ellipsis,
+                                            style: TextStyle(
+                                              fontSize: 11,
+                                              fontWeight: FontWeight.w900,
+                                              color: Colors.red.shade800,
+                                              letterSpacing: 0.5,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
                                     ),
-                                    const SizedBox(width: 8),
-                                    Text(
-                                      '⚡ DC OFFICIAL BROADCAST',
-                                      style: TextStyle(
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.w900,
-                                        color: Colors.red.shade800,
-                                        letterSpacing: 0.6,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                                  decoration: BoxDecoration(
-                                    color: Colors.red.shade700,
-                                    borderRadius: BorderRadius.circular(6),
                                   ),
-                                  child: Text(
-                                    widget.broadcastWarning!['state'] ?? 'APPROVED',
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.bold,
+                                  const SizedBox(width: 6),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: Colors.red.shade700,
+                                      borderRadius: BorderRadius.circular(6),
+                                    ),
+                                    child: Text(
+                                      warningState,
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 9.5,
+                                        fontWeight: FontWeight.bold,
+                                      ),
                                     ),
                                   ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              'জরুরি আশ্রয়কেন্দ্রে সরে যাওয়ার চূড়ান্ত ঘোষণা',
-                              style: TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.bold,
-                                color: isDark ? Colors.red.shade200 : Colors.red.shade900,
+                                ],
                               ),
-                            ),
-                            const SizedBox(height: 6),
-                            Text(
-                              widget.broadcastWarning!['body_bn'] ??
-                                  'অতিবৃষ্টি ও পাহাড়ি ঢলে নদী বিপদসীমা অতিক্রম করেছে। অবিলম্বে আশ্রয়কেন্দ্রে যান।',
-                              style: TextStyle(
-                                fontSize: 13,
-                                height: 1.4,
-                                color: isDark ? Colors.white70 : Colors.black87,
-                              ),
-                            ),
-                            const SizedBox(height: 12),
-                            SizedBox(
-                              width: double.infinity,
-                              child: ElevatedButton.icon(
-                                onPressed: _playLoudspeakerAudio,
-                                icon: Icon(
-                                  _isPlayingWarningAudio ? Icons.stop_circle : Icons.volume_up,
-                                  size: 18,
-                                ),
-                                label: Text(
-                                  _isPlayingWarningAudio
-                                      ? '⏹️ ঘোষণা থামান (Stop Loudspeaker Audio)'
-                                      : '🔊 মসজিদ/মাইক অডিও শুনুন (Play Loudspeaker Audio)',
-                                  style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold),
-                                ),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: _isPlayingWarningAudio ? Colors.red.shade800 : const Color(0xFF0284C7),
-                                  foregroundColor: Colors.white,
-                                  elevation: 0,
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                                  padding: const EdgeInsets.symmetric(vertical: 10),
+                              const SizedBox(height: 8),
+                              Text(
+                                'জরুরি আশ্রয়কেন্দ্রে সরে যাওয়ার চূড়ান্ত ঘোষণা',
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.bold,
+                                  color: isDark ? Colors.red.shade200 : Colors.red.shade900,
                                 ),
                               ),
-                            ),
-                          ],
-                        ),
-                      ),
+                              const SizedBox(height: 6),
+                              Text(
+                                warningBody,
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  height: 1.4,
+                                  color: isDark ? Colors.white70 : Colors.black87,
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+                              SizedBox(
+                                width: double.infinity,
+                                child: ElevatedButton.icon(
+                                  key: const Key('play-loudspeaker-btn'),
+                                  onPressed: _playLoudspeakerAudio,
+                                  icon: Icon(
+                                    _isPlayingWarningAudio ? Icons.stop_circle : Icons.volume_up,
+                                    size: 18,
+                                  ),
+                                  label: Text(
+                                    _isPlayingWarningAudio
+                                        ? '⏹️ ঘোষণা থামান (Stop Loudspeaker Audio)'
+                                        : '🔊 মসজিদ/মাইক অডিও শুনুন (Play Loudspeaker Audio)',
+                                    style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold),
+                                  ),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: _isPlayingWarningAudio ? Colors.red.shade800 : const Color(0xFF0284C7),
+                                    foregroundColor: Colors.white,
+                                    elevation: 0,
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                    padding: const EdgeInsets.symmetric(vertical: 10),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
                     // Simulated tower blackout badge if active
                     if (widget.simulateTowerOutage)
                       Container(
@@ -1970,9 +2059,9 @@ class _ResidentHomeViewState extends State<ResidentHomeView> {
                 onPressed: widget.onBack,
                 icon: const Icon(Icons.arrow_back),
                 padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+                constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
               ),
-              const Icon(Icons.flood, color: M3Colors.primary, size: 22),
+              const Icon(Icons.flood, color: M3Colors.primary, size: 20),
               const SizedBox(width: 4),
               Text(
                 'Aali',
@@ -1987,42 +2076,73 @@ class _ResidentHomeViewState extends State<ResidentHomeView> {
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Online status pill
+              // District toggle chip
+              if (widget.onToggleDistrict != null)
+                InkWell(
+                  key: const Key('resident-district-toggle'),
+                  onTap: widget.onToggleDistrict,
+                  borderRadius: BorderRadius.circular(16),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    margin: const EdgeInsets.only(right: 4),
+                    decoration: BoxDecoration(
+                      color: (isDark ? M3Colors.darkPrimary : M3Colors.primary).withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: isDark ? M3Colors.darkPrimary : M3Colors.primary,
+                        width: 1,
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.location_on, size: 11, color: isDark ? M3Colors.darkPrimary : M3Colors.primary),
+                        const SizedBox(width: 2),
+                        Text(
+                          widget.districtCode == 'SYLHET' ? 'সিলেট' : 'ফেনী',
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                            color: isDark ? M3Colors.darkPrimary : M3Colors.primary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              // Compact Online Dot indicator
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
                 decoration: BoxDecoration(
                   color: isDark ? M3Colors.darkSurfaceContainer : M3Colors.surfaceContainer,
-                  borderRadius: BorderRadius.circular(20),
+                  borderRadius: BorderRadius.circular(12),
                   border: Border.all(
                     color: isDark ? Colors.white12 : M3Colors.outlineVariant.withValues(alpha: 0.4),
                   ),
                 ),
                 child: Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     Container(
-                      width: 7,
-                      height: 7,
+                      width: 6,
+                      height: 6,
                       decoration: const BoxDecoration(
                         color: Color(0xFF10B981),
                         shape: BoxShape.circle,
                       ),
                     ),
-                    const SizedBox(width: 5),
-                    const Text(
-                      'Online',
-                      style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
-                    ),
+                    const SizedBox(width: 3),
+                    const Text('Live', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
                   ],
                 ),
               ),
-              const SizedBox(width: 4),
               IconButton(
                 onPressed: widget.onToggleTheme,
                 padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
                 icon: Icon(
                   isDark ? Icons.light_mode : Icons.dark_mode,
-                  size: 20,
+                  size: 18,
                   color: isDark ? Colors.amber : M3Colors.onSurfaceVariant,
                 ),
               ),
@@ -2436,8 +2556,10 @@ class _ResidentHomeViewState extends State<ResidentHomeView> {
 // =============================================================================
 class SosDistressRequestView extends StatefulWidget {
   final bool isBengali;
+  final String selectedDistrict;
   final VoidCallback onToggleTheme;
   final VoidCallback onToggleLanguage;
+  final ValueChanged<String>? onDistrictChanged;
   final VoidCallback onBack;
   final int peopleCount;
   final ValueChanged<int> onPeopleCountChanged;
@@ -2453,8 +2575,10 @@ class SosDistressRequestView extends StatefulWidget {
   const SosDistressRequestView({
     super.key,
     required this.isBengali,
+    this.selectedDistrict = 'FENI',
     required this.onToggleTheme,
     required this.onToggleLanguage,
+    this.onDistrictChanged,
     required this.onBack,
     required this.peopleCount,
     required this.onPeopleCountChanged,
@@ -2877,14 +3001,37 @@ class _SosDistressRequestViewState extends State<SosDistressRequestView> {
   }
 
   Widget _buildLocationStep(bool isDark) {
-    final villages = [
+    final feniPlaces = [
       'Parshuram Bazar',
       'Chandgazi Village, Ward 4',
       'চিথলিয়া (Chitholia)',
+      'Mirzanagar Union (মির্জানগর)',
       'Fulgazi Union',
+      'Munshirhat Bazar',
       'Chhagalnaiya Pourashava',
+      'Radhanagar',
       'Feni Sadar Ward 2',
+      'Daganbhuiyan Bazar',
+      'Sonagazi Coastal Union',
     ];
+
+    final sylhetPlaces = [
+      'Companiganj Thana Sadar (কোম্পানীগঞ্জ)',
+      'Rustampur Village (রুস্তমপুর গ্রাম)',
+      'Majergaon (মাঝেরগাঁও)',
+      'Gowainghat Sadar (গোয়াইনঘাট)',
+      'Jaflong (জাফলং)',
+      'Kanaighat Pourashava (কানাইঘাট)',
+      'Chatul Union (চাতুল)',
+      'Zakiganj Border Point (জকিগঞ্জ)',
+      'Beanibazar Pourashava (বিয়ানীবাজার)',
+      'Sylhet Sadar Amberkhana (আম্বরখানা)',
+      'Kazirbazar Surma Embankment',
+    ];
+
+    final isSylhet = widget.selectedDistrict.toUpperCase() == 'SYLHET';
+    final places = isSylhet ? sylhetPlaces : feniPlaces;
+    final currentValue = places.contains(widget.selectedVillage) ? widget.selectedVillage : places.first;
 
     return Column(
       children: [
@@ -2904,7 +3051,39 @@ class _SosDistressRequestViewState extends State<SosDistressRequestView> {
             color: isDark ? M3Colors.darkOnSurfaceVariant : M3Colors.onSurfaceVariant,
           ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 14),
+        // District filter chips
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            FilterChip(
+              key: const Key('sos-feni-filter-chip'),
+              selected: !isSylhet,
+              avatar: const Icon(Icons.location_on, size: 14),
+              label: const Text('📍 ফেনী (Feni)'),
+              onSelected: (sel) {
+                if (sel && widget.onDistrictChanged != null) {
+                  widget.onDistrictChanged!('FENI');
+                  widget.onVillageChanged('Parshuram Bazar');
+                }
+              },
+            ),
+            const SizedBox(width: 8),
+            FilterChip(
+              key: const Key('sos-sylhet-filter-chip'),
+              selected: isSylhet,
+              avatar: const Icon(Icons.location_on, size: 14),
+              label: const Text('📍 সিলেট (Sylhet)'),
+              onSelected: (sel) {
+                if (sel && widget.onDistrictChanged != null) {
+                  widget.onDistrictChanged!('SYLHET');
+                  widget.onVillageChanged(sylhetPlaces.first);
+                }
+              },
+            ),
+          ],
+        ),
+        const SizedBox(height: 14),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
           decoration: BoxDecoration(
@@ -2917,9 +3096,9 @@ class _SosDistressRequestViewState extends State<SosDistressRequestView> {
           child: DropdownButtonHideUnderline(
             child: DropdownButton<String>(
               isExpanded: true,
-              value: widget.selectedVillage,
-              items: villages
-                  .map((v) => DropdownMenuItem(value: v, child: Text(v)))
+              value: currentValue,
+              items: places
+                  .map((v) => DropdownMenuItem(value: v, child: Text(v, overflow: TextOverflow.ellipsis)))
                   .toList(),
               onChanged: (val) {
                 if (val != null) widget.onVillageChanged(val);
@@ -3171,10 +3350,12 @@ class ReportStatusView extends StatelessWidget {
 // =============================================================================
 class ResponderDeskView extends StatefulWidget {
   final bool isBengali;
+  final String districtCode;
   final VoidCallback onToggleTheme;
   final VoidCallback onToggleLanguage;
+  final VoidCallback? onToggleDistrict;
   final VoidCallback onBack;
-  final ValueChanged<String> onSwitchTab;
+  final ValueChanged<String>? onSwitchTab;
   final bool unit4Dispatched;
   final VoidCallback onAcknowledge;
   final String? responderToken;
@@ -3185,10 +3366,12 @@ class ResponderDeskView extends StatefulWidget {
   const ResponderDeskView({
     super.key,
     required this.isBengali,
+    this.districtCode = 'FENI',
     required this.onToggleTheme,
     required this.onToggleLanguage,
+    this.onToggleDistrict,
     required this.onBack,
-    required this.onSwitchTab,
+    this.onSwitchTab,
     required this.unit4Dispatched,
     required this.onAcknowledge,
     this.responderToken,
@@ -3325,16 +3508,22 @@ class _ResponderDeskViewState extends State<ResponderDeskView> {
             ),
             Text(
               _liveIncidents.isNotEmpty
-                  ? '${_liveIncidents.length} Live Incidents · Starlink D2C Active'
-                  : '2 Active Cards · Feni Desk',
+                  ? '${_liveIncidents.length} Live Incidents · ${widget.districtCode == "SYLHET" ? "Sylhet" : "Feni"} Desk'
+                  : '2 Active Cards · ${widget.districtCode == "SYLHET" ? "Sylhet" : "Feni"} Desk',
               style: const TextStyle(fontSize: 11, color: M3Colors.primary),
             ),
           ],
         ),
         actions: [
+          if (widget.onToggleDistrict != null)
+            IconButton(
+              icon: Icon(widget.districtCode == 'SYLHET' ? Icons.location_city : Icons.flood),
+              tooltip: 'Switch District (ফেনী / সিলেট)',
+              onPressed: widget.onToggleDistrict,
+            ),
           IconButton(
             icon: Icon(_showMapView ? Icons.format_list_bulleted : Icons.map),
-            tooltip: _showMapView ? 'Switch to Queue List' : 'Switch to Feni District Map',
+            tooltip: _showMapView ? 'Switch to Queue List' : 'Switch to District Map',
             onPressed: () {
               setState(() => _showMapView = !_showMapView);
             },
@@ -3501,7 +3690,6 @@ class _ResponderDeskViewState extends State<ResponderDeskView> {
           ),
         ),
       ),
-      bottomNavigationBar: _buildBottomNav(isDark),
     );
   }
 
@@ -3775,23 +3963,7 @@ class _ResponderDeskViewState extends State<ResponderDeskView> {
     );
   }
 
-  Widget _buildBottomNav(bool isDark) {
-    return NavigationBar(
-      selectedIndex: 1,
-      onDestinationSelected: (index) {
-        if (index == 0) widget.onSwitchTab('SOS');
-        if (index == 1) {}
-        if (index == 2) widget.onSwitchTab('VOLUNTEER');
-        if (index == 3) widget.onSwitchTab('SETTINGS');
-      },
-      destinations: const [
-        NavigationDestination(icon: Icon(Icons.sos), label: 'SOS Help'),
-        NavigationDestination(icon: Icon(Icons.emergency), label: 'Responder'),
-        NavigationDestination(icon: Icon(Icons.volunteer_activism), label: 'Volunteer'),
-        NavigationDestination(icon: Icon(Icons.settings), label: 'Roles'),
-      ],
-    );
-  }
+
 }
 
 // =============================================================================
@@ -3799,8 +3971,10 @@ class _ResponderDeskViewState extends State<ResponderDeskView> {
 // =============================================================================
 class VolunteerDeskView extends StatefulWidget {
   final bool isBengali;
+  final String districtCode;
   final VoidCallback onToggleTheme;
   final VoidCallback onToggleLanguage;
+  final VoidCallback? onToggleDistrict;
   final VoidCallback onBack;
   final String apiBase;
   final String? volunteerToken;
@@ -3810,8 +3984,10 @@ class VolunteerDeskView extends StatefulWidget {
   const VolunteerDeskView({
     super.key,
     required this.isBengali,
+    this.districtCode = 'FENI',
     required this.onToggleTheme,
     required this.onToggleLanguage,
+    this.onToggleDistrict,
     required this.onBack,
     this.apiBase = 'http://127.0.0.1:3001/api/v1',
     this.volunteerToken,
@@ -3824,11 +4000,26 @@ class VolunteerDeskView extends StatefulWidget {
 }
 
 class _VolunteerDeskViewState extends State<VolunteerDeskView> {
-  final _levelController = TextEditingController(text: '12.40');
-  final _noteController = TextEditingController(text: 'Parshuram Staff Gauge SW212 reading - water rising rapidly');
-  String _selectedArea = '22222222-2222-2222-2222-222222222204'; // Mirzanagar Village
+  late TextEditingController _levelController;
+  late TextEditingController _noteController;
+  late String _selectedArea;
   bool _submitting = false;
   String? _statusMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    final isSylhet = widget.districtCode.toUpperCase() == 'SYLHET';
+    _levelController = TextEditingController(text: isSylhet ? '11.10' : '12.40');
+    _noteController = TextEditingController(
+      text: isSylhet
+          ? 'Companiganj Staff Gauge SW267 reading - Surma water rising rapidly'
+          : 'Parshuram Staff Gauge SW212 reading - water rising rapidly',
+    );
+    _selectedArea = isSylhet
+        ? '22222222-2222-2222-2222-222222222209'
+        : '22222222-2222-2222-2222-222222222204';
+  }
 
   void _adjustLevel(double delta) {
     final current = double.tryParse(_levelController.text.trim()) ?? 12.40;
@@ -3931,10 +4122,18 @@ class _VolunteerDeskViewState extends State<VolunteerDeskView> {
           onPressed: widget.onBack,
         ),
         title: Text(
-          widget.isBengali ? 'স্বেচ্ছাসেবক ডেক্স' : 'Volunteer Field Desk',
+          widget.isBengali
+              ? '${widget.districtCode == "SYLHET" ? "সিলেট" : "ফেনী"} স্বেচ্ছাসেবক ডেক্স'
+              : '${widget.districtCode == "SYLHET" ? "Sylhet" : "Feni"} Volunteer Field Desk',
           style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
         ),
         actions: [
+          if (widget.onToggleDistrict != null)
+            IconButton(
+              icon: Icon(widget.districtCode == 'SYLHET' ? Icons.location_city : Icons.flood),
+              tooltip: 'Switch District (ফেনী / সিলেট)',
+              onPressed: widget.onToggleDistrict,
+            ),
           if (widget.onOpenStaffSignIn != null)
             IconButton(
               icon: const Icon(Icons.badge_outlined),
@@ -4051,7 +4250,9 @@ class _VolunteerDeskViewState extends State<VolunteerDeskView> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Candidate: Chitholia Village (চিথলিয়া) — Zero SOS packets received in 2h despite upstream Muhuri surge. Safety rule: Silence does NOT indicate safety. Field scouts must verify shelter.',
+                      widget.districtCode.toUpperCase() == 'SYLHET'
+                          ? 'Candidate: Majergaon / Rustampur (মাঝেরগাঁও হাওর) — Zero SOS packets received in 2h despite upstream Surma surge. Safety rule: Silence does NOT indicate safety. Field scouts must verify shelter.'
+                          : 'Candidate: Chitholia Village (চিথলিয়া) — Zero SOS packets received in 2h despite upstream Muhuri surge. Safety rule: Silence does NOT indicate safety. Field scouts must verify shelter.',
                       style: TextStyle(
                         fontSize: 12.5,
                         color: isDark ? Colors.amber.shade100 : Colors.brown.shade800,
@@ -4078,25 +4279,47 @@ class _VolunteerDeskViewState extends State<VolunteerDeskView> {
                     const Text('Submit local staff gauge river levels (Signal C) and road cutoffs to update Central Command.'),
                     const SizedBox(height: 14),
                     DropdownButtonFormField<String>(
+                      key: ValueKey('station-dropdown-${widget.districtCode}'),
                       initialValue: _selectedArea,
                       isExpanded: true,
                       decoration: const InputDecoration(labelText: 'Observation Location / Village', border: OutlineInputBorder()),
-                      items: const [
-                        DropdownMenuItem(
-                          value: '22222222-2222-2222-2222-222222222204',
-                          child: Text(
-                            'Mirzanagar Village (Staff Gauge SW212)',
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        DropdownMenuItem(
-                          value: '22222222-2222-2222-2222-222222222205',
-                          child: Text(
-                            'Chitholia Village (Silent Candidate Shelter)',
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ],
+                      items: widget.districtCode.toUpperCase() == 'SYLHET'
+                          ? const [
+                              DropdownMenuItem(
+                                value: '22222222-2222-2222-2222-222222222209',
+                                child: Text('Rustampur Village (Staff Gauge SW267)', overflow: TextOverflow.ellipsis),
+                              ),
+                              DropdownMenuItem(
+                                value: '22222222-2222-2222-2222-222222222208',
+                                child: Text('Jaflong Piain River Shelter', overflow: TextOverflow.ellipsis),
+                              ),
+                              DropdownMenuItem(
+                                value: '22222222-2222-2222-2222-222222222206',
+                                child: Text('Sylhet Point (Surma Embankment SW266)', overflow: TextOverflow.ellipsis),
+                              ),
+                              DropdownMenuItem(
+                                value: '22222222-2222-2222-2222-222222222207',
+                                child: Text('Companiganj Thana Sadar Station', overflow: TextOverflow.ellipsis),
+                              ),
+                            ]
+                          : const [
+                              DropdownMenuItem(
+                                value: '22222222-2222-2222-2222-222222222204',
+                                child: Text('Mirzanagar Village (Staff Gauge SW212)', overflow: TextOverflow.ellipsis),
+                              ),
+                              DropdownMenuItem(
+                                value: '22222222-2222-2222-2222-222222222205',
+                                child: Text('Chitholia Village (Silent Candidate Shelter)', overflow: TextOverflow.ellipsis),
+                              ),
+                              DropdownMenuItem(
+                                value: '22222222-2222-2222-2222-222222222201',
+                                child: Text('Parshuram Bazar Gauge Station', overflow: TextOverflow.ellipsis),
+                              ),
+                              DropdownMenuItem(
+                                value: '22222222-2222-2222-2222-222222222202',
+                                child: Text('Fulgazi Embankment Breach Point', overflow: TextOverflow.ellipsis),
+                              ),
+                            ],
                       onChanged: (val) {
                         if (val != null) setState(() => _selectedArea = val);
                       },
@@ -4112,23 +4335,41 @@ class _VolunteerDeskViewState extends State<VolunteerDeskView> {
                     Wrap(
                       spacing: 6,
                       runSpacing: 6,
-                      children: [
-                        ActionChip(
-                          avatar: const Icon(Icons.arrow_upward, size: 14, color: Colors.orange),
-                          label: const Text('12.05m সতর্কতা (Watch)'),
-                          onPressed: () => _setLevelPreset(12.05),
-                        ),
-                        ActionChip(
-                          avatar: const Icon(Icons.warning, size: 14, color: Colors.red),
-                          label: const Text('12.55m বিপদসীমা (Danger)'),
-                          onPressed: () => _setLevelPreset(12.55),
-                        ),
-                        ActionChip(
-                          avatar: const Icon(Icons.dangerous, size: 14, color: Colors.purple),
-                          label: const Text('13.55m চরম (Extreme)'),
-                          onPressed: () => _setLevelPreset(13.55),
-                        ),
-                      ],
+                      children: widget.districtCode.toUpperCase() == 'SYLHET'
+                          ? [
+                              ActionChip(
+                                avatar: const Icon(Icons.arrow_upward, size: 14, color: Colors.orange),
+                                label: const Text('10.80m সতর্কতা (Watch)'),
+                                onPressed: () => _setLevelPreset(10.80),
+                              ),
+                              ActionChip(
+                                avatar: const Icon(Icons.warning, size: 14, color: Colors.red),
+                                label: const Text('11.25m বিপদসীমা (Danger)'),
+                                onPressed: () => _setLevelPreset(11.25),
+                              ),
+                              ActionChip(
+                                avatar: const Icon(Icons.dangerous, size: 14, color: Colors.purple),
+                                label: const Text('12.00m চরম (Extreme)'),
+                                onPressed: () => _setLevelPreset(12.00),
+                              ),
+                            ]
+                          : [
+                              ActionChip(
+                                avatar: const Icon(Icons.arrow_upward, size: 14, color: Colors.orange),
+                                label: const Text('12.05m সতর্কতা (Watch)'),
+                                onPressed: () => _setLevelPreset(12.05),
+                              ),
+                              ActionChip(
+                                avatar: const Icon(Icons.warning, size: 14, color: Colors.red),
+                                label: const Text('12.55m বিপদসীমা (Danger)'),
+                                onPressed: () => _setLevelPreset(12.55),
+                              ),
+                              ActionChip(
+                                avatar: const Icon(Icons.dangerous, size: 14, color: Colors.purple),
+                                label: const Text('13.55m চরম (Extreme)'),
+                                onPressed: () => _setLevelPreset(13.55),
+                              ),
+                            ],
                     ),
                     const SizedBox(height: 12),
 
