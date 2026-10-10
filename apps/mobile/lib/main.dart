@@ -1863,15 +1863,15 @@ class _ResidentHomeViewState extends State<ResidentHomeView> {
               ),
             ),
             const SizedBox(height: 14),
-            Row(
+            const Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(Icons.sos, color: Colors.white, size: 36),
-                const SizedBox(width: 8),
+                Icon(Icons.sos, color: Colors.white, size: 36),
+                SizedBox(width: 8),
                 Flexible(
                   child: Text(
                     'Need help now',
-                    style: const TextStyle(
+                    style: TextStyle(
                       color: Colors.white,
                       fontSize: 27,
                       fontWeight: FontWeight.bold,
@@ -1898,16 +1898,16 @@ class _ResidentHomeViewState extends State<ResidentHomeView> {
                   top: BorderSide(color: Colors.white.withValues(alpha: 0.25), width: 1),
                 ),
               ),
-              child: Row(
+              child: const Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.touch_app, color: Colors.white, size: 18),
-                  const SizedBox(width: 6),
+                  Icon(Icons.touch_app, color: Colors.white, size: 18),
+                  SizedBox(width: 6),
                   Flexible(
                     child: Text(
                       'Tap to request instant rescue or aid',
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
+                      style: TextStyle(
                         color: Colors.white,
                         fontSize: 12.5,
                         fontWeight: FontWeight.w500,
@@ -3859,7 +3859,7 @@ class _VolunteerDeskViewState extends State<VolunteerDeskView> {
                     const Text('Submit local staff gauge river levels (Signal C) and road cutoffs to update Central Command.'),
                     const SizedBox(height: 14),
                     DropdownButtonFormField<String>(
-                      value: _selectedArea,
+                      initialValue: _selectedArea,
                       decoration: const InputDecoration(labelText: 'Observation Location / Village', border: OutlineInputBorder()),
                       items: const [
                         DropdownMenuItem(value: '22222222-2222-2222-2222-222222222204', child: Text('Mirzanagar Village (Staff Gauge SW212)')),
