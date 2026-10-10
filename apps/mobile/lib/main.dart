@@ -283,8 +283,9 @@ class _AppRootControllerState extends State<AppRootController> {
 
   Future<String> _probeBestApiBase(String fallback) async {
     final candidates = [
-      fallback,
       'http://192.168.0.101:3001/api/v1',
+      'http://192.168.0.101:5173/api/v1',
+      fallback,
       'http://127.0.0.1:3001/api/v1',
       'http://10.0.2.2:3001/api/v1',
       'http://localhost:3001/api/v1',
@@ -708,33 +709,53 @@ class _AppRootControllerState extends State<AppRootController> {
 
     bool onlineDelivered = false;
     final transportType = _simulateTowerOutage ? 'STARLINK_D2C_WIFI' : 'TERRESTRIAL_USB';
-    try {
-      final client = HttpClient()..connectionTimeout = const Duration(seconds: 4);
-      final req = await client.postUrl(Uri.parse('$_apiBase/sos'));
-      req.headers.contentType = ContentType.json;
-      req.headers.set('X-Transport-Type', transportType);
-      req.write(jsonEncode({
-        'clientReportId': reference,
-        'village': _selectedVillage,
-        'peopleCount': _peopleCount,
-        'isTrapped': _flagTrapped,
-        'hasElderly': _flagElderly,
-        'elderlyCount': _flagElderly ? 1 : 0,
-        'hasChild': _flagChild,
-        'hasChildren': _flagChild,
-        'hasMedicalNeed': _flagMedical,
-        'needsMedical': _flagMedical,
-        'residentPhone': _residentPhone.isNotEmpty ? _residentPhone : '01700000000',
-        'packet': encodedPacket,
-        'messageOriginal': 'SOS $_selectedVillage $_peopleCount people trapped water high',
-        'transport': transportType,
-      }));
-      final resp = await req.close();
-      if (resp.statusCode >= 200 && resp.statusCode < 300) {
-        onlineDelivered = true;
+
+    // List of candidate endpoints to attempt delivery
+    final targetUrls = [
+      '$_apiBase/sos',
+      if (_apiBase != 'http://192.168.0.101:3001/api/v1') 'http://192.168.0.101:3001/api/v1/sos',
+      if (_apiBase != 'http://192.168.0.101:5173/api/v1') 'http://192.168.0.101:5173/api/v1/sos',
+      if (_apiBase != 'http://10.0.2.2:3001/api/v1') 'http://10.0.2.2:3001/api/v1/sos',
+      if (_apiBase != 'http://127.0.0.1:3001/api/v1') 'http://127.0.0.1:3001/api/v1/sos',
+    ];
+
+    for (final url in targetUrls) {
+      if (onlineDelivered) break;
+      try {
+        final client = HttpClient()..connectionTimeout = const Duration(seconds: 3);
+        final req = await client.postUrl(Uri.parse(url));
+        req.headers.contentType = ContentType.json;
+        req.headers.set('X-Transport-Type', transportType);
+        req.write(jsonEncode({
+          'clientReportId': reference,
+          'village': _selectedVillage,
+          'peopleCount': _peopleCount,
+          'isTrapped': _flagTrapped,
+          'hasElderly': _flagElderly,
+          'elderlyCount': _flagElderly ? 1 : 0,
+          'hasChild': _flagChild,
+          'hasChildren': _flagChild,
+          'hasMedicalNeed': _flagMedical,
+          'needsMedical': _flagMedical,
+          'residentPhone': _residentPhone.isNotEmpty ? _residentPhone : '01700000000',
+          'packet': encodedPacket,
+          'messageOriginal': 'SOS $_selectedVillage $_peopleCount people trapped water high',
+          'transport': transportType,
+        }));
+        final resp = await req.close();
+        if (resp.statusCode >= 200 && resp.statusCode < 300) {
+          onlineDelivered = true;
+          final matchedBase = url.replaceAll('/sos', '');
+          if (matchedBase != _apiBase) {
+            _apiBase = matchedBase;
+            final prefs = await SharedPreferences.getInstance();
+            await prefs.setString('aali_api_url', matchedBase);
+          }
+          break;
+        }
+      } catch (_) {
+        // try next target URL
       }
-    } catch (_) {
-      onlineDelivered = false;
     }
 
     if (!onlineDelivered) {
