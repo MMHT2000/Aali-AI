@@ -285,6 +285,8 @@ class _AppRootControllerState extends State<AppRootController> {
     final candidates = [
       'http://192.168.0.101:3001/api/v1',
       'http://192.168.0.101:5173/api/v1',
+      'http://192.168.0.101:5174/api/v1',
+      'http://192.168.0.101:3002/api/v1',
       fallback,
       'http://127.0.0.1:3001/api/v1',
       'http://10.0.2.2:3001/api/v1',
@@ -715,6 +717,8 @@ class _AppRootControllerState extends State<AppRootController> {
       '$_apiBase/sos',
       if (_apiBase != 'http://192.168.0.101:3001/api/v1') 'http://192.168.0.101:3001/api/v1/sos',
       if (_apiBase != 'http://192.168.0.101:5173/api/v1') 'http://192.168.0.101:5173/api/v1/sos',
+      if (_apiBase != 'http://192.168.0.101:5174/api/v1') 'http://192.168.0.101:5174/api/v1/sos',
+      if (_apiBase != 'http://192.168.0.101:3002/api/v1') 'http://192.168.0.101:3002/api/v1/sos',
       if (_apiBase != 'http://10.0.2.2:3001/api/v1') 'http://10.0.2.2:3001/api/v1/sos',
       if (_apiBase != 'http://127.0.0.1:3001/api/v1') 'http://127.0.0.1:3001/api/v1/sos',
     ];

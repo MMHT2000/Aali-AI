@@ -39,6 +39,8 @@ Every feature claimed in this repository is implemented in code and verified by 
 | **Telecom SMPP Gateway** | Node.js TCP PDU Server (SMPP v3.4), GSM 03.38 | `:2775` (SMPP)<br>`:2776` (Admin) | **GSM 7-bit PDU Parsing & Shortcode 1090 routing verified** |
 | **End-to-End Demo Smoke** | Headless 5-Moment Demo Orchestration Script | Terminal CLI | **5 / 5 Moments Passed Green** (`npm.cmd run test:e2e`) |
 | **Global Finals Panel Audit** | 10 Voting Judges + Chair (Level 2 Global Finals Pack) | 10 Blind Rubrics | **Final Verified Score: 96 / 100**<br>**Unanimous 10/10 Grand Prize Winner** |
+| **Judges 2-Page Executive Proposal** | Condensed 2-Page Pitch for Evaluators | Word DOCX & Markdown | [Proposal DOCX](docs/Aali_AI_Judges_Proposal_2pg.docx) · [Proposal MD](docs/Aali_AI_Judges_Proposal_2pg.md) |
+| **Physical Final Implementation Plan** | Current State, Limitations & Oct 23 Roadmap | Word DOCX & Markdown | [Plan DOCX](docs/Aali_AI_Final_Implementation_Plan_and_Roadmap.docx) · [Plan MD](docs/Aali_AI_Final_Implementation_Plan_and_Roadmap.md) |
 
 ---
 
@@ -341,6 +343,8 @@ Aali-AI/
 │   └── benchmark_health.cjs     # API latency and readiness benchmark
 ├── docs/
 │   ├── judging/                 # Stage Defense Playbook, Final Verdict, Panel Rubrics
+│   ├── Aali_AI_Judges_Proposal_2pg.docx # 2-Page Executive Proposal for Judges
+│   ├── Aali_AI_Final_Implementation_Plan_and_Roadmap.docx # Detailed Plan & Oct 23 Physical Final Roadmap
 │   ├── PRODUCT_REQUIREMENTS.md  # Detailed functional & non-functional requirements
 │   ├── ARCHITECTURE.md          # Architectural decisions & system boundaries
 │   ├── DATABASE_SCHEMA.md       # Relational schema & migration strategy
