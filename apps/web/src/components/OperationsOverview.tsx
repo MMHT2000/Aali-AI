@@ -132,17 +132,36 @@ export function OperationsOverview({
       setSnapshot(next);
       setError(null);
 
-      // Check for approved / broadcast warnings
+      // Check for approved / broadcast warnings matching active district/event
       try {
-        const warnRes = await fetch('/api/v1/warnings');
+        const warnRes = await fetch(`/api/v1/warnings?districtCode=${districtCode}${eventId ? `&eventId=${eventId}` : ''}`);
         if (warnRes.ok) {
           const warnList = await warnRes.json();
-          const latestBroadcast = warnList.find(
+          const isSylhetDistrict = districtCode === 'SYLHET_DIST';
+          const sylhetEventIds = ['11111111-1111-1111-1111-111111111104', '11111111-1111-1111-1111-111111111105'];
+          const feniEventIds = ['11111111-1111-1111-1111-111111111101', '11111111-1111-1111-1111-111111111102', '11111111-1111-1111-1111-111111111103'];
+
+          const relevantWarnings = warnList.filter((w: { event_id?: string; body_bn?: string }) => {
+            if (eventId && w.event_id && w.event_id === eventId) return true;
+            if (isSylhetDistrict) {
+              return (w.event_id && sylhetEventIds.includes(w.event_id)) ||
+                w.body_bn?.includes('সুরমা') ||
+                w.body_bn?.includes('কোম্পানীগঞ্জ') ||
+                w.body_bn?.includes('গোয়াইনঘাট') ||
+                w.body_bn?.includes('সিলেট');
+            } else {
+              return (w.event_id && feniEventIds.includes(w.event_id)) ||
+                w.body_bn?.includes('মুহুরী') ||
+                w.body_bn?.includes('পরশুরাম') ||
+                w.body_bn?.includes('ফুলগাজী') ||
+                w.body_bn?.includes('ফেনী');
+            }
+          });
+
+          const latestBroadcast = relevantWarnings.find(
             (w: { state: string }) => w.state === 'APPROVED' || w.state === 'SENT_SIMULATED'
           );
-          if (latestBroadcast) {
-            setActiveBroadcastWarning(latestBroadcast);
-          }
+          setActiveBroadcastWarning(latestBroadcast ?? null);
         }
       } catch (_) {}
       setError(null);
@@ -195,8 +214,8 @@ export function OperationsOverview({
             setActiveAlert({
               id: parsed.payload?.reportId || `sse-${Date.now()}`,
               shortId: parsed.payload?.shortId || 'D2C',
-              title: `Live SOS: ${parsed.payload?.village || 'Parshuram'}`,
-              location: parsed.payload?.village || 'Parshuram Area',
+              title: `Live SOS: ${parsed.payload?.village || (districtCode === 'SYLHET_DIST' ? 'Companiganj' : 'Parshuram')}`,
+              location: parsed.payload?.village || (districtCode === 'SYLHET_DIST' ? 'Companiganj Area' : 'Parshuram Area'),
               peopleCount: parsed.payload?.peopleCount || 1,
               flags: [
                 parsed.payload?.isTrapped ? 'Trapped' : '',
@@ -210,11 +229,21 @@ export function OperationsOverview({
           } else if (parsed.type === 'ALERT_CHANGE') {
             if (soundEnabled) playEmergencyBeep();
             if (parsed.payload) {
-              setActiveBroadcastWarning({
-                id: (parsed.payload.warningId as string) || `warn-${Date.now()}`,
-                state: (parsed.payload.state as string) || 'SENT_SIMULATED',
-                body_bn: (parsed.payload.bodyBn as string) || '',
-              });
+              const isSylhetDistrict = districtCode === 'SYLHET_DIST';
+              const sylhetEventIds = ['11111111-1111-1111-1111-111111111104', '11111111-1111-1111-1111-111111111105'];
+              const payloadEventId = parsed.payload.eventId as string | undefined;
+              const payloadBody = (parsed.payload.bodyBn as string) || '';
+              const isPayloadSylhet = payloadEventId
+                ? sylhetEventIds.includes(payloadEventId)
+                : (payloadBody.includes('সুরমা') || payloadBody.includes('কোম্পানীগঞ্জ') || payloadBody.includes('গোয়াইনঘাট') || payloadBody.includes('সিলেট'));
+
+              if (isSylhetDistrict === isPayloadSylhet) {
+                setActiveBroadcastWarning({
+                  id: (parsed.payload.warningId as string) || `warn-${Date.now()}`,
+                  state: (parsed.payload.state as string) || 'SENT_SIMULATED',
+                  body_bn: payloadBody,
+                });
+              }
             }
             void refresh();
           } else if (parsed.type === 'DEMO_MOMENT' || parsed.type === 'BOAT_REVIEW') {
@@ -857,7 +886,7 @@ export function OperationsOverview({
                 {gauge?.available ? `${gauge.valueM.toFixed(2)} m` : 'STALE / NO SIGNAL'}
               </span>
               <span className="signal-threshold">
-                Warning: 12.05m · Danger: 13.00m ({isSylhet ? 'Surma Point' : 'Muhuri Parshuram'})
+                {isSylhet ? 'Warning: 10.80m · Danger: 11.25m (Surma Point)' : 'Warning: 12.05m · Danger: 13.00m (Muhuri Parshuram)'}
               </span>
             </div>
             <div className="signal-card__bottom">
@@ -873,7 +902,7 @@ export function OperationsOverview({
                     console.error(e);
                   }
                 }}
-                title="Simulate August 2024 sensor loss or restore gauge telemetry"
+                title={isSylhet ? 'Simulate June 2022 sensor loss or restore gauge telemetry' : 'Simulate August 2024 sensor loss or restore gauge telemetry'}
               >
                 {gauge?.available ? '⚡ Simulate Blackout' : '🔌 Restore Telemetry'}
               </button>
@@ -895,7 +924,7 @@ export function OperationsOverview({
               </span>
             </div>
             <div className="signal-card__bottom">
-              <span className="signal-meta">Upper Basin Precipitation</span>
+              <span className="signal-meta">{isSylhet ? 'Meghalaya-Cherrapunji Basin' : 'Tripura Upper Basin'}</span>
               <span className="signal-meta" style={{ color: (simulation.sourceData?.rainfall?.valueMm ?? 0) >= 75 ? '#f87171' : '#34d399', fontWeight: 700 }}>
                 {(simulation.sourceData?.rainfall?.valueMm ?? 0) >= 75 ? '⚠️ Extreme Inflow' : 'Normal Inflow'}
               </span>

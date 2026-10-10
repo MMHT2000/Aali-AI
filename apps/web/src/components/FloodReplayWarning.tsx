@@ -106,11 +106,23 @@ export function FloodReplayWarning({ mode, eventId, districtCode, session }: { m
       })
       .catch(() => {});
 
-    if (canApprove) fetch('/api/v1/warnings')
+    if (canApprove) fetch(`/api/v1/warnings?districtCode=${districtCode}${eventId ? `&eventId=${eventId}` : ''}`)
       .then((res) => (res.ok ? res.json() : []))
-      .then((data: WarningView[]) => setWarnings(data.filter((warning) => warning.event_id === targetEventId)))
+      .then((data: WarningView[]) => {
+        const sylhetEventIds = ['11111111-1111-1111-1111-111111111104', '11111111-1111-1111-1111-111111111105'];
+        const feniEventIds = ['11111111-1111-1111-1111-111111111101', '11111111-1111-1111-1111-111111111102', '11111111-1111-1111-1111-111111111103'];
+        const filtered = data.filter((warning) => {
+          if (warning.event_id === targetEventId) return true;
+          if (isDistrictSylhet) {
+            return sylhetEventIds.includes(warning.event_id) || warning.body_bn?.includes('সুরমা') || warning.body_bn?.includes('কোম্পানীগঞ্জ');
+          } else {
+            return feniEventIds.includes(warning.event_id) || warning.body_bn?.includes('মুহুরী') || warning.body_bn?.includes('পরশুরাম');
+          }
+        });
+        setWarnings(filtered);
+      })
       .catch(() => {});
-  }, [canApprove, eventId, replayEnabled]);
+  }, [canApprove, eventId, replayEnabled, districtCode]);
 
   // Update evaluation when tick, scenario, or gauge blanking changes
   useEffect(() => {
@@ -118,13 +130,17 @@ export function FloodReplayWarning({ mode, eventId, districtCode, session }: { m
     if (!replayEnabled || !canApprove || !sc || !sc.ticks[currentTickIndex]) return;
 
     const tick = sc.ticks[currentTickIndex];
+    const isSylhetScenario =
+      districtCode === 'SYLHET_DIST' ||
+      selectedScenarioId.includes('11111111-1111-1111-1111-111111111104') ||
+      selectedScenarioId.includes('11111111-1111-1111-1111-111111111105');
 
     fetch('/api/v1/alerts/evaluate', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        areaId: '22222222-2222-2222-2222-222222222202',
-        areaName: 'Parshuram',
+        areaId: isSylhetScenario ? '22222222-2222-2222-2222-222222222204' : '22222222-2222-2222-2222-222222222202',
+        areaName: isSylhetScenario ? 'Companiganj' : 'Parshuram',
         reportedBreach: tick.breachReported,
         signalA: {
           ...tick.signalA,
@@ -139,7 +155,7 @@ export function FloodReplayWarning({ mode, eventId, districtCode, session }: { m
         if (data) setEvaluation(data);
       })
       .catch(() => {});
-  }, [canApprove, replayEnabled, selectedScenarioId, currentTickIndex, isGaugeBlanked, scenarios]);
+  }, [canApprove, replayEnabled, selectedScenarioId, currentTickIndex, isGaugeBlanked, scenarios, districtCode]);
 
   // Handle auto-step play timer
   useEffect(() => {
@@ -532,7 +548,7 @@ export function FloodReplayWarning({ mode, eventId, districtCode, session }: { m
                 </span>
               </div>
               <p style={{ fontSize: '0.8rem', color: '#94a3b8', margin: '0.2rem 0' }}>
-                পানির স্তর: <b>{activeTick?.signalA.gaugeLevelM} মি</b> (সতর্কসীমা ১২.০৫ মি)
+                পানির স্তর: <b>{activeTick?.signalA.gaugeLevelM} মি</b> (সতর্কসীমা {isSylhet ? '১০.৮০' : '১২.০৫'} মি)
               </p>
               <p style={{ fontSize: '0.8rem', color: '#94a3b8', margin: '0.2rem 0' }}>
                 ৩ ঘণ্টায় বৃদ্ধি: <b>{activeTick?.signalA.rise3hCm} সেমি</b> (সীমা ২৫ সেমি)
@@ -556,7 +572,7 @@ export function FloodReplayWarning({ mode, eventId, districtCode, session }: { m
                 উজানে ৩ ঘণ্টার বৃষ্টি: <b>{activeTick?.signalB.rainfallMm} মিমি</b> (সীমা ৭৫ মিমি)
               </p>
               <p style={{ fontSize: '0.75rem', color: '#64748b', margin: '0.2rem 0' }}>
-                উৎস: ত্রিপুরা অববাহিকা GSMaP রিকনস্ট্রাকশন
+                উৎস: {isSylhet ? 'মেঘালয় ও চেরাপুঞ্জি অববাহিকা GSMaP রিকনস্ট্রাকশন' : 'ত্রিপুরা অববাহিকা GSMaP রিকনস্ট্রাকশন'}
               </p>
             </div>
 

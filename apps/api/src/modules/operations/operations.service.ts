@@ -32,12 +32,15 @@ export class OperationsService {
 
   async recordFieldReading(dto: CreateFieldReadingDto, submittedBy: string) {
     const area = SYNTHETIC_FENI_SEEDS.areas.find((item) => item.id === dto.areaId && item.area_type === 'VILLAGE');
-    if (!area) throw new BadRequestException('Select a known village from the synthetic Feni fixture.');
+    if (!area) throw new BadRequestException('Select a known village from the synthetic fixture.');
+    const isSylhet = area.parent_id === '22222222-2222-2222-2222-222222222207' ||
+      area.parent_id === '22222222-2222-2222-2222-222222222208' ||
+      area.source_name === 'SYNTHETIC_SYLHET_FIXTURE';
     const readingData = {
       id: `field-reading-${Date.now()}`,
-      event_id: '11111111-1111-1111-1111-111111111103',
+      event_id: isSylhet ? '11111111-1111-1111-1111-111111111104' : '11111111-1111-1111-1111-111111111103',
       area_id: area.id,
-      gauge_id: '33333333-3333-3333-3333-333333333301',
+      gauge_id: isSylhet ? '33333333-3333-3333-3333-333333333302' : '33333333-3333-3333-3333-333333333301',
       submitted_by: submittedBy,
       observed_at: new Date(),
       level_m: dto.levelM,
@@ -379,6 +382,12 @@ export class OperationsService {
     const expectedMode = mode === OperationsMode.EXERCISE ? FloodEventMode.DEMO : FloodEventMode.REPLAY;
     const candidates = SYNTHETIC_FENI_SEEDS.floodEvents.filter((event) => event.mode === expectedMode);
     let event = eventId ? candidates.find((candidate) => candidate.id === eventId) : undefined;
+    if (event && targetDistrictCode) {
+      const expectedRegion = targetDistrictCode === 'SYLHET_DIST' ? 'SYLHET' : 'FENI';
+      if (event.region_code !== expectedRegion) {
+        event = candidates.find((candidate) => candidate.region_code === expectedRegion) ?? event;
+      }
+    }
     if (!event && !eventId) {
       if (targetDistrictCode === 'SYLHET_DIST') {
         event = candidates.find((candidate) => candidate.region_code === 'SYLHET') ?? candidates[0];

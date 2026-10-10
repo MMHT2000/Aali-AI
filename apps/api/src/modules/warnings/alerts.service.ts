@@ -182,9 +182,12 @@ export class AlertsService implements OnModuleInit {
   }
 
   private evaluateTick(scenario: ReplayScenario, tick: ReplayTick, isBlankedOverride: boolean): ThreeSignalAlertOutput {
+    const isSylhet = scenario.id === '11111111-1111-1111-1111-111111111104' ||
+      scenario.id === '11111111-1111-1111-1111-111111111105' ||
+      scenario.name.toLowerCase().includes('sylhet');
     return evaluateThreeSignalAlert({
-      areaId: '22222222-2222-2222-2222-222222222202',
-      areaName: 'Parshuram',
+      areaId: isSylhet ? '22222222-2222-2222-2222-222222222204' : '22222222-2222-2222-2222-222222222202',
+      areaName: isSylhet ? 'Companiganj' : 'Parshuram',
       reportedBreach: tick.breachReported,
       signalA: {
         ...tick.signalA,
@@ -221,18 +224,30 @@ export class AlertsService implements OnModuleInit {
     return w;
   }
 
-  async getWarnings(): Promise<Warning[]> {
+  async getWarnings(eventId?: string, districtCode?: string): Promise<Warning[]> {
+    let allWarnings = this.warnings;
     if (this.warningRepository) {
       try {
         const persisted = await this.warningRepository.find({ order: { created_at: 'DESC' } });
         if (persisted && persisted.length > 0) {
-          return persisted;
+          allWarnings = persisted;
         }
       } catch {
         // fallback
       }
     }
-    return this.warnings;
+    if (eventId) {
+      return allWarnings.filter((w) => w.event_id === eventId);
+    }
+    if (districtCode === 'SYLHET_DIST') {
+      const sylhetEventIds = ['11111111-1111-1111-1111-111111111104', '11111111-1111-1111-1111-111111111105'];
+      return allWarnings.filter((w) => Boolean(w.event_id && sylhetEventIds.includes(w.event_id)) || w.body_bn?.includes('সুরমা') || w.body_bn?.includes('কোম্পানীগঞ্জ'));
+    }
+    if (districtCode === 'FENI_DIST') {
+      const feniEventIds = ['11111111-1111-1111-1111-111111111101', '11111111-1111-1111-1111-111111111102', '11111111-1111-1111-1111-111111111103'];
+      return allWarnings.filter((w) => Boolean(w.event_id && feniEventIds.includes(w.event_id)) || w.body_bn?.includes('মুহুরী') || w.body_bn?.includes('পরশুরাম'));
+    }
+    return allWarnings;
   }
 
   async approveWarning(id: string, authorityUserId: string, note: string): Promise<Warning> {
@@ -328,6 +343,8 @@ export class AlertsService implements OnModuleInit {
     // Notify connected browser clients and mobile apps via live stream
     OperationsStreamService.emitStatic('ALERT_CHANGE', {
       warningId: w.id,
+      eventId: w.event_id,
+      areaId: w.area_id,
       state: w.state,
       bodyBn: w.body_bn,
       bodyEn: w.body_en,
@@ -348,8 +365,12 @@ export class AlertsService implements OnModuleInit {
     if (!w) {
       w = this.warnings[0];
     }
-    const area = w?.area_id || 'পরশুরাম ও ফুলগাজী';
-    const bodyBn = w?.body_bn || 'মুহুরী নদীর বাঁধ উপচে পানি প্রবেশ করছে। সতর্ক থাকুন।';
+    const isSylhet = w?.event_id === '11111111-1111-1111-1111-111111111104' ||
+      w?.event_id === '11111111-1111-1111-1111-111111111105' ||
+      w?.body_bn?.includes('সুরমা') ||
+      w?.body_bn?.includes('সিলেট');
+    const area = isSylhet ? 'কোম্পানীগঞ্জ ও গোয়াইনঘাট' : 'পরশুরাম ও ফুলগাজী';
+    const bodyBn = w?.body_bn || (isSylhet ? 'সুরমা নদীর পানি বিপদসীমার উপর দিয়ে প্রবাহিত হচ্ছে। সতর্ক থাকুন।' : 'মুহুরী নদীর বাঁধ উপচে পানি প্রবেশ করছে। সতর্ক থাকুন।');
     const scriptBn = `মনোযোগ দিন! উপজেলা দুর্যোগ ব্যবস্থাপনা কমিটির জরুরি বন্যা ঘোষণা। ${bodyBn} সকল গ্রামবাসীকে নারী, শিশু ও বয়স্কদের নিয়ে অবিলম্বে নিকটস্থ নিরাপদ আশ্রয়কেন্দ্রে আশ্রয় নেওয়ার জন্য অনুরোধ করা হচ্ছে। গবাদিপশু উঁচু স্থানে সরিয়ে নিন। জরুরি হেল্পলাইন এবং উদ্ধার নৌকা প্রস্তুত আছে। এটি জরুরি সতর্কবার্তা।`;
 
     return {

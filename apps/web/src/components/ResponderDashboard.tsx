@@ -175,7 +175,7 @@ export function ResponderDashboard({
 
   const peopleCount = incidents.reduce((sum, incident) => sum + incident.peopleCount, 0);
   return <main className="responder-workspace">
-    <header className="responder-header"><div><p className="responder-eyebrow">FIELD RESPONSE / FENI DISTRICT / SYNTHETIC EXERCISE</p><h1>Responder desk</h1><p>Review incidents, verify duplicate suggestions, and assess available asset recommendations.</p></div><button className="responder-refresh" type="button" onClick={() => void fetchData()}><RefreshCw size={15} /> Refresh queue</button></header>
+    <header className="responder-header"><div><p className="responder-eyebrow">FIELD RESPONSE / {districtCode === 'SYLHET_DIST' ? 'SYLHET DISTRICT' : 'FENI DISTRICT'} / SYNTHETIC EXERCISE</p><h1>Responder desk</h1><p>Review incidents, verify duplicate suggestions, and assess available asset recommendations.</p></div><button className="responder-refresh" type="button" onClick={() => void fetchData()}><RefreshCw size={15} /> Refresh queue</button></header>
     <div className="responder-exercise-banner"><Activity size={15} /><span><strong>Exercise records</strong> · synthetic fixtures, not live rescue assignments · Live SSE Connected</span></div>
     {actionMessage && <p className="responder-feedback" role="status">{actionMessage}</p>}
     {loadError && <p className="responder-error" role="alert">{loadError} <button type="button" onClick={() => void fetchData()}>Retry</button></p>}

@@ -89,7 +89,7 @@ export function ControlRoom({ session, onLogout }: ControlRoomProps) {
     <header className="control-topbar">
       <Link className="control-brand" to={{ pathname: fallback, search: location.search }} aria-label="Aali AI role workspace home">
         <span className="brand-mark" aria-hidden="true">A</span>
-        <span className="brand-copy"><strong>AALI <span>OPERATIONS</span></strong><small>Feni district coordination</small></span>
+        <span className="brand-copy"><strong>AALI <span>OPERATIONS</span></strong><small>{districtCode === 'SYLHET_DIST' ? 'Sylhet district coordination' : 'Feni district coordination'}</small></span>
       </Link>
       <div className="command-context" aria-label="Current workspace and data mode">
         <span className="context-eyebrow">CURRENT WORKSPACE</span>

@@ -5,6 +5,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   Request,
 } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
@@ -69,9 +70,12 @@ export class AlertsController {
 
   @ApiOperation({ summary: 'List all warning drafts and approvals' })
   @Get('warnings')
-  @Roles(UserRole.AUTHORITY)
-  getWarnings() {
-    return this.alertsService.getWarnings();
+  @Roles(UserRole.AUTHORITY, UserRole.ADMIN, UserRole.RESPONDER, UserRole.VIEWER, UserRole.VOLUNTEER, UserRole.RECOVERY_COORDINATOR)
+  getWarnings(
+    @Query('eventId') eventId?: string,
+    @Query('districtCode') districtCode?: string,
+  ) {
+    return this.alertsService.getWarnings(eventId, districtCode);
   }
 
   @ApiOperation({ summary: 'Draft a ward-level emergency warning citing supporting signals' })
