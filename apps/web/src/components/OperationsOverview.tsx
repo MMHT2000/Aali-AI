@@ -275,37 +275,35 @@ export function OperationsOverview({ mode = 'EXERCISE', eventId }: { mode?: Oper
           <span className="exercise-strip__disclosure">{mode === 'LIVE' ? 'BMD CAP public advisories are separate from Aali rule alerts; other external feeds remain unavailable' : 'Fixture source citations and gaps are not yet verified'}</span>
         </section>
         <div className="situation-workspace">
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', flex: 1, minWidth: 0 }}>
-            <OperationsMap layers={snapshot.mapLayers} selectedPointId={selectedItem?.id} onSelectPoint={(point) => setSelectedItemId(point.id)} />
-            <MuhuriHydrographChart />
-          </div>
-        <aside className="operations-rail" aria-label="Data sources and authorized SOS activity">
-          <section className="evidence-rail"><header className="rail-heading"><div><p className="situation-eyebrow">SOURCE REGISTER</p><h2>Availability and provenance</h2></div></header>
-            {snapshot.context.sources.map((source) => <div className="evidence-line" key={source.id}><span>{source.label}</span><strong>{source.availability}</strong><small>{source.message}</small>{source.lastCheckedAt && <small>Checked {formatDhakaTime(source.lastCheckedAt)} BST</small>}{source.latestObservedAt && <small>Feed last published {formatDhakaTime(source.latestObservedAt)} BST · {source.ageSeconds == null ? 'age unknown' : `${Math.floor(source.ageSeconds / 3600)}h old`}</small>}</div>)}
-          </section>
-          {mode === 'LIVE' && <section className="evidence-rail" aria-labelledby="bmd-alerts-title">
-            <header className="rail-heading"><div><p className="situation-eyebrow">EXTERNAL SOURCE · BMD CAP</p><h2 id="bmd-alerts-title">Public weather advisories</h2></div><span className="queue-count">{snapshot.externalAlerts?.length ?? 0}</span></header>
-            {snapshot.externalAlerts?.length ? <div className="queue-list">{snapshot.externalAlerts.map((alert) => <article className="evidence-line" key={alert.id}>
-              <strong>{alert.headline}</strong>
-              <span>{alert.severity ?? 'Severity unavailable'}{alert.urgency ? ` · ${alert.urgency}` : ''}{alert.certainty ? ` · ${alert.certainty}` : ''}</span>
-              <small>{alert.areas.length ? `Area: ${alert.areas.join(', ')}` : 'Area description unavailable'} · issued {formatDhakaTime(alert.issuedAt ?? undefined)} · expires {formatDhakaTime(alert.expiresAt)}</small>
-              {alert.description && <small>{alert.description}</small>}
-              {alert.instruction && <small>Instruction: {alert.instruction}</small>}
-              <a href={alert.sourceUrl} target="_blank" rel="noreferrer">Open original CAP record</a>
-              <small>Fetched {formatDhakaTime(alert.fetchedAt)} · public source advisory; not an Aali warning or human approval</small>
-            </article>)}</div> : <p className="evidence-note">{snapshot.context.sources.find((source) => source.id === 'bmd')?.availability === 'AVAILABLE'
-              ? 'No current unexpired Actual CAP alerts were found in the fetched feed entries. No alert does not establish safety.'
-              : 'No current advisory can be confirmed while the BMD CAP feed is unavailable.'}</p>}
-          </section>}
-          {snapshot.visibility.sos && <section className="report-queue"><header className="rail-heading"><div><p className="situation-eyebrow">API-SUBMITTED REPORTS</p><h2>Current SOS activity</h2></div><span className="queue-count">{snapshot.mapLayers.sos.length}</span></header>
-            {snapshot.mapLayers.sos.length ? <div className="queue-list">{snapshot.mapLayers.sos.map((item) => <button className="sos-row" key={item.id} type="button" onClick={() => setSelectedItemId(item.id)}><span className="sos-row__content"><span className="sos-row__top"><strong>{item.name ?? item.label ?? 'Location unavailable'}</strong><time>{receivedTime(item.receivedAt)}</time></span><span className="sos-row__bottom"><span>{item.status ?? 'Received'}</span><span>{item.provenance}</span></span></span></button>)}</div> : <div className="queue-empty"><strong>{mode === 'LIVE' ? 'No current API-submitted SOS reports' : 'Historical SOS reports are not included in this reconstruction'}</strong><p>Absence of reports does not establish safety.</p></div>}
-          </section>}
-          {selectedItem && <section className="selected-record"><p className="situation-eyebrow">SELECTED RECORD</p><strong>{selectedItem.name ?? selectedItem.label ?? 'Map record'}</strong><dl><div><dt>Provenance</dt><dd>{selectedItem.provenance}</dd></div><div><dt>Coordinates</dt><dd>{selectedItem.latitude != null && selectedItem.longitude != null ? `${Number(selectedItem.latitude).toFixed(4)}, ${Number(selectedItem.longitude).toFixed(4)}` : 'Unknown · list only'}</dd></div></dl></section>}
-        </aside>
+          <OperationsMap layers={snapshot.mapLayers} selectedPointId={selectedItem?.id} onSelectPoint={(point) => setSelectedItemId(point.id)} />
+          <aside className="operations-rail" aria-label="Data sources and authorized SOS activity">
+            <section className="evidence-rail"><header className="rail-heading"><div><p className="situation-eyebrow">SOURCE REGISTER</p><h2>Availability and provenance</h2></div></header>
+              {snapshot.context.sources.map((source) => <div className="evidence-line" key={source.id}><span>{source.label}</span><strong>{source.availability}</strong><small>{source.message}</small>{source.lastCheckedAt && <small>Checked {formatDhakaTime(source.lastCheckedAt)} BST</small>}{source.latestObservedAt && <small>Feed last published {formatDhakaTime(source.latestObservedAt)} BST · {source.ageSeconds == null ? 'age unknown' : `${Math.floor(source.ageSeconds / 3600)}h old`}</small>}</div>)}
+            </section>
+            {mode === 'LIVE' && <section className="evidence-rail" aria-labelledby="bmd-alerts-title">
+              <header className="rail-heading"><div><p className="situation-eyebrow">EXTERNAL SOURCE · BMD CAP</p><h2 id="bmd-alerts-title">Public weather advisories</h2></div><span className="queue-count">{snapshot.externalAlerts?.length ?? 0}</span></header>
+              {snapshot.externalAlerts?.length ? <div className="queue-list">{snapshot.externalAlerts.map((alert) => <article className="evidence-line" key={alert.id}>
+                <strong>{alert.headline}</strong>
+                <span>{alert.severity ?? 'Severity unavailable'}{alert.urgency ? ` · ${alert.urgency}` : ''}{alert.certainty ? ` · ${alert.certainty}` : ''}</span>
+                <small>{alert.areas.length ? `Area: ${alert.areas.join(', ')}` : 'Area description unavailable'} · issued {formatDhakaTime(alert.issuedAt ?? undefined)} · expires {formatDhakaTime(alert.expiresAt)}</small>
+                {alert.description && <small>{alert.description}</small>}
+                {alert.instruction && <small>Instruction: {alert.instruction}</small>}
+                <a href={alert.sourceUrl} target="_blank" rel="noreferrer">Open original CAP record</a>
+                <small>Fetched {formatDhakaTime(alert.fetchedAt)} · public source advisory; not an Aali warning or human approval</small>
+              </article>)}</div> : <p className="evidence-note">{snapshot.context.sources.find((source) => source.id === 'bmd')?.availability === 'AVAILABLE'
+                ? 'No current unexpired Actual CAP alerts were found in the fetched feed entries. No alert does not establish safety.'
+                : 'No current advisory can be confirmed while the BMD CAP feed is unavailable.'}</p>}
+            </section>}
+            {snapshot.visibility.sos && <section className="report-queue"><header className="rail-heading"><div><p className="situation-eyebrow">API-SUBMITTED REPORTS</p><h2>Current SOS activity</h2></div><span className="queue-count">{snapshot.mapLayers.sos.length}</span></header>
+              {snapshot.mapLayers.sos.length ? <div className="queue-list">{snapshot.mapLayers.sos.map((item) => <button className="sos-row" key={item.id} type="button" onClick={() => setSelectedItemId(item.id)}><span className="sos-row__content"><span className="sos-row__top"><strong>{item.name ?? item.label ?? 'Location unavailable'}</strong><time>{receivedTime(item.receivedAt)}</time></span><span className="sos-row__bottom"><span>{item.status ?? 'Received'}</span><span>{item.provenance}</span></span></span></button>)}</div> : <div className="queue-empty"><strong>{mode === 'LIVE' ? 'No current API-submitted SOS reports' : 'Historical SOS reports are not included in this reconstruction'}</strong><p>Absence of reports does not establish safety.</p></div>}
+            </section>}
+            {selectedItem && <section className="selected-record"><p className="situation-eyebrow">SELECTED RECORD</p><strong>{selectedItem.name ?? selectedItem.label ?? 'Map record'}</strong><dl><div><dt>Provenance</dt><dd>{selectedItem.provenance}</dd></div><div><dt>Coordinates</dt><dd>{selectedItem.latitude != null && selectedItem.longitude != null ? `${Number(selectedItem.latitude).toFixed(4)}, ${Number(selectedItem.longitude).toFixed(4)}` : 'Unknown · list only'}</dd></div></dl></section>}
+          </aside>
+        </div>
+        <MuhuriHydrographChart />
       </div>
-    </div>
-  );
-}
+    );
+  }
   if (!snapshot.simulation) return <section className="situation-state" role="alert">Exercise scenario state is unavailable.</section>;
 
   const { simulation, queue } = snapshot;
@@ -384,14 +382,11 @@ export function OperationsOverview({ mode = 'EXERCISE', eventId }: { mode?: Oper
       </section>
 
       <div className="situation-workspace">
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', flex: 1, minWidth: 0 }}>
-          <OperationsMap
-            layers={snapshot.mapLayers}
-            selectedPointId={selectedItem?.id}
-            onSelectPoint={(point) => setSelectedItemId(point.id)}
-          />
-          <MuhuriHydrographChart />
-        </div>
+        <OperationsMap
+          layers={snapshot.mapLayers}
+          selectedPointId={selectedItem?.id}
+          onSelectPoint={(point) => setSelectedItemId(point.id)}
+        />
 
         <aside className="operations-rail" aria-label="Priority reports and evidence">
           <section className="report-queue" aria-labelledby="report-queue-title">
@@ -463,6 +458,8 @@ export function OperationsOverview({ mode = 'EXERCISE', eventId }: { mode?: Oper
           </section>
         </aside>
       </div>
+
+      <MuhuriHydrographChart />
 
       {canControl && <details className="exercise-controls">
         <summary><span><Activity size={16} /> Exercise controls</span><span>{simulation.running ? 'Running' : 'Paused'} · tick {simulation.tickIndex + 1}/{simulation.totalTicks}</span></summary>

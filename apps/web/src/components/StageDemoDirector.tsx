@@ -63,7 +63,6 @@ export function StageDemoDirector({ onMomentTriggered, onRefresh }: StageDemoDir
       } else if (momentNum === 3) {
         playChime(987, 0.3);
         setStatusMessage('📡 Moment 3 Active: Starlink D2C Wi-Fi 42-byte SOS packet injected! Gemini Dialect NLP parsing in progress...');
-        // Actually submit a live SOS over Starlink D2C Wi-Fi simulation
         const shortId = `D2C${Math.floor(Math.random() * 90 + 10)}`;
         await fetch('/api/v1/sos', {
           method: 'POST',
@@ -106,149 +105,152 @@ export function StageDemoDirector({ onMomentTriggered, onRefresh }: StageDemoDir
     }
   };
 
-  return (
-    <div className="bg-slate-900 border-b border-indigo-900/60 shadow-lg text-slate-100 transition-all">
-      <div className="max-w-7xl mx-auto px-4 py-2">
-        {/* Toggle Bar */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="flex h-2 w-2 relative">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-500"></span>
-            </span>
-            <span className="text-xs font-bold uppercase tracking-wider text-indigo-400 flex items-center gap-1.5">
-              <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-              Stage Demo Director · 5-Minute Pitch Orchestrator
-            </span>
-            <span className="text-[10px] bg-indigo-950 text-indigo-300 border border-indigo-800 rounded px-1.5 py-0.5">
-              1-Click Live Rehearsal
-            </span>
-          </div>
+  const buttonStyle = (moment: number) => ({
+    background: activeMoment === moment ? '#1e293b' : '#0c1626',
+    border: activeMoment === moment ? '1px solid #38bdf8' : '1px solid #1e293b',
+    borderRadius: '6px',
+    padding: '0.45rem 0.65rem',
+    cursor: 'pointer',
+    textAlign: 'left' as const,
+    color: '#e2e8f0',
+    display: 'flex',
+    flexDirection: 'column' as const,
+    gap: '2px',
+    flex: '1',
+    minWidth: '130px',
+  });
 
-          <button
-            type="button"
-            onClick={() => setIsOpen(!isOpen)}
-            className="text-xs text-slate-400 hover:text-slate-200 flex items-center gap-1 font-mono transition"
-          >
-            {isOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-            {isOpen ? 'Collapse Controls' : 'Open Demo Director'}
-          </button>
+  return (
+    <div
+      style={{
+        background: '#0a1424',
+        border: '1px solid #1e293b',
+        borderRadius: '6px',
+        padding: '0.5rem 0.85rem',
+        marginBottom: '0.75rem',
+        color: '#e2e8f0',
+      }}
+    >
+      {/* Header bar */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <Sparkles size={15} color="#fbbf24" />
+          <strong style={{ fontSize: '0.78rem', letterSpacing: '0.05em', color: '#7dd3fc' }}>
+            STAGE DEMO DIRECTOR · 5-MINUTE LIVE PITCH
+          </strong>
+          <span style={{ fontSize: '0.65rem', background: '#1e3a8a', color: '#93c5fd', padding: '1px 6px', borderRadius: '3px' }}>
+            1-Click Rehearsal
+          </span>
         </div>
 
-        {/* 5 Moment Buttons */}
-        {isOpen && (
-          <div className="mt-2.5 pt-2 border-t border-slate-800/80">
-            <div className="grid grid-cols-1 sm:grid-cols-5 gap-2">
-              <button
-                type="button"
-                onClick={() => triggerMoment(1)}
-                disabled={isRunning}
-                className={`flex flex-col items-start p-2 rounded border text-left transition ${
-                  activeMoment === 1
-                    ? 'bg-red-950/80 border-red-500 text-red-200 ring-1 ring-red-500'
-                    : 'bg-slate-950/80 border-slate-800 hover:border-slate-700 text-slate-300'
-                }`}
-              >
-                <div className="flex items-center justify-between w-full text-[10px] font-mono text-slate-500">
-                  <span>0:00–0:30</span>
-                  <Radio className="w-3 h-3 text-red-400" />
-                </div>
-                <strong className="text-xs text-white mt-0.5">1. Tower Blackout</strong>
-                <span className="text-[10px] text-slate-400 mt-0.5 line-clamp-1">616 / 653 towers down</span>
-              </button>
+        <button
+          type="button"
+          onClick={() => setIsOpen(!isOpen)}
+          style={{
+            background: 'transparent',
+            border: 'none',
+            color: '#94a3b8',
+            fontSize: '0.72rem',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '3px',
+          }}
+        >
+          {isOpen ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+          <span>{isOpen ? 'Collapse' : 'Expand Director'}</span>
+        </button>
+      </div>
 
-              <button
-                type="button"
-                onClick={() => triggerMoment(2)}
-                disabled={isRunning}
-                className={`flex flex-col items-start p-2 rounded border text-left transition ${
-                  activeMoment === 2
-                    ? 'bg-amber-950/80 border-amber-500 text-amber-200 ring-1 ring-amber-500'
-                    : 'bg-slate-950/80 border-slate-800 hover:border-slate-700 text-slate-300'
-                }`}
-              >
-                <div className="flex items-center justify-between w-full text-[10px] font-mono text-slate-500">
-                  <span>0:30–1:30</span>
-                  <Waves className="w-3 h-3 text-amber-400" />
-                </div>
-                <strong className="text-xs text-white mt-0.5">2. Blank Gauge</strong>
-                <span className="text-[10px] text-slate-400 mt-0.5 line-clamp-1">Sensor dead + 95mm rain</span>
-              </button>
+      {isOpen && (
+        <div style={{ marginTop: '0.5rem', paddingTop: '0.5rem', borderTop: '1px solid #162438' }}>
+          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+            <button type="button" onClick={() => triggerMoment(1)} disabled={isRunning} style={buttonStyle(1)}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.62rem', color: '#64748b' }}>
+                <span>0:00–0:30</span>
+                <Radio size={12} color="#f87171" />
+              </div>
+              <strong style={{ fontSize: '0.75rem', color: '#fff' }}>1. Tower Blackout</strong>
+              <small style={{ color: '#94a3b8', fontSize: '0.62rem' }}>616 towers severed</small>
+            </button>
 
-              <button
-                type="button"
-                onClick={() => triggerMoment(3)}
-                disabled={isRunning}
-                className={`flex flex-col items-start p-2 rounded border text-left transition ${
-                  activeMoment === 3
-                    ? 'bg-cyan-950/80 border-cyan-500 text-cyan-200 ring-1 ring-cyan-500'
-                    : 'bg-slate-950/80 border-slate-800 hover:border-slate-700 text-slate-300'
-                }`}
-              >
-                <div className="flex items-center justify-between w-full text-[10px] font-mono text-slate-500">
-                  <span>1:30–2:30</span>
-                  <Sparkles className="w-3 h-3 text-cyan-400" />
-                </div>
-                <strong className="text-xs text-white mt-0.5">3. Starlink D2C SOS</strong>
-                <span className="text-[10px] text-slate-400 mt-0.5 line-clamp-1">42-byte packet + Dialect AI</span>
-              </button>
+            <button type="button" onClick={() => triggerMoment(2)} disabled={isRunning} style={buttonStyle(2)}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.62rem', color: '#64748b' }}>
+                <span>0:30–1:30</span>
+                <Waves size={12} color="#fbbf24" />
+              </div>
+              <strong style={{ fontSize: '0.75rem', color: '#fff' }}>2. Blank Gauge</strong>
+              <small style={{ color: '#94a3b8', fontSize: '0.62rem' }}>Silent sensor + 95mm rain</small>
+            </button>
 
-              <button
-                type="button"
-                onClick={() => triggerMoment(4)}
-                disabled={isRunning}
-                className={`flex flex-col items-start p-2 rounded border text-left transition ${
-                  activeMoment === 4
-                    ? 'bg-emerald-950/80 border-emerald-500 text-emerald-200 ring-1 ring-emerald-500'
-                    : 'bg-slate-950/80 border-slate-800 hover:border-slate-700 text-slate-300'
-                }`}
-              >
-                <div className="flex items-center justify-between w-full text-[10px] font-mono text-slate-500">
-                  <span>2:30–3:30</span>
-                  <Activity className="w-3 h-3 text-emerald-400" />
-                </div>
-                <strong className="text-xs text-white mt-0.5">4. Boat Review</strong>
-                <span className="text-[10px] text-slate-400 mt-0.5 line-clamp-1">Fuel range & Human signoff</span>
-              </button>
+            <button type="button" onClick={() => triggerMoment(3)} disabled={isRunning} style={buttonStyle(3)}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.62rem', color: '#64748b' }}>
+                <span>1:30–2:30</span>
+                <Sparkles size={12} color="#38bdf8" />
+              </div>
+              <strong style={{ fontSize: '0.75rem', color: '#fff' }}>3. Starlink D2C SOS</strong>
+              <small style={{ color: '#94a3b8', fontSize: '0.62rem' }}>42-byte packet + Dialect AI</small>
+            </button>
 
+            <button type="button" onClick={() => triggerMoment(4)} disabled={isRunning} style={buttonStyle(4)}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.62rem', color: '#64748b' }}>
+                <span>2:30–3:30</span>
+                <Activity size={12} color="#4ade80" />
+              </div>
+              <strong style={{ fontSize: '0.75rem', color: '#fff' }}>4. Boat Review</strong>
+              <small style={{ color: '#94a3b8', fontSize: '0.62rem' }}>Fuel range & Human signoff</small>
+            </button>
+
+            <button type="button" onClick={() => triggerMoment(5)} disabled={isRunning} style={buttonStyle(5)}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.62rem', color: '#64748b' }}>
+                <span>3:30–4:30</span>
+                <AlertTriangle size={12} color="#c084fc" />
+              </div>
+              <strong style={{ fontSize: '0.75rem', color: '#fff' }}>5. Tube-Well Equity</strong>
+              <small style={{ color: '#94a3b8', fontSize: '0.62rem' }}>142 wells + Idempotent ledger</small>
+            </button>
+          </div>
+
+          {statusMessage && (
+            <div
+              style={{
+                marginTop: '0.5rem',
+                padding: '0.45rem 0.75rem',
+                background: '#06101e',
+                border: '1px solid #1e3a5f',
+                borderRadius: '4px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                fontSize: '0.73rem',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                <Volume2 size={14} color="#fbbf24" />
+                <span style={{ color: '#e2e8f0' }}>{statusMessage}</span>
+              </div>
               <button
                 type="button"
-                onClick={() => triggerMoment(5)}
-                disabled={isRunning}
-                className={`flex flex-col items-start p-2 rounded border text-left transition ${
-                  activeMoment === 5
-                    ? 'bg-purple-950/80 border-purple-500 text-purple-200 ring-1 ring-purple-500'
-                    : 'bg-slate-950/80 border-slate-800 hover:border-slate-700 text-slate-300'
-                }`}
+                onClick={() => onRefresh?.()}
+                style={{
+                  background: '#1e293b',
+                  border: '1px solid #334155',
+                  color: '#93c5fd',
+                  padding: '2px 8px',
+                  borderRadius: '3px',
+                  fontSize: '0.68rem',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '3px',
+                }}
               >
-                <div className="flex items-center justify-between w-full text-[10px] font-mono text-slate-500">
-                  <span>3:30–4:30</span>
-                  <AlertTriangle className="w-3 h-3 text-purple-400" />
-                </div>
-                <strong className="text-xs text-white mt-0.5">5. Tube-Well Equity</strong>
-                <span className="text-[10px] text-slate-400 mt-0.5 line-clamp-1">142 wells + Idempotent ledger</span>
+                <RotateCcw size={11} /> Sync Screen
               </button>
             </div>
-
-            {/* Live Narration Banner */}
-            {statusMessage && (
-              <div className="mt-2.5 p-2 bg-slate-950 border border-indigo-900/50 rounded flex items-center justify-between text-xs animate-fadeIn">
-                <div className="flex items-center gap-2">
-                  <Volume2 className="w-4 h-4 text-amber-400 flex-shrink-0 animate-pulse" />
-                  <span className="text-slate-200 font-medium">{statusMessage}</span>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => onRefresh?.()}
-                  className="px-2 py-0.5 bg-indigo-900/60 hover:bg-indigo-800 text-indigo-200 rounded text-[11px] font-mono flex items-center gap-1 transition"
-                >
-                  <RotateCcw className="w-3 h-3" /> Sync Screen
-                </button>
-              </div>
-            )}
-          </div>
-        )}
-      </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

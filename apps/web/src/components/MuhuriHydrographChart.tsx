@@ -23,13 +23,12 @@ const HYDROGRAPH_DATA: HydroPoint[] = [
 export function MuhuriHydrographChart() {
   const [hoveredPoint, setHoveredPoint] = useState<HydroPoint | null>(null);
 
-  // SVG Coordinates setup
-  const width = 560;
-  const height = 180;
+  const width = 640;
+  const height = 175;
   const paddingLeft = 45;
   const paddingRight = 20;
-  const paddingTop = 25;
-  const paddingBottom = 30;
+  const paddingTop = 22;
+  const paddingBottom = 28;
 
   const minLevel = 9.5;
   const maxLevel = 15.0;
@@ -43,105 +42,64 @@ export function MuhuriHydrographChart() {
   const dangerY = scaleY(13.10);
   const warningY = scaleY(12.05);
 
-  // Build SVG path
   const points = HYDROGRAPH_DATA.map((p, i) => `${scaleX(i)},${scaleY(p.level)}`).join(' ');
 
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-lg p-3 text-slate-100 shadow-md">
-      <div className="flex items-center justify-between mb-2">
-        <div className="flex items-center gap-2">
-          <Waves className="w-4 h-4 text-cyan-400" />
-          <h4 className="text-xs font-bold uppercase tracking-wider text-slate-200">
-            Muhuri River Hydrograph (মুহুরী নদী হাইড্রোগ্রাফ · Parshuram Gauge)
-          </h4>
+    <div
+      style={{
+        background: '#0c1624',
+        border: '1px solid #1c2b3e',
+        borderRadius: '6px',
+        padding: '0.65rem 0.85rem',
+        color: '#e2e8f0',
+        marginTop: '0.75rem',
+      }}
+    >
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.45rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
+          <Waves size={15} color="#38bdf8" />
+          <strong style={{ fontSize: '0.78rem', letterSpacing: '0.04em', color: '#f1f5f9' }}>
+            MUHURI RIVER HYDROGRAPH · PARSHURAM GAUGE (মুহুরী নদী হাইড্রোগ্রাফ)
+          </strong>
         </div>
-        <div className="flex items-center gap-2 text-[10px]">
-          <span className="flex items-center gap-1 text-red-400 font-semibold">
-            <span className="w-2 h-0.5 bg-red-500 inline-block"></span> Danger: 13.10m
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.68rem' }}>
+          <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#f87171', fontWeight: 'bold' }}>
+            <span style={{ width: '8px', height: '2px', background: '#ef4444', display: 'inline-block' }}></span> Danger: 13.10m
           </span>
-          <span className="flex items-center gap-1 text-amber-400 font-semibold">
-            <span className="w-2 h-0.5 bg-amber-500 inline-block"></span> Warning: 12.05m
+          <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#fbbf24', fontWeight: 'bold' }}>
+            <span style={{ width: '8px', height: '2px', background: '#f59e0b', display: 'inline-block' }}></span> Warning: 12.05m
           </span>
         </div>
       </div>
 
-      {/* SVG Canvas */}
-      <div className="relative overflow-hidden bg-slate-950 rounded border border-slate-800">
-        <svg
-          viewBox={`0 0 ${width} ${height}`}
-          className="w-full h-auto select-none"
-          style={{ minHeight: '130px' }}
-        >
-          {/* Background grid lines */}
+      <div style={{ position: 'relative', background: '#070f1a', borderRadius: '4px', border: '1px solid #162438', overflow: 'hidden' }}>
+        <svg viewBox={`0 0 ${width} ${height}`} style={{ width: '100%', height: 'auto', display: 'block' }}>
+          {/* Grid lines */}
           {[10.0, 11.0, 12.0, 13.0, 14.0].map((lvl) => {
             const y = scaleY(lvl);
             return (
               <g key={lvl}>
-                <line
-                  x1={paddingLeft}
-                  y1={y}
-                  x2={width - paddingRight}
-                  y2={y}
-                  stroke="#1e293b"
-                  strokeDasharray="2,2"
-                />
-                <text
-                  x={paddingLeft - 6}
-                  y={y + 3}
-                  textAnchor="end"
-                  fontSize="9"
-                  fill="#64748b"
-                  fontFamily="monospace"
-                >
+                <line x1={paddingLeft} y1={y} x2={width - paddingRight} y2={y} stroke="#172538" strokeDasharray="2,2" />
+                <text x={paddingLeft - 6} y={y + 3} textAnchor="end" fontSize="9" fill="#64748b" fontFamily="monospace">
                   {lvl.toFixed(1)}m
                 </text>
               </g>
             );
           })}
 
-          {/* Warning Level Line (12.05m) */}
-          <line
-            x1={paddingLeft}
-            y1={warningY}
-            x2={width - paddingRight}
-            y2={warningY}
-            stroke="#f59e0b"
-            strokeWidth="1.5"
-            strokeDasharray="4,3"
-          />
-          <text
-            x={width - paddingRight - 4}
-            y={warningY - 4}
-            textAnchor="end"
-            fontSize="9"
-            fill="#f59e0b"
-            fontWeight="bold"
-          >
+          {/* Warning Level Line */}
+          <line x1={paddingLeft} y1={warningY} x2={width - paddingRight} y2={warningY} stroke="#f59e0b" strokeWidth="1.5" strokeDasharray="4,3" />
+          <text x={width - paddingRight - 4} y={warningY - 4} textAnchor="end" fontSize="8" fill="#f59e0b" fontWeight="bold">
             WARNING 12.05m
           </text>
 
-          {/* Danger Level Line (13.10m) */}
-          <line
-            x1={paddingLeft}
-            y1={dangerY}
-            x2={width - paddingRight}
-            y2={dangerY}
-            stroke="#ef4444"
-            strokeWidth="2"
-            strokeDasharray="4,3"
-          />
-          <text
-            x={width - paddingRight - 4}
-            y={dangerY - 4}
-            textAnchor="end"
-            fontSize="9"
-            fill="#ef4444"
-            fontWeight="bold"
-          >
+          {/* Danger Level Line */}
+          <line x1={paddingLeft} y1={dangerY} x2={width - paddingRight} y2={dangerY} stroke="#ef4444" strokeWidth="1.8" strokeDasharray="4,3" />
+          <text x={width - paddingRight - 4} y={dangerY - 4} textAnchor="end" fontSize="8" fill="#ef4444" fontWeight="bold">
             DANGER 13.10m (বিপৎসীমা)
           </text>
 
-          {/* Sensor Blanking Shaded Zone between 18:00 and 21:00 */}
+          {/* Sensor Gap Zone */}
           <rect
             x={scaleX(6)}
             y={paddingTop}
@@ -161,61 +119,22 @@ export function MuhuriHydrographChart() {
             ⚠ GAUGE SEVERED
           </text>
 
-          {/* Water level polyline */}
-          <polyline
-            fill="none"
-            stroke="#38bdf8"
-            strokeWidth="2.5"
-            points={points}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
+          {/* Curve */}
+          <polyline fill="none" stroke="#38bdf8" strokeWidth="2.5" points={points} strokeLinecap="round" strokeLinejoin="round" />
 
-          {/* Fill gradient area under curve */}
-          <polygon
-            points={`${scaleX(0)},${height - paddingBottom} ${points} ${scaleX(HYDROGRAPH_DATA.length - 1)},${height - paddingBottom}`}
-            fill="url(#waterGradient)"
-            opacity="0.25"
-          />
-
-          <defs>
-            <linearGradient id="waterGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#0ea5e9" stopOpacity="0.8" />
-              <stop offset="100%" stopColor="#0ea5e9" stopOpacity="0.0" />
-            </linearGradient>
-          </defs>
-
-          {/* Data Points */}
+          {/* Points */}
           {HYDROGRAPH_DATA.map((p, i) => {
             const cx = scaleX(i);
             const cy = scaleY(p.level);
-            const isDanger = p.level >= 13.10;
             return (
               <g
                 key={p.time}
-                className="cursor-pointer"
+                style={{ cursor: 'pointer' }}
                 onMouseEnter={() => setHoveredPoint(p)}
                 onMouseLeave={() => setHoveredPoint(null)}
               >
-                <circle
-                  cx={cx}
-                  cy={cy}
-                  r={p.isBlanked ? 5 : 4}
-                  fill={p.isBlanked ? '#ef4444' : isDanger ? '#f87171' : '#38bdf8'}
-                  stroke="#0f172a"
-                  strokeWidth="1.5"
-                />
-                {p.isBlanked && (
-                  <circle cx={cx} cy={cy} r="8" fill="none" stroke="#ef4444" strokeWidth="1" className="animate-ping" />
-                )}
-                {/* X Axis labels */}
-                <text
-                  x={cx}
-                  y={height - paddingBottom + 14}
-                  textAnchor="middle"
-                  fontSize="9"
-                  fill="#94a3b8"
-                >
+                <circle cx={cx} cy={cy} r={p.isBlanked ? 5 : 4} fill={p.isBlanked ? '#ef4444' : '#38bdf8'} stroke="#070f1a" strokeWidth="1.5" />
+                <text x={cx} y={height - paddingBottom + 13} textAnchor="middle" fontSize="8.5" fill="#94a3b8" fontFamily="monospace">
                   {p.time}
                 </text>
               </g>
@@ -223,25 +142,34 @@ export function MuhuriHydrographChart() {
           })}
         </svg>
 
-        {/* Hover / Tooltip Card */}
         {hoveredPoint && (
-          <div className="absolute top-2 left-12 bg-slate-900 border border-slate-700 rounded px-2.5 py-1 text-[11px] shadow-lg pointer-events-none">
-            <span className="font-bold text-amber-300">{hoveredPoint.time}</span> ·{' '}
-            <strong className="text-white">{hoveredPoint.level.toFixed(2)}m</strong>
-            <div className="text-[10px] text-slate-400">{hoveredPoint.source}</div>
+          <div
+            style={{
+              position: 'absolute',
+              top: '8px',
+              left: '50px',
+              background: '#0c1626',
+              border: '1px solid #334155',
+              borderRadius: '4px',
+              padding: '3px 8px',
+              fontSize: '0.7rem',
+              boxShadow: '0 2px 6px rgba(0,0,0,0.5)',
+            }}
+          >
+            <strong style={{ color: '#fbbf24' }}>{hoveredPoint.time}</strong> · <span style={{ color: '#fff' }}>{hoveredPoint.level.toFixed(2)}m</span>
+            <div style={{ color: '#94a3b8', fontSize: '0.62rem' }}>{hoveredPoint.source}</div>
           </div>
         )}
       </div>
 
-      {/* Scientific Explanation Footer */}
-      <div className="mt-2 flex items-center justify-between text-[10px] text-slate-400">
-        <span className="flex items-center gap-1">
-          <Info className="w-3 h-3 text-cyan-400" />
+      <div style={{ marginTop: '0.4rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.68rem', color: '#94a3b8' }}>
+        <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+          <Info size={12} color="#38bdf8" />
           <span>
-            <strong>Blank-Gauge Rule:</strong> When telemetered sensor stopped at 18:00, 95mm upstream rain triggered automatic escalation to <strong>ACT</strong>.
+            <strong>Blank-Gauge Rule:</strong> When telemetry stopped at 18:00, 95mm upstream rainfall triggered escalation to <strong>ACT</strong>.
           </span>
         </span>
-        <span className="font-mono text-cyan-400 font-bold">Rise Rate: +28 cm/hr</span>
+        <span style={{ color: '#38bdf8', fontFamily: 'monospace', fontWeight: 'bold' }}>Rate: +28 cm/hr</span>
       </div>
     </div>
   );

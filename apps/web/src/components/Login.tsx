@@ -86,6 +86,36 @@ export function Login({ onLoginSuccess }: LoginProps) {
         </span>
       </div>
 
+      <button
+        type="button"
+        disabled={loading}
+        onClick={() => {
+          setUsername('authority_dc');
+          setPassword('Admin123!');
+          void submitLogin('authority_dc', 'Admin123!');
+        }}
+        style={{
+          width: '100%',
+          padding: '0.75rem',
+          marginBottom: '1.25rem',
+          background: 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)',
+          color: '#ffffff',
+          border: '1px solid #38bdf8',
+          borderRadius: '6px',
+          fontWeight: 'bold',
+          fontSize: '0.92rem',
+          cursor: 'pointer',
+          boxShadow: '0 4px 12px rgba(2, 132, 199, 0.35)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '8px',
+        }}
+      >
+        <span>⚡</span>
+        <span>সরাসরি অপারেশন্স রুমে প্রবেশ (Enter Situation Room as DC Feni)</span>
+      </button>
+
       <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '0.9rem' }}>
         <div>
           <label style={{ fontSize: '0.75rem', color: '#cbd5e1', display: 'block', marginBottom: '0.2rem' }}>

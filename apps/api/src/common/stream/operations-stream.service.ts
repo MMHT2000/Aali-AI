@@ -47,3 +47,4 @@ export class OperationsStreamService {
     return merge(events$, heartbeat$);
   }
 }
+

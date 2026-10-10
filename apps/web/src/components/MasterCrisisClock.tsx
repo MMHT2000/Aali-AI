@@ -27,48 +27,82 @@ export function MasterCrisisClock() {
   const utcTime = now.toISOString().slice(11, 19);
 
   return (
-    <div className="bg-slate-950 border-b border-slate-800 text-slate-100 px-4 py-2 flex flex-wrap items-center justify-between gap-3 text-xs shadow-md">
+    <div
+      style={{
+        background: '#070f1a',
+        borderBottom: '1px solid #1a2a3d',
+        color: '#e2e8f0',
+        padding: '0.45rem 1rem',
+        display: 'flex',
+        flexWrap: 'wrap',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        gap: '0.75rem',
+        fontSize: '0.75rem',
+        marginBottom: '0.75rem',
+        borderRadius: '6px',
+        border: '1px solid #1a2a3d',
+      }}
+    >
       {/* Ticking Master Clocks */}
-      <div className="flex items-center gap-4">
-        <div className="flex items-center gap-2">
-          <span className="relative flex h-2.5 w-2.5">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500"></span>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+          <span
+            style={{
+              display: 'inline-block',
+              width: '8px',
+              height: '8px',
+              borderRadius: '50%',
+              background: '#ef4444',
+              boxShadow: '0 0 8px #ef4444',
+            }}
+          />
+          <span style={{ fontFamily: 'monospace', fontWeight: 'bold', color: '#fbbf24', fontSize: '0.85rem' }}>
+            {bstTime} <span style={{ fontSize: '0.65rem', color: '#94a3b8' }}>BST (ঢাকা)</span>
           </span>
-          <span className="font-mono font-bold tracking-wider text-amber-400 text-sm">
-            {bstTime} <span className="text-[10px] text-slate-400">BST (ঢাকা)</span>
-          </span>
-          <span className="text-slate-500 font-mono">| {bstDate}</span>
-          <span className="font-mono text-slate-400 ml-1">[{utcTime} UTC]</span>
+          <span style={{ color: '#64748b', fontFamily: 'monospace' }}>| {bstDate}</span>
+          <span style={{ fontFamily: 'monospace', color: '#94a3b8' }}>[{utcTime} UTC]</span>
         </div>
-        <div className="hidden md:flex items-center gap-2 border-l border-slate-800 pl-3">
-          <span className="px-1.5 py-0.5 rounded bg-red-950 text-red-400 border border-red-800 font-bold uppercase tracking-wide text-[10px] animate-pulse">
-            CRISIS LEVEL: RED (ACT)
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', borderLeft: '1px solid #1e293b', paddingLeft: '0.75rem' }}>
+          <span
+            style={{
+              padding: '2px 6px',
+              borderRadius: '3px',
+              background: '#450a0a',
+              color: '#f87171',
+              border: '1px solid #991b1b',
+              fontWeight: 'bold',
+              fontSize: '0.65rem',
+              letterSpacing: '0.05em',
+            }}
+          >
+            CRISIS: ACT (RED)
           </span>
-          <span className="text-slate-400">মুহুরী অববাহিকা প্লাবিত</span>
+          <span style={{ color: '#cbd5e1' }}>মুহুরী অববাহিকা প্লাবিত</span>
         </div>
       </div>
 
       {/* Ticker / Live Stats */}
-      <div className="flex items-center gap-4 overflow-x-auto text-[11px]">
-        <div className="flex items-center gap-1.5 text-slate-300">
-          <Radio className="w-3.5 h-3.5 text-red-400 animate-pulse" />
-          <span className="text-slate-400">Cellular:</span>
-          <strong className="text-red-400">48 / 653</strong>
-          <span className="text-slate-500 text-[10px]">(92.6% severed)</span>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap', fontSize: '0.72rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', color: '#cbd5e1' }}>
+          <Radio size={14} color="#f87171" />
+          <span style={{ color: '#94a3b8' }}>Cellular:</span>
+          <strong style={{ color: '#f87171' }}>48 / 653</strong>
+          <span style={{ color: '#64748b', fontSize: '0.65rem' }}>(92.6% down)</span>
         </div>
 
-        <div className="flex items-center gap-1.5 text-slate-300 border-l border-slate-800 pl-3">
-          <Waves className="w-3.5 h-3.5 text-cyan-400" />
-          <span className="text-slate-400">Muhuri River:</span>
-          <strong className="text-amber-400">13.85m</strong>
-          <span className="text-red-400 font-bold text-[10px]">(+0.75m DANGER)</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', color: '#cbd5e1', borderLeft: '1px solid #1e293b', paddingLeft: '0.75rem' }}>
+          <Waves size={14} color="#38bdf8" />
+          <span style={{ color: '#94a3b8' }}>Muhuri River:</span>
+          <strong style={{ color: '#fbbf24' }}>13.85m</strong>
+          <span style={{ color: '#f87171', fontWeight: 'bold', fontSize: '0.65rem' }}>(+0.75m DANGER)</span>
         </div>
 
-        <div className="hidden lg:flex items-center gap-1.5 text-slate-300 border-l border-slate-800 pl-3">
-          <ShieldAlert className="w-3.5 h-3.5 text-amber-400" />
-          <span className="text-slate-400">Blank-Gauge Guard:</span>
-          <strong className="text-emerald-400">ACTIVE</strong>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', color: '#cbd5e1', borderLeft: '1px solid #1e293b', paddingLeft: '0.75rem' }}>
+          <ShieldAlert size={14} color="#34d399" />
+          <span style={{ color: '#94a3b8' }}>Blank-Gauge Guard:</span>
+          <strong style={{ color: '#34d399' }}>ACTIVE</strong>
         </div>
       </div>
     </div>
