@@ -156,7 +156,7 @@ export function ControlRoom({ session, onLogout }: ControlRoomProps) {
         <button className="logout-button" onClick={onLogout} aria-label="Sign out"><LogOut size={16} /><span>Sign out</span></button>
       </div>
     </header>
-    <JudgeDemoRunner currentMode={mode} onSetMode={setOperatingContext} />
+    <JudgeDemoRunner currentMode={mode} districtCode={districtCode} eventId={eventId} onSetMode={setOperatingContext} />
     <div className="control-body">
       <aside className="control-sidebar">
         <nav className="control-navigation" aria-label="Operations workspaces">

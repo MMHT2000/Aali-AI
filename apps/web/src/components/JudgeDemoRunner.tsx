@@ -18,44 +18,64 @@ import { OperationsMode } from '../lib/operations-client';
 interface JudgeDemoRunnerProps {
   currentMode: OperationsMode;
   onSetMode: (mode: OperationsMode, eventId?: string) => void;
+  districtCode?: string;
+  eventId?: string;
 }
 
-export function JudgeDemoRunner({ currentMode, onSetMode }: JudgeDemoRunnerProps) {
+export function JudgeDemoRunner({ currentMode, onSetMode, districtCode = 'FENI_DIST', eventId }: JudgeDemoRunnerProps) {
   const navigate = useNavigate();
+  const isSylhet = districtCode === 'SYLHET_DIST';
+  const targetDistrictCode = isSylhet ? 'SYLHET_DIST' : 'FENI_DIST';
+  const targetEventId = eventId ?? (isSylhet ? '11111111-1111-1111-1111-111111111104' : '11111111-1111-1111-1111-111111111101');
+  const districtQuery = `&districtCode=${targetDistrictCode}`;
+
   const [activeStep, setActiveStep] = useState<number | null>(null);
   const [showCompactModal, setShowCompactModal] = useState(false);
   const [showPacketModal, setShowPacketModal] = useState(false);
   const [isAutoPlaying, setIsAutoPlaying] = useState(false);
 
   // Packet & Dialect Tester State
-  const [packetInput, setPacketInput] = useState('A1|S|wh0r2q8|05|E1M0|0821-1430|7Q2K');
-  const [dialectText, setDialectText] = useState('ফুলগাজী স্কুলে পানি উঠতাছে, ৫ জন ছাদে আটকাইছি, একজন প্যারালাইজড বুড়া');
+  const [packetInput, setPacketInput] = useState(isSylhet ? 'A1|S|wh1quuk|06|E1M1|0617-1500|SY01' : 'A1|S|wh0r2q8|05|E1M0|0821-1430|7Q2K');
+  const [dialectText, setDialectText] = useState(
+    isSylhet
+      ? 'কোম্পানীগঞ্জ বাজারে পানি উটি গেছে, ৬ জন আটকা রইছি, বাইচ্চা ও বুড়া মানুষ আছে'
+      : 'ফুলগাজী স্কুলে পানি উঠতাছে, ৫ জন ছাদে আটকাইছি, একজন প্যারালাইজড বুড়া'
+  );
   const [packetResult, setPacketResult] = useState<any>(null);
   const [aiExtractResult, setAiExtractResult] = useState<any>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+
+  useEffect(() => {
+    setPacketInput(isSylhet ? 'A1|S|wh1quuk|06|E1M1|0617-1500|SY01' : 'A1|S|wh0r2q8|05|E1M0|0821-1430|7Q2K');
+    setDialectText(
+      isSylhet
+        ? 'কোম্পানীগঞ্জ বাজারে পানি উটি গেছে, ৬ জন আটকা রইছি, বাইচ্চা ও বুড়া মানুষ আছে'
+        : 'ফুলগাজী স্কুলে পানি উঠতাছে, ৫ জন ছাদে আটকাইছি, একজন প্যারালাইজড বুড়া'
+    );
+  }, [isSylhet]);
 
   const steps = [
     {
       num: 1,
       title: 'The Crisis',
-      subtitle: '92% Towers Dead',
+      subtitle: isSylhet ? '84% Inundation' : '92% Towers Dead',
       icon: ShieldAlert,
       action: () => {
         setActiveStep(1);
-        onSetMode('HISTORICAL', '11111111-1111-1111-1111-111111111101');
-        navigate('/control-room/map?mode=HISTORICAL&eventId=11111111-1111-1111-1111-111111111101');
+        onSetMode('HISTORICAL', targetEventId);
+        navigate(`/control-room/map?mode=HISTORICAL&eventId=${targetEventId}${districtQuery}`);
       },
       tag: '0:00-0:30'
     },
     {
       num: 2,
       title: 'BEFORE: 3 Signals',
-      subtitle: 'Blank Gauge Rule',
+      subtitle: isSylhet ? 'Surma Point Rule' : 'Blank Gauge Rule',
       icon: AlertTriangle,
       action: () => {
         setActiveStep(2);
-        onSetMode('HISTORICAL', '11111111-1111-1111-1111-111111111101');
-        navigate('/control-room/replay?mode=HISTORICAL&eventId=11111111-1111-1111-1111-111111111101');
+        onSetMode('HISTORICAL', targetEventId);
+        navigate(`/control-room/replay?mode=HISTORICAL&eventId=${targetEventId}${districtQuery}`);
       },
       tag: '0:30-1:30'
     },
@@ -78,7 +98,7 @@ export function JudgeDemoRunner({ currentMode, onSetMode }: JudgeDemoRunnerProps
       action: () => {
         setActiveStep(4);
         onSetMode('EXERCISE');
-        navigate('/control-room/responder');
+        navigate(`/control-room/responder?districtCode=${targetDistrictCode}`);
       },
       tag: '2:30-3:30'
     },
@@ -90,7 +110,7 @@ export function JudgeDemoRunner({ currentMode, onSetMode }: JudgeDemoRunnerProps
       action: () => {
         setActiveStep(5);
         onSetMode('EXERCISE');
-        navigate('/control-room/recovery');
+        navigate(`/control-room/recovery?districtCode=${targetDistrictCode}`);
       },
       tag: '3:30-4:30'
     }
@@ -154,7 +174,7 @@ export function JudgeDemoRunner({ currentMode, onSetMode }: JudgeDemoRunnerProps
       <div className="judge-bar-header">
         <div className="judge-title-badge">
           <Play size={14} className="pulse-icon" />
-          <span><strong>5-MINUTE DEMO RUNNER</strong> · Hack for Humanity 2026 ({currentMode})</span>
+          <span><strong>5-MINUTE DEMO RUNNER</strong> · Hack for Humanity 2026 ({currentMode} · {isSylhet ? 'Sylhet Surma Basin' : 'Feni Muhuri Basin'})</span>
         </div>
         <div className="judge-actions-right">
           <button
@@ -237,49 +257,53 @@ export function JudgeDemoRunner({ currentMode, onSetMode }: JudgeDemoRunnerProps
         const step = steps.find((s) => s.num === (activeStep || 1)) || steps[0];
         const momentDetails: Record<number, { proves: string; primaryBtn: string; onPrimary: () => void; secondaryBtn?: string; onSecondary?: () => void }> = {
           1: {
-            proves: 'PROVES TO JUDGES: August 2024 Blackout Replay — 92% cell towers flooded, civilian calls stopped. Silence ≠ Safety; systems showing "no reports" failed residents.',
-            primaryBtn: '🚨 Replay August 2024 Blackout',
+            proves: isSylhet
+              ? 'PROVES TO JUDGES: Sylhet June 2022 Megaflood Replay — 84% land inundated in Companiganj & Gowainghat, Kumargaon power grid substation flooded, civilian calls stopped. Silence ≠ Safety; systems showing "no reports" failed residents.'
+              : 'PROVES TO JUDGES: August 2024 Blackout Replay — 92% cell towers flooded, civilian calls stopped. Silence ≠ Safety; systems showing "no reports" failed residents.',
+            primaryBtn: isSylhet ? '🚨 Replay June 2022 Megaflood' : '🚨 Replay August 2024 Blackout',
             onPrimary: () => {
-              onSetMode('HISTORICAL', '11111111-1111-1111-1111-111111111101');
-              navigate('/control-room/replay?mode=HISTORICAL&eventId=11111111-1111-1111-1111-111111111101');
+              onSetMode('HISTORICAL', targetEventId);
+              navigate(`/control-room/replay?mode=HISTORICAL&eventId=${targetEventId}${districtQuery}`);
             },
             secondaryBtn: '🗺️ View Crisis Map',
             onSecondary: () => {
-              onSetMode('HISTORICAL', '11111111-1111-1111-1111-111111111101');
-              navigate('/control-room/map?mode=HISTORICAL&eventId=11111111-1111-1111-1111-111111111101');
+              onSetMode('HISTORICAL', targetEventId);
+              navigate(`/control-room/map?mode=HISTORICAL&eventId=${targetEventId}${districtQuery}`);
             },
           },
           2: {
-            proves: 'PROVES TO JUDGES: Deterministic 3-Signal Early Warning — When automated Muhuri river gauge went blank at midnight, deterministic safety rule evaluated satellite rain + volunteer readings and escalated to ACT (evacuation). AI was NOT allowed to guess.',
-            primaryBtn: '⚡ Open 3-Signal Hydrograph & Rule',
+            proves: isSylhet
+              ? 'PROVES TO JUDGES: Deterministic 3-Signal Early Warning — When Surma River at Sylhet Point breached 10.80m warning line with 420mm Cherrapunji downpour, deterministic safety rule evaluated satellite rain + volunteer readings and escalated to ACT (+18h lead time). AI was NOT allowed to guess.'
+              : 'PROVES TO JUDGES: Deterministic 3-Signal Early Warning — When automated Muhuri river gauge went blank at midnight, deterministic safety rule evaluated satellite rain + volunteer readings and escalated to ACT (evacuation). AI was NOT allowed to guess.',
+            primaryBtn: isSylhet ? '⚡ Open Surma 3-Signal Hydrograph & Rule' : '⚡ Open 3-Signal Hydrograph & Rule',
             onPrimary: () => {
-              onSetMode('HISTORICAL', '11111111-1111-1111-1111-111111111101');
-              navigate('/control-room/replay?mode=HISTORICAL&eventId=11111111-1111-1111-1111-111111111101');
+              onSetMode('HISTORICAL', targetEventId);
+              navigate(`/control-room/replay?mode=HISTORICAL&eventId=${targetEventId}${districtQuery}`);
             },
             secondaryBtn: '🚨 Test Live Sensor Blackout in Situation Room',
             onSecondary: () => {
               onSetMode('EXERCISE');
-              navigate('/control-room/overview');
+              navigate(`/control-room/map?mode=EXERCISE${districtQuery}`);
             },
           },
           3: {
-            proves: 'PROVES TO JUDGES: Blackout Transport Resilience — Under zero internet, an 80-byte SMS packet (A1|S|wh0r2q8|...) delivers exact geolocation and trapped status via satellite D2C/carrier emergency roaming. Natural dialects are decoded by local AI without data leaking off-device.',
+            proves: 'PROVES TO JUDGES: Blackout Transport Resilience — Under zero internet, an 80-byte SMS packet delivers exact geolocation and trapped status via satellite D2C/carrier emergency roaming. Natural dialects are decoded by local AI without data leaking off-device.',
             primaryBtn: '🛰️ Open Disaster Packet & Dialect AI Inspector',
             onPrimary: () => setShowPacketModal(true),
             secondaryBtn: '📡 Open Citizen SOS Simulator',
             onSecondary: () => navigate('/sos'),
           },
           4: {
-            proves: 'PROVES TO JUDGES: Deterministic Boat Dispatch & Clustering — AI groups 4 panic reports from the same flooded compound into 1 incident; deterministic scoring elevates trapped children and elderly; Human Commander retains absolute dispatch approval authority.',
+            proves: 'PROVES TO JUDGES: Deterministic Boat Dispatch & Clustering — AI groups panic reports from flooded compounds into 1 incident; deterministic scoring elevates trapped children and elderly; Human Commander retains absolute dispatch approval authority.',
             primaryBtn: '🚤 Open Responder Dispatch Queue',
             onPrimary: () => {
               onSetMode('EXERCISE');
-              navigate('/control-room/responder');
+              navigate(`/control-room/responder?districtCode=${targetDistrictCode}`);
             },
-            secondaryBtn: '⚙️ View Multi-District Sylhet / Feni Operations',
+            secondaryBtn: '⚙️ View Situation Room',
             onSecondary: () => {
               onSetMode('EXERCISE');
-              navigate('/control-room/overview');
+              navigate(`/control-room/map?mode=EXERCISE${districtQuery}`);
             },
           },
           5: {
@@ -287,7 +311,7 @@ export function JudgeDemoRunner({ currentMode, onSetMode }: JudgeDemoRunnerProps
             primaryBtn: '💧 Open Tube Well Recovery Board',
             onPrimary: () => {
               onSetMode('EXERCISE');
-              navigate('/control-room/recovery');
+              navigate(`/control-room/recovery?districtCode=${targetDistrictCode}`);
             },
             secondaryBtn: '📜 View The Aali Tri-Party Compact',
             onSecondary: () => setShowCompactModal(true),
