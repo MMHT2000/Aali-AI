@@ -313,7 +313,7 @@ export function OperationsOverview({
             {selectedItem && <section className="selected-record"><p className="situation-eyebrow">SELECTED RECORD</p><strong>{selectedItem.name ?? selectedItem.label ?? 'Map record'}</strong><dl><div><dt>Provenance</dt><dd>{selectedItem.provenance}</dd></div><div><dt>Coordinates</dt><dd>{selectedItem.latitude != null && selectedItem.longitude != null ? `${Number(selectedItem.latitude).toFixed(4)}, ${Number(selectedItem.longitude).toFixed(4)}` : 'Unknown · list only'}</dd></div></dl></section>}
           </aside>
         </div>
-        <MuhuriHydrographChart />
+        <MuhuriHydrographChart districtCode={districtCode} />
       </div>
     );
   }
@@ -587,7 +587,7 @@ export function OperationsOverview({
               <span className={`rule-level rule-level--${level.toLowerCase()}`}>{level}</span>
             </header>
             {simulation.sourceData ? <>
-              <div className="evidence-line"><span>Muhuri gauge</span><strong>{simulation.sourceData.gauge.available ? `${simulation.sourceData.gauge.valueM.toFixed(2)} m` : 'Unavailable'}</strong></div>
+              <div className="evidence-line"><span>{isSylhet ? 'Surma gauge' : 'Muhuri gauge'}</span><strong>{simulation.sourceData.gauge.available ? `${simulation.sourceData.gauge.valueM.toFixed(2)} m` : 'Unavailable'}</strong></div>
               <div className="evidence-line"><span>Rainfall · scenario</span><strong>{simulation.sourceData.rainfall.available ? `${simulation.sourceData.rainfall.valueMm} mm` : 'Unavailable'}</strong></div>
               <div className="evidence-line"><span>Volunteer observation</span><strong>{simulation.sourceData.volunteerReading.available ? 'Submitted' : 'Unavailable'}</strong></div>
               <div className="rule-reasons" aria-label="Alert reason codes">
@@ -599,7 +599,7 @@ export function OperationsOverview({
         </aside>
       </div>
 
-      <MuhuriHydrographChart />
+      <MuhuriHydrographChart districtCode={districtCode} />
 
       {canControl && <details className="exercise-controls">
         <summary><span><Activity size={16} /> Exercise controls</span><span>{simulation.running ? 'Running' : 'Paused'} · tick {simulation.tickIndex + 1}/{simulation.totalTicks}</span></summary>

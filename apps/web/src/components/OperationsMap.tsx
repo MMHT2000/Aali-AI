@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { CircleMarker, MapContainer, TileLayer, Tooltip, Popup, useMap } from 'react-leaflet';
 import { LatLngExpression } from 'leaflet';
 import { OperationMapPoint } from '../lib/operations-client';
@@ -42,12 +42,21 @@ const SYLHET_BOUNDS: [[number, number], [number, number]] = [
 ];
 
 // Helper hook to dynamically fly to active district center
-function AutoRecenter({ center, bounds }: { center: [number, number]; bounds: [[number, number], [number, number]] }) {
+function AutoRecenter({
+  center,
+  bounds,
+  districtCode,
+}: {
+  center: [number, number];
+  bounds: [[number, number], [number, number]];
+  districtCode?: string;
+}) {
   const map = useMap();
-  useState(() => {
-    map.setView(center, 11, { animate: true });
+  useEffect(() => {
     map.setMaxBounds(bounds);
-  });
+    map.setView(center, 11, { animate: false });
+    map.invalidateSize();
+  }, [center, bounds, districtCode, map]);
   return null;
 }
 
@@ -83,10 +92,24 @@ function RecenterButton({ onRecenter, isSylhet }: { onRecenter: () => void; isSy
   );
 }
 
-// Robust fallback coordinate resolver: ensures EVERY SOS and incident has a valid Feni location
-function resolveCoordinates(point: OperationMapPoint, index: number): [number, number] {
+// Robust coordinate resolver: supports both Sylhet and Feni coordinate domains
+function resolveCoordinates(point: OperationMapPoint, index: number, isSylhet = false): [number, number] {
   const lat = Number(point.latitude);
   const lng = Number(point.longitude);
+
+  if (isSylhet) {
+    if (Number.isFinite(lat) && Number.isFinite(lng) && lat >= 24.3 && lat <= 25.4 && lng >= 91.3 && lng <= 92.5) {
+      return [lat, lng];
+    }
+    const text = `${point.name ?? ''} ${point.label ?? ''}`.toLowerCase();
+    if (text.includes('companiganj') || text.includes('কোম্পানীগঞ্জ')) return [25.0805 + ((index % 5) - 2) * 0.002, 91.7523 + ((index % 3) - 1) * 0.002];
+    if (text.includes('gowainghat') || text.includes('গোয়াইনঘাট')) return [25.0560 + ((index % 5) - 2) * 0.002, 91.9710 + ((index % 3) - 1) * 0.002];
+    if (text.includes('rustampur') || text.includes('রুস্তমপুর')) return [25.0920 + ((index % 5) - 2) * 0.002, 91.7850 + ((index % 3) - 1) * 0.002];
+    if (text.includes('sheola') || text.includes('শেওলা') || text.includes('kushiyara')) return [24.8850 + ((index % 5) - 2) * 0.002, 92.1950 + ((index % 3) - 1) * 0.002];
+    return [SYLHET_CENTER[0] + ((index * 7) % 20 - 10) * 0.003, SYLHET_CENTER[1] + ((index * 13) % 20 - 10) * 0.003];
+  }
+
+  // Feni coordinates
   if (Number.isFinite(lat) && Number.isFinite(lng) && lat >= 22.7 && lat <= 23.5 && lng >= 91.0 && lng <= 91.8) {
     return [lat, lng];
   }
@@ -117,8 +140,9 @@ function marker(
   index: number,
   selectedPointId?: string,
   onSelectPoint?: (point: OperationMapPoint) => void,
+  isSylhet = false,
 ) {
-  const [lat, lng] = resolveCoordinates(point, index);
+  const [lat, lng] = resolveCoordinates(point, index, isSylhet);
   const label = point.label ?? point.name ?? point.id;
   const selected = point.id === selectedPointId;
   const isUrgent = layer === 'sos' || layer === 'incident';
@@ -256,6 +280,7 @@ export function OperationsMap({ layers, selectedPointId, onSelectPoint, district
 
       <div className="ops-map-frame" style={{ position: 'relative' }}>
         <MapContainer
+          key={districtCode || 'FENI_DIST'}
           center={center}
           zoom={11}
           minZoom={9}
@@ -273,12 +298,12 @@ export function OperationsMap({ layers, selectedPointId, onSelectPoint, district
               tileload: () => setTilesUnavailable(false),
             }}
           />
-          <AutoRecenter center={center} bounds={maxBounds} />
+          <AutoRecenter center={center} bounds={maxBounds} districtCode={districtCode} />
           <RecenterButton isSylhet={isSylhet} onRecenter={() => {}} />
           {layerItems
             .filter(([key]) => enabled[key])
             .flatMap(([key, , points]) =>
-              points.map((point, index) => marker(point, key, index, selectedPointId, onSelectPoint)),
+              points.map((point, index) => marker(point, key, index, selectedPointId, onSelectPoint, isSylhet)),
             )}
         </MapContainer>
       </div>
