@@ -3070,11 +3070,14 @@ class ReportStatusView extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(width: 6),
-                          Text(
-                            isTransmittedOnline
-                                ? 'Transmitted via Starlink D2C (Wi-Fi Uplink) · Decoded'
-                                : 'Offline · Saved on phone (অফলাইনে সংরক্ষিত)',
-                            style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold),
+                          Flexible(
+                            child: Text(
+                              isTransmittedOnline
+                                  ? 'Transmitted via Starlink D2C (Wi-Fi Uplink) · Decoded'
+                                  : 'Offline · Saved on phone (অফলাইনে সংরক্ষিত)',
+                              style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           ),
                         ],
                       ),
@@ -3928,8 +3931,8 @@ class _VolunteerDeskViewState extends State<VolunteerDeskView> {
           onPressed: widget.onBack,
         ),
         title: Text(
-          widget.isBengali ? 'স্বেচ্ছাসেবক ডেক্স' : 'Volunteer Field Desk / স্বেচ্ছাসেবক ডেক্স',
-          style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
+          widget.isBengali ? 'স্বেচ্ছাসেবক ডেক্স' : 'Volunteer Field Desk',
+          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
         ),
         actions: [
           if (widget.onOpenStaffSignIn != null)
@@ -4076,10 +4079,23 @@ class _VolunteerDeskViewState extends State<VolunteerDeskView> {
                     const SizedBox(height: 14),
                     DropdownButtonFormField<String>(
                       initialValue: _selectedArea,
+                      isExpanded: true,
                       decoration: const InputDecoration(labelText: 'Observation Location / Village', border: OutlineInputBorder()),
                       items: const [
-                        DropdownMenuItem(value: '22222222-2222-2222-2222-222222222204', child: Text('Mirzanagar Village (Staff Gauge SW212)')),
-                        DropdownMenuItem(value: '22222222-2222-2222-2222-222222222205', child: Text('Chitholia Village (Silent Candidate Shelter)')),
+                        DropdownMenuItem(
+                          value: '22222222-2222-2222-2222-222222222204',
+                          child: Text(
+                            'Mirzanagar Village (Staff Gauge SW212)',
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        DropdownMenuItem(
+                          value: '22222222-2222-2222-2222-222222222205',
+                          child: Text(
+                            'Chitholia Village (Silent Candidate Shelter)',
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
                       ],
                       onChanged: (val) {
                         if (val != null) setState(() => _selectedArea = val);
@@ -4127,44 +4143,48 @@ class _VolunteerDeskViewState extends State<VolunteerDeskView> {
                         Expanded(
                           child: OutlinedButton(
                             style: OutlinedButton.styleFrom(
-                              minimumSize: const Size(0, 48),
+                              padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 8),
+                              minimumSize: const Size(0, 44),
                               backgroundColor: Colors.blue.withValues(alpha: 0.08),
                             ),
                             onPressed: () => _adjustLevel(-0.5),
-                            child: const Text('-0.50m', style: TextStyle(fontWeight: FontWeight.bold)),
+                            child: const FittedBox(fit: BoxFit.scaleDown, child: Text('-0.50m', style: TextStyle(fontWeight: FontWeight.bold))),
                           ),
                         ),
                         const SizedBox(width: 6),
                         Expanded(
                           child: OutlinedButton(
                             style: OutlinedButton.styleFrom(
-                              minimumSize: const Size(0, 48),
+                              padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 8),
+                              minimumSize: const Size(0, 44),
                               backgroundColor: Colors.blue.withValues(alpha: 0.08),
                             ),
                             onPressed: () => _adjustLevel(-0.1),
-                            child: const Text('-0.10m', style: TextStyle(fontWeight: FontWeight.bold)),
+                            child: const FittedBox(fit: BoxFit.scaleDown, child: Text('-0.10m', style: TextStyle(fontWeight: FontWeight.bold))),
                           ),
                         ),
                         const SizedBox(width: 6),
                         Expanded(
                           child: OutlinedButton(
                             style: OutlinedButton.styleFrom(
-                              minimumSize: const Size(0, 48),
+                              padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 8),
+                              minimumSize: const Size(0, 44),
                               backgroundColor: Colors.blue.withValues(alpha: 0.08),
                             ),
                             onPressed: () => _adjustLevel(0.1),
-                            child: const Text('+0.10m', style: TextStyle(fontWeight: FontWeight.bold)),
+                            child: const FittedBox(fit: BoxFit.scaleDown, child: Text('+0.10m', style: TextStyle(fontWeight: FontWeight.bold))),
                           ),
                         ),
                         const SizedBox(width: 6),
                         Expanded(
                           child: OutlinedButton(
                             style: OutlinedButton.styleFrom(
-                              minimumSize: const Size(0, 48),
+                              padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 8),
+                              minimumSize: const Size(0, 44),
                               backgroundColor: Colors.blue.withValues(alpha: 0.08),
                             ),
                             onPressed: () => _adjustLevel(0.5),
-                            child: const Text('+0.50m', style: TextStyle(fontWeight: FontWeight.bold)),
+                            child: const FittedBox(fit: BoxFit.scaleDown, child: Text('+0.50m', style: TextStyle(fontWeight: FontWeight.bold))),
                           ),
                         ),
                       ],

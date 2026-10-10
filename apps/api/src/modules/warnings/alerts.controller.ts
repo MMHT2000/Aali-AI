@@ -12,6 +12,7 @@ import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AlertsService, WarningDraftDto } from './alerts.service';
 import { ThreeSignalAlertInput } from '../../domain/flood-alert/three-signal-alert';
 import { Roles } from '../../common/auth/roles.decorator';
+import { Public } from '../../common/auth/public.decorator';
 import { UserRole } from '../users/entities/user-role.enum';
 
 @ApiTags('Flood Alerts, Historical Replay & Warning Approvals')
@@ -70,7 +71,7 @@ export class AlertsController {
 
   @ApiOperation({ summary: 'List all warning drafts and approvals' })
   @Get('warnings')
-  @Roles(UserRole.AUTHORITY, UserRole.ADMIN, UserRole.RESPONDER, UserRole.VIEWER, UserRole.VOLUNTEER, UserRole.RECOVERY_COORDINATOR)
+  @Public()
   getWarnings(
     @Query('eventId') eventId?: string,
     @Query('districtCode') districtCode?: string,
@@ -116,7 +117,7 @@ export class AlertsController {
 
   @ApiOperation({ summary: 'Get ready-to-air loudspeaker audio announcement script and metadata for mosque broadcast' })
   @Get('warnings/:id/loudspeaker-audio')
-  @Roles(UserRole.AUTHORITY, UserRole.RESPONDER, UserRole.ADMIN, UserRole.VIEWER)
+  @Public()
   getLoudspeakerAudio(@Param('id') id: string) {
     return this.alertsService.getLoudspeakerAudio(id);
   }

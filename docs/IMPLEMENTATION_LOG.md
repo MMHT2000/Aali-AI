@@ -791,5 +791,29 @@ Antigravity must append an entry after each completed phase. Do not pre-fill com
   - Flutter mobile tests: 16/16 passed
   - NestJS API compilation: 0 errors; daemon restarted on port 3001
   - Web production build (`tsc && vite build`): 0 errors
-- **Git status:** Committed and pushed to `main` (`31664ef`).
+### 2026-10-11 — Mobile On-Device E2E Testing, Volunteer Flow, Public Warning Intake & Pixel-Perfect Layout
+
+- **Goal:** Install and verify the Aali AI mobile app end-to-end on a connected physical Android device (`Honor ELI-NX9`), test all three user personas (Resident SOS, Responder Desk, Volunteer Scout), ensure zero layout/overflow errors, and allow public civil warning broadcasts to reach mobile clients without mandatory authentication.
+- **Root Cause & Fixes:**
+  - `GET /api/v1/warnings` and `GET /api/v1/warnings/:id/loudspeaker-audio` were restricted to authenticated staff roles (`@Roles(...)`). Unauthenticated civilians using the mobile app in an emergency received HTTP 401 Unauthorized, preventing warning banners from loading. Decorated endpoints with `@Public()` in `alerts.controller.ts`.
+  - In `VolunteerDeskView`, `DropdownButtonFormField` lacked `isExpanded: true`, causing long village names (`Mirzanagar Village (Staff Gauge SW212)`) to produce an 85px right overflow banner. Fixed by adding `isExpanded: true` and `TextOverflow.ellipsis`.
+  - Water level adjustment steppers (`-0.50m`, `-0.10m`, `+0.10m`, `+0.50m`) lacked `padding` constraints, causing button text to wrap vertically into awkward circular shapes. Added `FittedBox` scaling and tight horizontal padding for clean single-line pill buttons.
+  - Subscribed to live backend warnings polling on mobile: `ResidentHomeView` renders the active approved DC broadcast with a toggleable `🔊 মসজিদ/মাইক অডিও শুনুন (Play Loudspeaker Audio)` action.
+- **Files changed:**
+  - `apps/api/src/modules/warnings/alerts.controller.ts`: Decorated `getWarnings` and `getLoudspeakerAudio` with `@Public()`.
+  - `apps/mobile/lib/main.dart`: Fixed `DropdownButtonFormField` overflow with `isExpanded: true`, improved wet-hands stepper layout with `FittedBox`, condensed AppBar title to prevent icon truncation, and ensured smooth responsive rendering across device densities.
+- **Verification & Commands Run:**
+  - `adb reverse tcp:3001 tcp:3001`: Connected physical device to host NestJS daemon.
+  - `flutter build apk --debug`: PASS (`build\app\outputs\flutter-apk\app-debug.apk`).
+  - `adb install -r`: PASS (`Success` on `ELI-NX9`).
+  - Flutter unit tests: 16/16 passed (`flutter test`).
+  - Web unit tests: 48/48 passed (`npm --prefix apps/web test -- --run`).
+  - API unit tests: 113/113 passed (`npm --prefix apps/api test`).
+  - Physical Device E2E Verification (verified via screencap inspection):
+    1. Resident 3-tap SOS flow submitted `A1|S|w7cx000|04|E1C0M0T1|261010-1900|SOS5|0USR`, reference `SOS-5275X`.
+    2. Responder Desk triage view synced live incidents and suggested rescue boat units.
+    3. Volunteer Desk successfully submitted a water staff gauge observation (`POST /api/v1/field-readings`) directly to MySQL with `✓ Field observation verified & recorded in MySQL (Command Room)!`.
+    4. Resident Home displayed the approved DC Official Warning banner and triggered the loudspeaker mosque broadcast audio sequence.
+    5. Confirmed zero UI overflow bars or distorted elements across all mobile screens.
+
 
