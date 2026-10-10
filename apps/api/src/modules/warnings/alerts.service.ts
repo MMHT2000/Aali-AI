@@ -81,6 +81,21 @@ export class AlertsService implements OnModuleInit {
     w.delivery_simulation = null;
     w.created_at = new Date('2024-08-19T16:00:00Z');
     this.warnings.push(w);
+
+    const w2 = new Warning();
+    w2.id = 'warn-002';
+    w2.event_id = '11111111-1111-1111-1111-111111111104';
+    w2.area_id = '22222222-2222-2222-2222-222222222207';
+    w2.state = WarningState.PENDING_APPROVAL;
+    w2.body_bn = 'কোম্পানীগঞ্জ ও গোয়াইনঘাট উপজেলার বাসিন্দাদের জরুরি দৃষ্টি আকর্ষণ: চেরাপুঞ্জির অতিবৃষ্টি ও পাহাড়ি ঢলে সুরমা নদীর পানি বিপদসীমার উপর দিয়ে প্রবাহিত হচ্ছে। নিম্নাঞ্চলের সকল পরিবারকে জরুরি ভিত্তিতে নিকটস্থ বিসিএসবি উচ্চ বিদ্যালয় ও ইউনিয়ন আশ্রয়কেন্দ্রে পৌঁছানোর জন্য অনুরোধ করা হচ্ছে।';
+    w2.body_en = 'Notice to Companiganj & Gowainghat residents: Surma river water is flowing above danger level due to extreme upstream rainfall. Move safely to BNSB High School shelter immediately.';
+    w2.created_by = '00000000-0000-0000-0000-000000000002';
+    w2.approved_by = null;
+    w2.approved_at = null;
+    w2.approval_note = null;
+    w2.delivery_simulation = null;
+    w2.created_at = new Date('2022-06-16T16:00:00Z');
+    this.warnings.push(w2);
   }
 
   evaluateAlert(input: ThreeSignalAlertInput): ThreeSignalAlertOutput {
@@ -186,7 +201,7 @@ export class AlertsService implements OnModuleInit {
     w.event_id = dto.eventId;
     w.area_id = dto.areaId;
     w.state = WarningState.PENDING_APPROVAL;
-    w.body_bn = dto.bodyBn || `জরুরি সতর্কতা [${dto.alertLevel}]: ${dto.areaName} এলাকায় বন্যা সতর্কতা সংকেত প্রযোজ্য। আশ্রয়কেন্দ্র: ${dto.shelterName}। সংকেত প্রমাণ: ${dto.supportingSignals.join(', ')}`;
+    w.body_bn = dto.bodyBn || `জরুরি বন্যা সতর্কতা: অতিবৃষ্টি ও পাহাড়ি ঢলের কারণে ${dto.areaName} এলাকার নিম্নাঞ্চল প্লাবিত হওয়ার ঝুঁকি রয়েছে। সকল বাসিন্দাকে নিকটস্থ ${dto.shelterName} আশ্রয়কেন্দ্রে অবস্থানের অনুরোধ করা হচ্ছে।`;
     w.body_en = dto.bodyEn || `Emergency Alert [${dto.alertLevel}] for ${dto.areaName}. Safe shelter: ${dto.shelterName}.`;
     w.created_by = userId;
     w.approved_by = null;

@@ -67,7 +67,7 @@ export interface WarningView {
   approval_note?: string | null;
 }
 
-export function FloodReplayWarning({ mode, eventId, session }: { mode: OperationsMode; eventId?: string; session: UserSession }) {
+export function FloodReplayWarning({ mode, eventId, districtCode, session }: { mode: OperationsMode; eventId?: string; districtCode?: string; session: UserSession }) {
   const [scenarios, setScenarios] = useState<ReplayScenarioView[]>([]);
   const [selectedScenarioId, setSelectedScenarioId] = useState<string>('');
   const [currentTickIndex, setCurrentTickIndex] = useState<number>(0);
@@ -158,8 +158,39 @@ export function FloodReplayWarning({ mode, eventId, session }: { mode: Operation
   const activeScenario = scenarios.find((s) => s.id === selectedScenarioId);
   const activeTick = activeScenario?.ticks[currentTickIndex];
 
+  // Detect whether Sylhet or Feni scenario is active
+  const isSylhet =
+    districtCode === 'SYLHET_DIST' ||
+    selectedScenarioId.includes('11111111-1111-1111-1111-111111111104') ||
+    selectedScenarioId.includes('11111111-1111-1111-1111-111111111105');
+
   const handleCreateDraftFromAlert = async () => {
     if (!canApprove || !replayEnabled || !eventId || !evaluation || !activeTick) return;
+
+    const areaName = isSylhet ? 'কোম্পানীগঞ্জ / গোয়াইনঘাট' : 'পরশুরাম';
+    const shelterName = isSylhet
+      ? 'কোম্পানীগঞ্জ থানা সদর সরকারি প্রাথমিক বিদ্যালয় আশ্রয়কেন্দ্র'
+      : 'পরশুরাম সরকারি মডেল উচ্চ বিদ্যালয় আশ্রয়কেন্দ্র';
+
+    // Natural, dignified Bengali announcement copy without technical English reason codes
+    let bodyBn = '';
+    if (isSylhet) {
+      if (evaluation.computedLevel === 'ACT') {
+        bodyBn = `জরুরি বন্যা সতর্কতা: মেঘালয় ও চেরাপুঞ্জির অতিবৃষ্টি এবং পাহাড়ি ঢলের কারণে সুরমা নদীর পানি বিপদসীমার উপর দিয়ে তীব্র বেগে প্রবাহিত হচ্ছে। নদী তীরবর্তী ও নিম্নাঞ্চলের সকল বাসিন্দাদের অবিলম্বে নিকটস্থ ${shelterName} আশ্রয়কেন্দ্রে আশ্রয় নেওয়ার জন্য অনুরোধ করা হচ্ছে।`;
+      } else if (evaluation.computedLevel === 'WARNING') {
+        bodyBn = `বন্যা সতর্কতা: সুরমা নদীর পানি দ্রুত বৃদ্ধি পাচ্ছে এবং নিম্নাঞ্চল প্লাবিত হওয়ার আশঙ্কা রয়েছে। স্থানীয় বাসিন্দাদের প্রয়োজনীয় প্রস্তুতি নিয়ে প্রস্তুত থাকার এবং ঝুঁকিপূর্ণ পরিবারগুলোকে আশ্রয়কেন্দ্রে যাওয়ার অনুরোধ করা হচ্ছে।`;
+      } else {
+        bodyBn = `বন্যা নজরদারি বার্তা: পাহাড়ি ঢল ও বৃষ্টির কারণে সুরমা নদীর পানি পর্যবেক্ষণ করা হচ্ছে। নদী তীরবর্তী এলাকার বাসিন্দাদের সতর্ক থাকার অনুরোধ করা হচ্ছে।`;
+      }
+    } else {
+      if (evaluation.computedLevel === 'ACT') {
+        bodyBn = `জরুরি বন্যা সতর্কতা: অতিবৃষ্টি ও উজানের ঢলের কারণে মুহুরী নদীর বাঁধ উপচে তীব্র পানি প্রবেশ করছে। পরশুরাম এলাকার সকল বাসিন্দাদের দ্রুত প্রয়োজনীয় সামগ্রীসহ নিকটস্থ ${shelterName} আশ্রয়কেন্দ্রে যাওয়ার জন্য বিনীত অনুরোধ করা হচ্ছে।`;
+      } else if (evaluation.computedLevel === 'WARNING') {
+        bodyBn = `বন্যা সতর্কতা: মুহুরী নদীর পানি বিপদসীমার নিকটবর্তী হয়েছে। নদী তীরবর্তী পরশুরাম ও ফুলগাজী এলাকার বাসিন্দাদের আশ্রয়কেন্দ্র ও উঁচু স্থানে যাওয়ার প্রস্তুতি নেওয়ার অনুরোধ করা হচ্ছে।`;
+      } else {
+        bodyBn = `বন্যা নজরদারি বার্তা: মুহুরী নদীর পানি বৃদ্ধি পর্যবেক্ষণ করা হচ্ছে। স্থানীয় জনসাধারণকে সতর্ক অবস্থানে থাকার অনুরোধ করা হচ্ছে।`;
+      }
+    }
 
     try {
       const res = await fetch('/api/v1/warnings/drafts', {
@@ -167,12 +198,12 @@ export function FloodReplayWarning({ mode, eventId, session }: { mode: Operation
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           eventId,
-          areaId: '22222222-2222-2222-2222-222222222202',
-          areaName: 'Parshuram',
+          areaId: isSylhet ? '22222222-2222-2222-2222-222222222204' : '22222222-2222-2222-2222-222222222202',
+          areaName,
           alertLevel: evaluation.computedLevel,
           supportingSignals: evaluation.reasonCodes,
-          shelterName: 'Parshuram Govt Model High School Shelter',
-          bodyBn: `জরুরি বন্যা সতর্কতা [${evaluation.computedLevel}]: পরশুরাম এলাকায় নদীর পানির উচ্চতা ও উজানের বৃষ্টির কারণে ঝুঁকি বৃদ্ধি পেয়েছে। নিকটস্থ পরশুরাম সরকারি মডেল উচ্চ বিদ্যালয় আশ্রয়কেন্দ্রে অবস্থান নিন। সংকেত: ${evaluation.reasonCodes.join(', ')}`,
+          shelterName,
+          bodyBn,
         }),
       });
       if (res.ok) {
@@ -194,7 +225,7 @@ export function FloodReplayWarning({ mode, eventId, session }: { mode: Operation
       const res = await fetch(`/api/v1/warnings/${id}/approve`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ note: 'Approved by Feni District Disaster Authority Officer' }),
+        body: JSON.stringify({ note: isSylhet ? 'Approved by Sylhet District Disaster Authority Officer' : 'Approved by Feni District Disaster Authority Officer' }),
       });
       if (res.ok) {
         const updated = await res.json();
@@ -222,38 +253,83 @@ export function FloodReplayWarning({ mode, eventId, session }: { mode: Operation
     }
   };
 
+  // Dedicated Audio instance for pre-recorded authentic mosque announcements
+  const [currentAudioElement, setCurrentAudioElement] = useState<HTMLAudioElement | null>(null);
+
   const handlePlayLoudspeakerAudio = (w: WarningView) => {
-    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-      if (playingAudioId === w.id) {
-        window.speechSynthesis.cancel();
-        setPlayingAudioId(null);
-        return;
+    // If already playing this warning, stop it
+    if (playingAudioId === w.id) {
+      if (currentAudioElement) {
+        currentAudioElement.pause();
+        currentAudioElement.currentTime = 0;
       }
-      window.speechSynthesis.cancel();
-      const textToSpeak = `মনোযোগ দিন! বিশেষ জরুরি বন্যা ঘোষণা। ${w.body_bn}`;
-      const utterance = new SpeechSynthesisUtterance(textToSpeak);
-      utterance.lang = 'bn-BD';
-      utterance.rate = 0.9;
-      utterance.onend = () => setPlayingAudioId(null);
-      utterance.onerror = () => setPlayingAudioId(null);
-      setPlayingAudioId(w.id);
-      window.speechSynthesis.speak(utterance);
-      setActionFeedback(`🔊 মসজিদ/মাইক লাউডস্পিকার অডিও সম্প্রচার চালু হয়েছে...`);
-    } else {
-      setActionFeedback('Browser Web Speech API unavailable. Use download button to export audio script.');
+      if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+      }
+      setPlayingAudioId(null);
+      setActionFeedback('⏹️ অডিও সম্প্রচার বন্ধ করা হয়েছে।');
+      return;
     }
+
+    // Stop any previous playing audio
+    if (currentAudioElement) {
+      currentAudioElement.pause();
+      currentAudioElement.currentTime = 0;
+    }
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+    }
+
+    const audioFile = isSylhet ? '/audio/sylhet-evacuation-warning.mp3' : '/audio/feni-evacuation-warning.mp3';
+    const audio = new Audio(audioFile);
+    setCurrentAudioElement(audio);
+
+    audio.onended = () => {
+      setPlayingAudioId(null);
+      setActionFeedback('🔊 অডিও ঘোষণা সম্পন্ন হয়েছে।');
+    };
+
+    audio.onerror = () => {
+      // Fallback to browser TTS if audio file cannot be loaded
+      if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+        const textToSpeak = `মনোযোগ দিন! বিশেষ জরুরি ঘোষণা। ${w.body_bn}`;
+        const utterance = new SpeechSynthesisUtterance(textToSpeak);
+        utterance.lang = 'bn-BD';
+        utterance.rate = 0.9;
+        utterance.onend = () => setPlayingAudioId(null);
+        utterance.onerror = () => setPlayingAudioId(null);
+        window.speechSynthesis.speak(utterance);
+      } else {
+        setPlayingAudioId(null);
+      }
+    };
+
+    audio.play().then(() => {
+      setPlayingAudioId(w.id);
+      const basinLabel = isSylhet ? 'সুরমা অববাহিকা (সিলেট)' : 'মুহুরী অববাহিকা (ফেনী)';
+      setActionFeedback(`🔊 মসজিদ ও মাইক লাউডস্পিকার অডিও সম্প্রচার চালু রয়েছে (${basinLabel})...`);
+    }).catch(() => {
+      // Fallback if browser autoplay policies block direct audio
+      if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+        const textToSpeak = `মনোযোগ দিন! বিশেষ জরুরি ঘোষণা। ${w.body_bn}`;
+        const utterance = new SpeechSynthesisUtterance(textToSpeak);
+        utterance.lang = 'bn-BD';
+        utterance.rate = 0.9;
+        utterance.onend = () => setPlayingAudioId(null);
+        utterance.onerror = () => setPlayingAudioId(null);
+        window.speechSynthesis.speak(utterance);
+        setPlayingAudioId(w.id);
+      }
+    });
   };
 
   const handleDownloadAudio = (w: WarningView) => {
-    const textToExport = `[AALI AI - LOUDSPEAKER ANNOUNCEMENT AUDIO SCRIPT]\nতারিখ: ${new Date().toLocaleString('en-GB', { timeZone: 'Asia/Dhaka' })}\nসতর্কতা আইডি: ${w.id}\nঘোষণা টেক্সট:\n"মনোযোগ দিন! উপজেলা দুর্যোগ ব্যবস্থাপনা কমিটির জরুরি বন্যা ঘোষণা। ${w.body_bn} সকল গ্রামবাসীকে দ্রুত নিরাপদ আশ্রয়কেন্দ্রে পৌঁছানোর জন্য অনুরোধ করা হচ্ছে। এটি জরুরি সতর্কবার্তা।"`;
-    const blob = new Blob([textToExport], { type: 'text/plain;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
+    const audioFile = isSylhet ? '/audio/sylhet-evacuation-warning.mp3' : '/audio/feni-evacuation-warning.mp3';
     const link = document.createElement('a');
-    link.href = url;
-    link.download = `aali-loudspeaker-warning-${w.id}.txt`;
+    link.href = audioFile;
+    link.download = isSylhet ? `aali-sylhet-loudspeaker-${w.id}.mp3` : `aali-feni-loudspeaker-${w.id}.mp3`;
     link.click();
-    URL.revokeObjectURL(url);
-    setActionFeedback(`📥 লাউডস্পিকার অডিও স্ক্রিপ্ট ফাইল ডাউনলোড সম্পন্ন হয়েছে।`);
+    setActionFeedback(`📥 স্টুডিও-রেকর্ডেড লাউডস্পিকার MP3 অডিও ফাইল ডাউনলোড সম্পন্ন হয়েছে (${w.id})।`);
   };
 
   const getAlertBadgeColor = (lvl?: string) => {
