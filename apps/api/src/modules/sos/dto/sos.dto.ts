@@ -107,6 +107,11 @@ export class CreateSosDto {
   @MaxLength(160)
   @IsOptional()
   packet?: string;
+
+  @ApiPropertyOptional({ description: 'Transport channel used (e.g. STARLINK_D2C_WIFI, TERRESTRIAL_USB, GATEWAY_SIMULATED)' })
+  @IsString()
+  @IsOptional()
+  transport?: string;
 }
 
 export class DecodePacketDto {

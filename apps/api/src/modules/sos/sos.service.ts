@@ -93,7 +93,7 @@ export class SosService {
     report.packet_short_id = shortId;
     report.reported_at = now;
     report.received_at = now;
-    report.transport_kind = trustedSource === SosSourceType.GATEWAY ? 'GATEWAY_SIMULATED' : 'APP_DIRECT';
+    report.transport_kind = dto.transport ?? (trustedSource === SosSourceType.GATEWAY ? 'GATEWAY_SIMULATED' : 'APP_DIRECT');
     report.transport_status = 'DELIVERED';
     report.parse_status = 'VALID';
     report.review_status = 'NEEDS_REVIEW';

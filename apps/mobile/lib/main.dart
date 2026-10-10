@@ -210,14 +210,22 @@ class _AppRootControllerState extends State<AppRootController> {
 
   // Active DC Official Warning & Loudspeaker Audio State
   Map<String, dynamic>? _activeBroadcastWarning;
+  String? _lastNotifiedWarningId;
   Timer? _warningPollTimer;
 
   @override
   void initState() {
     super.initState();
     _loadStoredPreferences();
+    _requestNotificationPermission();
     _warningPollTimer = Timer.periodic(const Duration(seconds: 4), (_) => _fetchLatestWarnings());
     _fetchLatestWarnings();
+  }
+
+  Future<void> _requestNotificationPermission() async {
+    try {
+      await _audioChannel.invokeMethod('requestNotificationPermission');
+    } catch (_) {}
   }
 
   @override
@@ -241,7 +249,7 @@ class _AppRootControllerState extends State<AppRootController> {
 
   Future<void> _fetchLatestWarnings() async {
     try {
-      final client = HttpClient()..connectionTimeout = const Duration(seconds: 2);
+      final client = HttpClient()..connectionTimeout = const Duration(seconds: 3);
       final req = await client.getUrl(Uri.parse('$_apiBase/warnings?districtCode=$_selectedDistrict'));
       final resp = await req.close();
       if (resp.statusCode == 200) {
@@ -252,9 +260,22 @@ class _AppRootControllerState extends State<AppRootController> {
           orElse: () => null,
         );
         if (mounted) {
+          final isNew = broadcast != null && (_lastNotifiedWarningId != broadcast['id']);
           setState(() {
             _activeBroadcastWarning = broadcast != null ? (broadcast as Map<String, dynamic>) : null;
           });
+          if (isNew && broadcast != null) {
+            _lastNotifiedWarningId = broadcast['id']?.toString();
+            final isSylhet = _selectedDistrict == 'SYLHET';
+            final title = isSylhet ? '🚨 সিলেট ডিসি জরুরি বন্যা সতর্কতা' : '🚨 ফেনী ডিসি জরুরি বন্যা সতর্কতা';
+            final warningMsg = broadcast['body_bn']?.toString() ?? 'অবিলম্বে নিকটস্থ আশ্রয়কেন্দ্রে আশ্রয় নিন।';
+            try {
+              _audioChannel.invokeMethod('showEmergencyNotification', {
+                'title': title,
+                'body': warningMsg,
+              });
+            } catch (_) {}
+          }
         }
       }
     } catch (_) {}
@@ -263,14 +284,15 @@ class _AppRootControllerState extends State<AppRootController> {
   Future<String> _probeBestApiBase(String fallback) async {
     final candidates = [
       fallback,
+      'http://192.168.0.101:3001/api/v1',
       'http://127.0.0.1:3001/api/v1',
       'http://10.0.2.2:3001/api/v1',
       'http://localhost:3001/api/v1',
-      'http://192.168.0.101:3001/api/v1',
     ];
     for (final url in candidates) {
+      if (url.isEmpty) continue;
       try {
-        final client = HttpClient()..connectionTimeout = const Duration(milliseconds: 600);
+        final client = HttpClient()..connectionTimeout = const Duration(milliseconds: 1500);
         final req = await client.getUrl(Uri.parse('$url/health/readiness'));
         final resp = await req.close();
         if (resp.statusCode == 200) {
