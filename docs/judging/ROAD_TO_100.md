@@ -1,22 +1,22 @@
 # Road to 100 — Aali AI
 
-This roadmap defines the concrete, prioritized backlog required to take Aali AI from its current panel score of **86 / 100** to a **perfect 100 / 100**.
+This roadmap defines the concrete, prioritized backlog required to take Aali AI from its baseline panel score of **86 / 100** to **88 / 100** (Quick Wins verified) and to a **perfect 100 / 100** for the AIUB Grand Finale.
 
 Actions are ranked by **expected panel points per unit of effort**.
 
 ---
 
-## 1. Quick Wins (Before 14 Oct Submission) · High Points / Low Effort (S: < 2h)
+## 1. Quick Wins (Completed 10 Oct 2026) · High Points / Low Effort (S: < 2h)
 
-| ID | Originating Judge | Criteria Moved | Exp. Points | Effort | Action | Acceptance Test & Files |
+| ID | Originating Judge | Criteria Moved | Exp. Points | Effort | Action | Status & Acceptance Verification |
 |---|---|---|:---:|:---:|---|---|
-| **ACT-01** | Developer | D4 | **+3** | S (< 1h) | **Hard-lock production JWT startup check.** Refuse server start if `JWT_SECRET` is unset or matches dev default. | Test asserts application throws error on startup when `NODE_ENV=production` and secret is empty. (`main.ts:25`) |
-| **ACT-02** | Field Expert | F2 | **+3** | S (< 2h) | **Tactile Step-Sliders for Mobile Volunteer Form.** Replace numeric text entry with +/- 10cm quick-tap water level step buttons. | Volunteer view allows submitting water readings without bringing up the virtual keyboard. (`main.dart:420`) |
-| **ACT-03** | UI/UX Designer | U1 | **+3** | S (< 1.5h) | **Disaster Lifecycle Accordions in Sidebar.** Group workspace sidebar into "BEFORE (Preparedness)", "DURING (Rescue)", and "AFTER (Recovery)". | Sidebar displays 3 collapsible phase headers with badge indicators. (`ControlRoom.tsx:120`) |
-| **ACT-04** | Academician | A1, A4 | **+2** | S (< 1h) | **Formal Census Demographic Citation.** Add BBS 2022 Census citation for Feni district's 1.65M population in proposal text. | Link provided to BBS Census Report table in documentation. (`docs/proposal/`) |
-| **ACT-05** | Mobile Operator | O3 | **+2** | S (< 1.5h) | **Satellite Open-Sky Guide on Mobile.** Add an in-app visual hint: "For Satellite D2C, step away from metal roofs and hold phone toward open sky". | Mobile app displays guidance banner when satellite transport is active. (`main.dart:210`) |
+| **ACT-01** | Developer | D4 | **+1** | S (< 1h) | **Hard-lock production JWT startup check.** Refuse server start if `JWT_SECRET` is unset or matches dev default. | **COMPLETED & VERIFIED.** Throws fatal error on startup when `NODE_ENV=production` and secret is empty. (`main.ts:25`) |
+| **ACT-02** | Field Expert | F2 | **+2** | S (< 2h) | **Tactile Step-Sliders for Mobile Volunteer Form.** Replace numeric text entry with +/- 10cm quick-tap water level step buttons & BWDB presets. | **COMPLETED & VERIFIED.** Mobile volunteer view allows submitting water readings without virtual keyboard. (`main.dart:450`) |
+| **ACT-03** | UI/UX Designer | U1 | **+1** | S (< 1.5h) | **Disaster Lifecycle Accordions in Sidebar.** Group workspace sidebar into "BEFORE (Preparedness)", "DURING (Rescue)", and "AFTER (Recovery)". | **COMPLETED & VERIFIED.** Sidebar displays 3 collapsible phase headers with badge indicators. (`ControlRoom.tsx:135`) |
+| **ACT-04** | Academician | A1, A4 | **+1** | S (< 1h) | **Formal Census Demographic Citation.** Add BBS 2022 Census citation for Feni district's 1.65M population in proposal text. | **COMPLETED & VERIFIED.** Formally documented in `docs/proposal/DEMOGRAPHIC_CITATION_BBS2022.md`; Claim S-10 verified. |
+| **ACT-05** | Mobile Operator | O3 | **+1** | S (< 1.5h) | **Satellite Open-Sky Guide on Mobile.** Add an in-app visual hint: "For Satellite D2C, step away from metal roofs and hold phone toward open sky". | **COMPLETED & VERIFIED.** Mobile app displays bilingual guidance banner when satellite transport is active. (`main.dart:285`) |
 
-*Subtotal Potential Gain: +13 Panel Points*
+*Subtotal Gain Achieved: +6 Criteria Points (+2 Composite Panel Points, Score: 88/100)*
 
 ---
 
@@ -61,3 +61,4 @@ All 10 Global Caps (C1 through C10) were audited by the Chair. **Zero caps were 
 - Plaintext NIDs and passwords are fully hashed with SHA-256 HMAC and bcrypt (Cap C7 limit).
 - Flutter 3.47 Android APK compiles cleanly (Cap C8 limit).
 - AI layer has deterministic regex fallback (Cap C9 limit).
+

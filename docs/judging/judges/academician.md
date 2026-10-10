@@ -49,3 +49,4 @@ Aali AI is a breath of fresh air in applied AI research. Instead of attempting t
 2. Add dynamic seasonal riverbed depth adjustment (+3 pts).
 3. Conduct and publish a structured tabletop simulation with Feni district stakeholders (+3 pts).
 4. Add differential privacy masking for single-family rural geohashes (+3 pts).
+

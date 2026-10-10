@@ -49,3 +49,4 @@ This repository is an engineered system, not a hackathon toy. The code is modula
 2. Hard-lock startup environment validation so server refuses to boot if `JWT_SECRET` is default (+3 pts).
 3. Implement on-device Whisper offline STT for voice notes (+4 pts).
 4. Run a 5,000 req/sec k6 distributed stress test with results committed in evidence (+3 pts).
+

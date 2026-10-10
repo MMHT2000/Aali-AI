@@ -49,3 +49,4 @@ I have managed emergency operations when floodwaters reached the ceiling of our 
 2. Generate ready-to-air MP3 loudspeaker audio announcements (+3 pts).
 3. Add fuel reserve and current-speed constraints to boat dispatch suggestions (+4 pts).
 4. Add electrical grid hazard overlay on the operations map (+4 pts).
+

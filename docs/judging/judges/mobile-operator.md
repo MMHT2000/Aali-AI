@@ -49,3 +49,4 @@ As a telecom engineer who has spent sleepless nights keeping BTS sites alive dur
 2. Display a "Satellite Sky Visibility Guide" in the mobile app (+3 pts).
 3. Draft a formal BTRC Emergency Roaming tariff schedule (+4 pts).
 4. Add Kafka message queue streaming to the ingestion backend (+3 pts).
+

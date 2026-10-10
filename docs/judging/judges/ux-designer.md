@@ -49,3 +49,4 @@ Operations dashboards usually look like a Frankenstein monster of random Bootstr
 2. Add offline voice read-aloud audio buttons on all citizen guidance screens (+4 pts).
 3. Implement a fluid compact/expanded density toggle for control room tables (+3 pts).
 4. Auto-collapse floating map layers on small viewports (+4 pts).
+
