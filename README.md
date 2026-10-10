@@ -350,6 +350,11 @@ Aali-AI/
 │   ├── DATABASE_SCHEMA.md       # Relational schema & migration strategy
 │   ├── SECURITY_PRIVACY.md      # Data privacy, redaction, and compliance policies
 │   └── ACCEPTANCE_TESTS.md      # Formal test cases & verification criteria
+├── References/                  # Historical prompts, judge panel packs & legacy proposals
+│   ├── prompts/                 # Orchestration & evaluation prompts
+│   ├── Judgement/               # Panel evaluation transcripts & score cards
+│   ├── modifications/           # Historical patch packages & briefs
+│   └── legacy_proposals/        # Early drafts & proposal iterations
 ├── .env.example                 # Comprehensive environment variable template
 ├── docker-compose.yml           # All-in-one multi-container production orchestrator
 ├── package.json                 # Monorepo workspace configuration

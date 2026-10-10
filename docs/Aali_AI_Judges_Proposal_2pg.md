@@ -65,3 +65,4 @@ Aali AI bridges the real-world humanitarian gap under an institutional three-par
 * **What is 100% Real in the Demo:** Working REST API, real-time SSE stream, full React Web Command Room, physical Flutter app on Android 13+ with offline SQLite queue, audio broadcasts, and MySQL database.
 * **What is Honest Simulation:** Carrier satellite-to-phone spectrum is simulated via local Wi-Fi uplink (`STARLINK_D2C_WIFI`); cell tower blackout is simulated via control toggles; flood hydrograph is reconstructed from published BWDB/FFWC observations.
 * **Physical Final Staging (Oct 23):** Fully rehearsal-ready with 1-click Stage Demo Director, physical Android device wireless mirror, mosque loudspeaker amp output, and full multi-district (Feni & Sylhet) operational coverage.
+

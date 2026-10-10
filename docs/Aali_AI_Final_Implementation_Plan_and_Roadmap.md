@@ -68,3 +68,4 @@ In strict compliance with humanitarian integrity and contest rules, all operatio
 | **Gemini Flash API rate-limited or offline** | **Medium** | Built-in deterministic regex fallback engine extracts headcount and urgency keywords instantly with zero network delay. |
 | **Physical Android phone battery or display glitch** | **High** | Backup secondary device with pre-installed APK ready on standby, plus browser-based 3-Tap SOS simulator as fallback. |
 | **Judges challenge satellite-to-phone realism** | **Medium** | Cite Banglalink 7 Oct 2026 launch approval, BTRC regulatory filings, and Liberty Caribbean Jamaica precedent in the Stage Defense Playbook. |
+
