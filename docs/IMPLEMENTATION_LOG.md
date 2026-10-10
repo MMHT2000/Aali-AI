@@ -817,3 +817,32 @@ Antigravity must append an entry after each completed phase. Do not pre-fill com
     5. Confirmed zero UI overflow bars or distorted elements across all mobile screens.
 
 
+
+### 2026-10-11 — Full Multi-District Tenancy (Feni ↔ Sylhet), Native Android MediaPlayer Loudspeaker Audio & Clean Responder UX
+
+- **Goal:** Support full dual-district tenancy across the mobile app for both Feni and Sylhet, implement native speaker audio playback for DC evacuation warning broadcasts using pre-recorded Bengali loudspeaker announcements, eliminate the redundant bottom navigation bar in the Responder Desk, and verify all flows on the physical Android device.
+- **Root Cause & Fixes:**
+  - The mobile app had hardcoded Feni locations and gauges in multiple views. Expanded the location catalog to 11 verified places each for both Feni and Sylhet across SOS distress wizard, volunteer station readings, and responder triage views.
+  - In `apps/api/src/modules/warnings/alerts.service.ts`, `getWarnings` previously only matched `SYLHET_DIST` or `FENI_DIST`, falling back to returning all warnings when queried with `SYLHET` or `FENI`. Added normalized district code matching (`districtCode?.toUpperCase() === 'SYLHET'` and `'FENI'`).
+  - Implemented Flutter `MethodChannel("aali.audio/player")` on Android with `MainActivity.kt` using native `android.media.MediaPlayer`. Embedded recorded high-fidelity Bengali evacuation warning announcements (`feni_evacuation_warning.mp3` and `sylhet_evacuation_warning.mp3`) into Android `res/raw` and Flutter `assets/audio/`.
+  - Removed redundant `bottomNavigationBar` in `ResponderDeskView`, freeing screen real-estate for triage cards, map toggles, and incident acknowledgements.
+  - Added strict guard in `_ResidentHomeViewState` ensuring displayed evacuation broadcast cards and loudspeaker tracks match the selected district ground truth.
+- **Files changed:**
+  - `apps/api/src/modules/warnings/alerts.service.ts`: Added normalized district code matching in `getWarnings()`.
+  - `apps/mobile/android/app/src/main/kotlin/com/example/aali_resident_app/MainActivity.kt`: Native `MediaPlayer` MethodChannel handler with `play`, `stop`, `isPlaying`, and `onPlaybackComplete` callbacks.
+  - `apps/mobile/android/app/src/main/res/raw/feni_evacuation_warning.mp3` & `sylhet_evacuation_warning.mp3`: Embedded raw audio files.
+  - `apps/mobile/assets/audio/`: Bundled asset audio files.
+  - `apps/mobile/pubspec.yaml`: Registered `assets/audio/`.
+  - `apps/mobile/lib/main.dart`: Multi-district tenancy, native audio playback integration, removed bottom nav bar, and tuned layout constraints.
+- **Verification & Commands Run:**
+  - `flutter test`: 16/16 passed with 0 errors and 0 overflows.
+  - `npm --prefix apps/web test`: 48/48 passed across 13 test files.
+  - `npm --prefix apps/api test`: 113/113 passed across 26 test suites.
+  - `flutter build apk --debug`: Succeeded in 34.2s.
+  - `adb install -r`: Successfully installed to `Honor ELI-NX9`.
+  - Physical Device E2E Verification (verified via screencap inspection):
+    1. District toggle in Welcome AppBar toggles between `[ 📍 ফেনী ]` (Feni Flood Command) and `[ 📍 সিলেট ]` (Sylhet Command).
+    2. Resident Home displays district-specific DC evacuation warning cards (`⚡ FENI DC BROADCAST` / `⚡ SYLHET DC BROADCAST`).
+    3. Tapping `🔊 📢 মসজিদ/মাইক অডিও শুনুন` activates Android `MediaPlayer`, turns button to `⏹ ⏹ ঘোষণা থামান`, and outputs pre-recorded Bengali loudspeaker warning audio through the phone speaker.
+    4. SOS Distress Wizard Step 3 provides dual tabs (`[ 📍 ফেনী (Feni) ]` and `[ 📍 সিলেট (Sylhet) ]`) with 11 distinct places for each district.
+    5. Responder Desk renders triage cards and top app bar controls cleanly without redundant bottom navigation bar.
