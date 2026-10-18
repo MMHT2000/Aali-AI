@@ -77,14 +77,44 @@ export function FloodReplayWarning({ mode, eventId, districtCode, session }: { m
   const [actionFeedback, setActionFeedback] = useState<string | null>(null);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [playingAudioId, setPlayingAudioId] = useState<string | null>(null);
+  const [newDraftText, setNewDraftText] = useState<string>('');
+  const [isDrafting, setIsDrafting] = useState<boolean>(false);
 
   const canApprove = session.role === 'AUTHORITY';
   const replayEnabled = mode === 'HISTORICAL';
 
-  // Replay fixtures and warning drafts follow the shared event selection.
+  const loadWarnings = () => {
+    if (!canApprove) return;
+    const isDistrictSylhet = districtCode === 'SYLHET_DIST';
+    fetch(`/api/v1/warnings?all=true&districtCode=${districtCode}${eventId ? `&eventId=${eventId}` : ''}`)
+      .then(async (res) => {
+        if (!res.ok) return [];
+        const text = await res.text();
+        return text.startsWith('[') ? JSON.parse(text) : [];
+      })
+      .then((data: WarningView[]) => {
+        const sylhetEventIds = ['11111111-1111-1111-1111-111111111104', '11111111-1111-1111-1111-111111111105', '11111111-1111-1111-1111-111111111106'];
+        const feniEventIds = ['11111111-1111-1111-1111-111111111101', '11111111-1111-1111-1111-111111111102', '11111111-1111-1111-1111-111111111103'];
+        const filtered = data.filter((warning) => {
+          if (eventId && warning.event_id === eventId) return true;
+          if (isDistrictSylhet) {
+            return sylhetEventIds.includes(warning.event_id) || warning.body_bn?.includes('সুরমা') || warning.body_bn?.includes('কোম্পানীগঞ্জ');
+          } else {
+            return feniEventIds.includes(warning.event_id) || warning.body_bn?.includes('মুহুরী') || warning.body_bn?.includes('পরশুরাম');
+          }
+        });
+        setWarnings(filtered.length > 0 ? filtered : data);
+      })
+      .catch(() => {});
+  };
+
+  useEffect(() => {
+    loadWarnings();
+  }, [canApprove, eventId, districtCode]);
+
+  // Replay fixtures follow the shared event selection.
   useEffect(() => {
     setScenarios([]);
-    setWarnings([]);
     setSelectedScenarioId('');
     setCurrentTickIndex(0);
     setEvaluation(null);
@@ -97,7 +127,11 @@ export function FloodReplayWarning({ mode, eventId, districtCode, session }: { m
     const targetEventId = eventId || defaultEvent;
 
     fetch('/api/v1/replay/scenarios')
-      .then((res) => (res.ok ? res.json() : []))
+      .then(async (res) => {
+        if (!res.ok) return [];
+        const text = await res.text();
+        return text.startsWith('[') ? JSON.parse(text) : [];
+      })
       .then((data: ReplayScenarioView[]) => {
         const selected = data.filter((scenario) => scenario.id === targetEventId);
         const toUse = selected.length > 0 ? selected : data;
@@ -105,24 +139,7 @@ export function FloodReplayWarning({ mode, eventId, districtCode, session }: { m
         if (toUse.length > 0) setSelectedScenarioId(toUse[0].id);
       })
       .catch(() => {});
-
-    if (canApprove) fetch(`/api/v1/warnings?districtCode=${districtCode}${eventId ? `&eventId=${eventId}` : ''}`)
-      .then((res) => (res.ok ? res.json() : []))
-      .then((data: WarningView[]) => {
-        const sylhetEventIds = ['11111111-1111-1111-1111-111111111104', '11111111-1111-1111-1111-111111111105'];
-        const feniEventIds = ['11111111-1111-1111-1111-111111111101', '11111111-1111-1111-1111-111111111102', '11111111-1111-1111-1111-111111111103'];
-        const filtered = data.filter((warning) => {
-          if (warning.event_id === targetEventId) return true;
-          if (isDistrictSylhet) {
-            return sylhetEventIds.includes(warning.event_id) || warning.body_bn?.includes('সুরমা') || warning.body_bn?.includes('কোম্পানীগঞ্জ');
-          } else {
-            return feniEventIds.includes(warning.event_id) || warning.body_bn?.includes('মুহুরী') || warning.body_bn?.includes('পরশুরাম');
-          }
-        });
-        setWarnings(filtered);
-      })
-      .catch(() => {});
-  }, [canApprove, eventId, replayEnabled, districtCode]);
+  }, [eventId, replayEnabled, districtCode]);
 
   // Update evaluation when tick, scenario, or gauge blanking changes
   useEffect(() => {
@@ -236,6 +253,30 @@ export function FloodReplayWarning({ mode, eventId, districtCode, session }: { m
     }
   };
 
+  const handleCreateCustomDraft = async () => {
+    if (!newDraftText.trim()) return;
+    setIsDrafting(true);
+    try {
+      const res = await fetch('/api/v1/warnings/drafts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          bodyBn: newDraftText.trim(),
+          bodyEn: 'Official Evacuation Broadcast Alert issued by Disaster Management Authority.'
+        }),
+      });
+      if (res.ok) {
+        setNewDraftText('');
+        loadWarnings();
+        setActionFeedback('নতুন অফিসিয়াল সতর্কতা খসড়া সফলভাবে প্রস্তুত হয়েছে (Draft Warning Created).');
+      }
+    } catch {
+      setActionFeedback('Failed to create draft warning.');
+    } finally {
+      setIsDrafting(false);
+    }
+  };
+
   const handleApproveWarning = async (id: string) => {
     if (!canApprove) {
       setActionFeedback('অননুমোদিত: সতর্কতা অনুমোদনের জন্য AUTHORITY ভূমিকা প্রয়োজন (Authority role required).');
@@ -248,8 +289,7 @@ export function FloodReplayWarning({ mode, eventId, districtCode, session }: { m
         body: JSON.stringify({ note: isSylhet ? 'Approved by Sylhet District Disaster Authority Officer' : 'Approved by Feni District Disaster Authority Officer' }),
       });
       if (res.ok) {
-        const updated = await res.json();
-        setWarnings((prev) => prev.map((w) => (w.id === id ? updated : w)));
+        loadWarnings();
         setActionFeedback(`সতর্কতা ${id} সফলভাবে অনুমোদিত হয়েছে (Approved).`);
       }
     } catch {
@@ -263,9 +303,7 @@ export function FloodReplayWarning({ mode, eventId, districtCode, session }: { m
         method: 'POST',
       });
       if (res.ok) {
-        setWarnings((prev) =>
-          prev.map((w) => (w.id === id ? { ...w, state: 'SENT_SIMULATED' } : w)),
-        );
+        loadWarnings();
         setActionFeedback(`সতর্কতা ${id} সিমুলেটেড ব্রডকাস্ট পাঠানো হয়েছে (SIMULATED CELL BROADCAST ONLY).`);
       }
     } catch {
@@ -619,13 +657,50 @@ export function FloodReplayWarning({ mode, eventId, districtCode, session }: { m
       )}
 
       {/* Warnings & Approvals Register */}
-      {canApprove && replayEnabled && <div style={{ background: '#1e293b', border: '1px solid #334155', borderRadius: '6px', padding: '1.25rem' }}>
-        <h3 style={{ fontSize: '1.1rem', color: '#f8fafc', marginBottom: '0.75rem' }}>
-          📢 অফিসিয়াল সতর্কতা অনুমোদন তালিকা / Official Warnings Approval Register
-        </h3>
-        <p style={{ fontSize: '0.8rem', color: '#94a3b8', marginBottom: '1rem' }}>
-          * এআই কেবল খসড়া প্রস্তুত করতে পারে। সতর্কতা প্রচারের জন্য উপযুক্ত সরকারি কর্মকর্তার (Authority) অনুমোদন বাধ্যতামূলক।
-        </p>
+      {canApprove && (
+        <div style={{ background: '#1e293b', border: '1px solid #334155', borderRadius: '6px', padding: '1.25rem', marginTop: '1.5rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '0.75rem' }}>
+            <h3 style={{ fontSize: '1.1rem', color: '#f8fafc', margin: 0 }}>
+              📢 অফিসিয়াল সতর্কতা অনুমোদন ও ব্রডকাস্ট তালিকা / Official Warnings Approval Register
+            </h3>
+            <button
+              type="button"
+              onClick={loadWarnings}
+              style={{ background: '#334155', color: '#38bdf8', border: '1px solid #475569', borderRadius: '4px', padding: '0.25rem 0.6rem', fontSize: '0.75rem', cursor: 'pointer' }}
+            >
+              🔄 Refresh Warnings
+            </button>
+          </div>
+          <p style={{ fontSize: '0.8rem', color: '#94a3b8', marginBottom: '1rem' }}>
+            * এআই কেবল খসড়া প্রস্তুত করতে পারে। সতর্কতা প্রচারের জন্য উপযুক্ত সরকারি কর্মকর্তার (Authority) অনুমোদন বাধ্যতামূলক।
+          </p>
+
+          {/* Quick Draft Warning Composer */}
+          <div style={{ background: '#0f172a', border: '1px solid #38bdf8', borderRadius: '6px', padding: '0.9rem', marginBottom: '1.25rem' }}>
+            <label style={{ display: 'block', fontSize: '0.85rem', color: '#38bdf8', fontWeight: 'bold', marginBottom: '0.4rem' }}>
+              ✍️ নতুন জরুরি সতর্কতা খসড়া প্রস্তুত করুন (Draft New Official Warning):
+            </label>
+            <textarea
+              value={newDraftText}
+              onChange={(e) => setNewDraftText(e.target.value)}
+              placeholder={isSylhet ? 'সুরমা নদীর পানি বৃদ্ধির জরুরি সতর্কতা বার্তা বাংলায় লিখুন...' : 'মুহুরী নদীর পানি বৃদ্ধির জরুরি সতর্কতা বার্তা বাংলায় লিখুন...'}
+              rows={2}
+              style={{ width: '100%', background: '#1e293b', color: '#f8fafc', border: '1px solid #475569', borderRadius: '4px', padding: '0.5rem', fontSize: '0.85rem', boxSizing: 'border-box' }}
+            />
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.5rem' }}>
+              <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
+                প্রস্তুত হলে সরাসরি খসড়া জমা দিয়ে নিচে অনুমোদন করুন।
+              </span>
+              <button
+                type="button"
+                disabled={isDrafting || !newDraftText.trim()}
+                onClick={handleCreateCustomDraft}
+                style={{ background: '#0284c7', color: 'white', border: 'none', padding: '0.35rem 0.9rem', borderRadius: '4px', fontSize: '0.8rem', fontWeight: 'bold', cursor: 'pointer' }}
+              >
+                {isDrafting ? 'জমা হচ্ছে…' : '📝 খসড়া জমা দিন (Create Draft)'}
+              </button>
+            </div>
+          </div>
 
         {warnings.length === 0 ? (
           <p style={{ color: '#94a3b8', fontSize: '0.85rem' }}>কোনো সতর্কতা খসড়া নেই।</p>
@@ -730,7 +805,8 @@ export function FloodReplayWarning({ mode, eventId, districtCode, session }: { m
             ))}
           </div>
         )}
-      </div>}
-    </div>
-  );
+      </div>
+    )}
+  </div>
+);
 }

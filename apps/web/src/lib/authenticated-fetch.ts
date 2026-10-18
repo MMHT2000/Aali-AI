@@ -1,3 +1,5 @@
+const API_BASE_URL = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_URL ? String(import.meta.env.VITE_API_URL) : '').replace(/\/+$/, '');
+
 export async function apiFetch(input: RequestInfo | URL, init: RequestInit = {}): Promise<Response> {
   const headers = new Headers(init.headers);
   let requestSession: string | null = null;
@@ -18,7 +20,12 @@ export async function apiFetch(input: RequestInfo | URL, init: RequestInit = {})
     // Keep public requests and test environments usable when browser storage is unavailable.
   }
 
-  const response = await fetch(input, { ...init, headers });
+  let resolvedInput = input;
+  if (typeof input === 'string' && input.startsWith('/api/') && API_BASE_URL) {
+    resolvedInput = `${API_BASE_URL}${input}`;
+  }
+
+  const response = await fetch(resolvedInput, { ...init, headers });
 
   if (response.status === 401 && typeof window !== 'undefined') {
     // A screen may still hold its session after storage was cleared in this or another tab.

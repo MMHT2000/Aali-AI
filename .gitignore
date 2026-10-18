@@ -16,3 +16,7 @@ playwright-report/
 test-results/
 apps/api/uploads/
 apps/web/.env.local
+artifacts/
+
+.vercel
+.env*

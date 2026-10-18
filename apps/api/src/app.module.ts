@@ -59,7 +59,10 @@ import { BrainControls1792290000000 } from './database/migrations/1792290000000-
         migrations: [InitialAaliSchema1728490000000, ResidentAccounts1791600000000, SimulationRunState1791600000001, BrainRuns1792280000000, BrainControls1792290000000],
         synchronize: false,
         manualInitialization: true,
-        connectTimeout: 5000,
+        connectTimeout: 10000,
+        ssl: config.get<string>('MYSQL_HOST') !== '127.0.0.1' && config.get<string>('MYSQL_HOST') !== 'localhost'
+          ? { minVersion: 'TLSv1.2', rejectUnauthorized: true }
+          : false,
         logging: false,
       }),
     }),

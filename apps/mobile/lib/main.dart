@@ -183,7 +183,7 @@ class _AppRootControllerState extends State<AppRootController> {
 
   // Connection endpoints
   String _apiBase = const String.fromEnvironment('AALI_API_URL',
-      defaultValue: 'http://127.0.0.1:3001/api/v1');
+      defaultValue: 'https://aali-ai-woad.vercel.app/api/v1');
   bool _simulateTowerOutage = false;
 
   // Identity / Profile
@@ -211,6 +211,7 @@ class _AppRootControllerState extends State<AppRootController> {
   // Active DC Official Warning & Loudspeaker Audio State
   Map<String, dynamic>? _activeBroadcastWarning;
   String? _lastNotifiedWarningId;
+  final Set<String> _dismissedWarningIds = {};
   Timer? _warningPollTimer;
 
   @override
@@ -232,6 +233,18 @@ class _AppRootControllerState extends State<AppRootController> {
   void dispose() {
     _warningPollTimer?.cancel();
     super.dispose();
+  }
+
+  void _dismissBroadcastWarning(String warningId) {
+    if (warningId.isNotEmpty) {
+      _dismissedWarningIds.add(warningId);
+    }
+    setState(() {
+      _activeBroadcastWarning = null;
+    });
+    try {
+      _audioChannel.invokeMethod('stop');
+    } catch (_) {}
   }
 
   Future<void> _toggleDistrict() async {
@@ -256,7 +269,9 @@ class _AppRootControllerState extends State<AppRootController> {
         final body = await resp.transform(utf8.decoder).join();
         final list = jsonDecode(body) as List<dynamic>;
         final broadcast = list.firstWhere(
-          (w) => w['state'] == 'APPROVED' || w['state'] == 'SENT_SIMULATED',
+          (w) =>
+              (w['state'] == 'APPROVED' || w['state'] == 'SENT_SIMULATED') &&
+              !_dismissedWarningIds.contains(w['id']?.toString()),
           orElse: () => null,
         );
         if (mounted) {
@@ -283,14 +298,11 @@ class _AppRootControllerState extends State<AppRootController> {
 
   Future<String> _probeBestApiBase(String fallback) async {
     final candidates = [
-      'http://192.168.0.101:3001/api/v1',
-      'http://192.168.0.101:5173/api/v1',
-      'http://192.168.0.101:5174/api/v1',
-      'http://192.168.0.101:3002/api/v1',
+      'https://aali-ai-woad.vercel.app/api/v1',
+      'https://aali-ai-api.onrender.com/api/v1',
       fallback,
-      'http://127.0.0.1:3001/api/v1',
+      'http://192.168.0.101:3001/api/v1',
       'http://10.0.2.2:3001/api/v1',
-      'http://localhost:3001/api/v1',
     ];
     for (final url in candidates) {
       if (url.isEmpty) continue;
@@ -414,7 +426,7 @@ class _AppRootControllerState extends State<AppRootController> {
                   decoration: const InputDecoration(
                     border: OutlineInputBorder(),
                     isDense: true,
-                    hintText: 'http://127.0.0.1:3001/api/v1',
+                    hintText: 'https://aali-ai-woad.vercel.app/api/v1',
                   ),
                   style: const TextStyle(fontSize: 13, fontFamily: 'monospace'),
                 ),
@@ -425,6 +437,24 @@ class _AppRootControllerState extends State<AppRootController> {
                   spacing: 6,
                   runSpacing: 6,
                   children: [
+                    ActionChip(
+                      avatar: const Icon(Icons.cloud_done, size: 14, color: Colors.teal),
+                      label: const Text('Live Production (Vercel)', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                      onPressed: () {
+                        setDialogState(() {
+                          urlController.text = 'https://aali-ai-woad.vercel.app/api/v1';
+                        });
+                      },
+                    ),
+                    ActionChip(
+                      avatar: const Icon(Icons.dns, size: 14, color: Colors.indigo),
+                      label: const Text('Render API Cloud', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                      onPressed: () {
+                        setDialogState(() {
+                          urlController.text = 'https://aali-ai-api.onrender.com/api/v1';
+                        });
+                      },
+                    ),
                     ActionChip(
                       avatar: const Icon(Icons.usb, size: 14),
                       label: const Text('USB / Desktop (127.0.0.1)', style: TextStyle(fontSize: 11)),
@@ -494,9 +524,11 @@ class _AppRootControllerState extends State<AppRootController> {
                 if (!mounted) return;
                 setState(() => _apiBase = newUrl);
                 Navigator.pop(ctx);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Connected API Endpoint: $newUrl')),
-                );
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Connected API Endpoint: $newUrl')),
+                  );
+                }
               },
               child: const Text('Save & Apply'),
             ),
@@ -563,9 +595,23 @@ class _AppRootControllerState extends State<AppRootController> {
                   ),
                 ],
               ),
-              const SizedBox(height: 14),
-              Row(
+              Wrap(
+                spacing: 8,
+                runSpacing: 6,
                 children: [
+                  ChoiceChip(
+                    label: const Text('Authority (জেলা প্রশাসক / ডিসি)'),
+                    selected: currentRole == 'AUTHORITY',
+                    onSelected: (sel) {
+                      if (sel) {
+                        setModalState(() {
+                          currentRole = 'AUTHORITY';
+                          userController.text = 'authority_dc';
+                          error = null;
+                        });
+                      }
+                    },
+                  ),
                   ChoiceChip(
                     label: const Text('Responder (উদ্ধারকারী)'),
                     selected: currentRole == 'RESPONDER',
@@ -579,7 +625,6 @@ class _AppRootControllerState extends State<AppRootController> {
                       }
                     },
                   ),
-                  const SizedBox(width: 8),
                   ChoiceChip(
                     label: const Text('Volunteer (স্বেচ্ছাসেবক)'),
                     selected: currentRole == 'VOLUNTEER',
@@ -636,7 +681,7 @@ class _AppRootControllerState extends State<AppRootController> {
                         if (!mounted) return;
                         if (token != null) {
                           setState(() {
-                            if (currentRole == 'RESPONDER') {
+                            if (currentRole == 'AUTHORITY' || currentRole == 'RESPONDER') {
                               _responderToken = token;
                               _currentScreen = AppScreen.responderDesk;
                             } else {
@@ -645,9 +690,11 @@ class _AppRootControllerState extends State<AppRootController> {
                             }
                           });
                           Navigator.pop(ctx);
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Signed in as ${userController.text.trim()}! Live sync enabled.')),
-                          );
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('Signed in as ${userController.text.trim()}! Live sync enabled.')),
+                            );
+                          }
                         } else {
                           setModalState(() {
                             isLoading = false;
@@ -715,10 +762,8 @@ class _AppRootControllerState extends State<AppRootController> {
     // List of candidate endpoints to attempt delivery
     final targetUrls = [
       '$_apiBase/sos',
+      if (_apiBase != 'https://aali-ai-woad.vercel.app/api/v1') 'https://aali-ai-woad.vercel.app/api/v1/sos',
       if (_apiBase != 'http://192.168.0.101:3001/api/v1') 'http://192.168.0.101:3001/api/v1/sos',
-      if (_apiBase != 'http://192.168.0.101:5173/api/v1') 'http://192.168.0.101:5173/api/v1/sos',
-      if (_apiBase != 'http://192.168.0.101:5174/api/v1') 'http://192.168.0.101:5174/api/v1/sos',
-      if (_apiBase != 'http://192.168.0.101:3002/api/v1') 'http://192.168.0.101:3002/api/v1/sos',
       if (_apiBase != 'http://10.0.2.2:3001/api/v1') 'http://10.0.2.2:3001/api/v1/sos',
       if (_apiBase != 'http://127.0.0.1:3001/api/v1') 'http://127.0.0.1:3001/api/v1/sos',
     ];
@@ -836,6 +881,7 @@ class _AppRootControllerState extends State<AppRootController> {
             });
           },
           broadcastWarning: _activeBroadcastWarning,
+          onDismissWarning: _dismissBroadcastWarning,
           apiBase: _apiBase,
         );
 
@@ -1748,6 +1794,7 @@ class ResidentHomeView extends StatefulWidget {
   final VoidCallback onToggleTowerOutage;
   final VoidCallback? onOpenServerSettings;
   final Map<String, dynamic>? broadcastWarning;
+  final ValueChanged<String>? onDismissWarning;
   final String apiBase;
 
   const ResidentHomeView({
@@ -1768,7 +1815,8 @@ class ResidentHomeView extends StatefulWidget {
     required this.simulateTowerOutage,
     required this.onToggleTowerOutage,
     this.broadcastWarning,
-    this.apiBase = 'http://127.0.0.1:3001/api/v1',
+    this.onDismissWarning,
+    this.apiBase = 'https://aali-ai-woad.vercel.app/api/v1',
   });
 
   @override
@@ -1884,16 +1932,20 @@ class _ResidentHomeViewState extends State<ResidentHomeView> {
                     // Active DC Evacuation Warning Loudspeaker Card (Broadcast live from Command Center)
                     Builder(
                       builder: (context) {
+                        if (widget.broadcastWarning == null) {
+                          return const SizedBox.shrink();
+                        }
                         final isSylhet = widget.districtCode.toUpperCase() == 'SYLHET';
                         final defaultBody = isSylhet
                             ? 'জরুরি বন্যা সতর্কতা [সুরমা অববাহিকা]: মেঘালয় ও চেরাপুঞ্জির অতিবৃষ্টি এবং পাহাড়ি ঢলে সুরমা নদীর পানি বিপদসীমার উপর দিয়ে প্রবাহিত হচ্ছে। কোম্পানীগঞ্জ ও গোয়াইনঘাট এলাকার নিম্নাঞ্চলের বাসিন্দাদের অবিলম্বে নিকটস্থ আশ্রয়কেন্দ্রে অবস্থান নিতে অনুরোধ করা হচ্ছে।'
                             : 'জরুরি বন্যা সতর্কতা [মুহুরী অববাহিকা]: উজানের অতিবৃষ্টি ও পাহাড়ি ঢলে মুহুরী নদীর পানি বিপদসীমা অতিক্রম করেছে। পরশুরাম ও ফুলগাজী এলাকার বাসিন্দাদের অবিলম্বে নিকটস্থ পরশুরাম মডেল হাই স্কুল আশ্রয়কেন্দ্রে অবস্থান নিতে অনুরোধ করা হচ্ছে।';
                         final bodyRaw = widget.broadcastWarning?['body_bn']?.toString();
                         final matchesDistrict = bodyRaw != null && (isSylhet
-                            ? (bodyRaw.contains('সুরমা') || bodyRaw.contains('সিলেট') || bodyRaw.contains('কোম্পানীগঞ্জ') || bodyRaw.contains('গোয়াইনঘাট'))
+                            ? (bodyRaw.contains('সুরমা') || bodyRaw.contains('সিলেট') || bodyRaw.contains('কোম্পানীগঞ্জ') || bodyRaw.contains('গোয়াইনঘাট'))
                             : (bodyRaw.contains('মুহুরী') || bodyRaw.contains('ফেনী') || bodyRaw.contains('পরশুরাম') || bodyRaw.contains('ফুলগাজী')));
-                        final warningBody = matchesDistrict ? bodyRaw! : defaultBody;
+                        final warningBody = matchesDistrict ? bodyRaw : (bodyRaw ?? defaultBody);
                         final warningState = widget.broadcastWarning?['state']?.toString() ?? 'APPROVED';
+                        final warningId = widget.broadcastWarning?['id']?.toString() ?? '';
 
                         return Container(
                           margin: const EdgeInsets.only(bottom: 14),
@@ -1959,6 +2011,24 @@ class _ResidentHomeViewState extends State<ResidentHomeView> {
                                       ),
                                     ),
                                   ),
+                                  const SizedBox(width: 6),
+                                  InkWell(
+                                    onTap: () {
+                                      if (_isPlayingWarningAudio) {
+                                        _playLoudspeakerAudio();
+                                      }
+                                      widget.onDismissWarning?.call(warningId);
+                                    },
+                                    borderRadius: BorderRadius.circular(16),
+                                    child: Container(
+                                      padding: const EdgeInsets.all(4),
+                                      decoration: BoxDecoration(
+                                        color: isDark ? Colors.white12 : Colors.black12,
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: const Icon(Icons.close, size: 16),
+                                    ),
+                                  ),
                                 ],
                               ),
                               const SizedBox(height: 8),
@@ -2001,6 +2071,29 @@ class _ResidentHomeViewState extends State<ResidentHomeView> {
                                     elevation: 0,
                                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                                     padding: const EdgeInsets.symmetric(vertical: 10),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              SizedBox(
+                                width: double.infinity,
+                                child: OutlinedButton.icon(
+                                  onPressed: () {
+                                    if (_isPlayingWarningAudio) {
+                                      _playLoudspeakerAudio();
+                                    }
+                                    widget.onDismissWarning?.call(warningId);
+                                  },
+                                  icon: const Icon(Icons.check_circle_outline, size: 16),
+                                  label: const Text(
+                                    'শুনেছি / বন্ধ করুন (Dismiss Alert)',
+                                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                                  ),
+                                  style: OutlinedButton.styleFrom(
+                                    foregroundColor: isDark ? Colors.red.shade200 : Colors.red.shade900,
+                                    side: BorderSide(color: isDark ? Colors.red.shade400 : Colors.red.shade700),
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                    padding: const EdgeInsets.symmetric(vertical: 8),
                                   ),
                                 ),
                               ),
@@ -3439,10 +3532,97 @@ class _ResponderDeskViewState extends State<ResponderDeskView> {
   final Set<String> _dispatchedIncidents = {};
   String? _syncStatus;
 
+  List<Map<String, dynamic>> _liveWarnings = [];
+  bool _isBroadcasting = false;
+
   @override
   void initState() {
     super.initState();
     _fetchLiveIncidents();
+    _fetchWarnings();
+  }
+
+  Future<void> _fetchWarnings() async {
+    if (widget.apiBase == null) return;
+    try {
+      final client = HttpClient()..connectionTimeout = const Duration(seconds: 4);
+      final req = await client.getUrl(Uri.parse('${widget.apiBase}/warnings?all=true&districtCode=${widget.districtCode}'));
+      final resp = await req.close();
+      if (resp.statusCode == 200) {
+        final body = await resp.transform(utf8.decoder).join();
+        final List<dynamic> decoded = jsonDecode(body);
+        if (mounted) {
+          setState(() {
+            _liveWarnings = decoded.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+          });
+        }
+      }
+    } catch (_) {}
+  }
+
+  Future<void> _approveWarning(String warningId) async {
+    if (widget.apiBase == null) return;
+    setState(() => _isBroadcasting = true);
+    try {
+      final token = await _resolveToken();
+      final client = HttpClient()..connectionTimeout = const Duration(seconds: 4);
+      final req = await client.postUrl(Uri.parse('${widget.apiBase}/warnings/$warningId/approve'));
+      req.headers.contentType = ContentType.json;
+      if (token != null) req.headers.set('Authorization', 'Bearer $token');
+      req.write(jsonEncode({'note': 'Approved via Mobile Authority Control'}));
+      final resp = await req.close();
+      if (resp.statusCode == 200) {
+        final bClient = HttpClient()..connectionTimeout = const Duration(seconds: 4);
+        final bReq = await bClient.postUrl(Uri.parse('${widget.apiBase}/warnings/$warningId/broadcast'));
+        if (token != null) bReq.headers.set('Authorization', 'Bearer $token');
+        await bReq.close();
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('✓ সতর্কতা অনুমোদিত ও মাইকিংয়ে প্রচারিত হয়েছে! (Broadcast Active)'),
+              backgroundColor: Color(0xFF10B981),
+            ),
+          );
+        }
+        await _fetchWarnings();
+      }
+    } catch (_) {
+    } finally {
+      if (mounted) setState(() => _isBroadcasting = false);
+    }
+  }
+
+  Future<void> _issueQuickWarning() async {
+    if (widget.apiBase == null) return;
+    setState(() => _isBroadcasting = true);
+    try {
+      final isSylhet = widget.districtCode == 'SYLHET';
+      final warningBody = isSylhet
+          ? 'জরুরি বন্যা সতর্কতা: সুরমা নদীর পানি বৃদ্ধি পাচ্ছে। কোম্পানীগঞ্জ ও গোয়াইনঘাটের নিচু এলাকার বাসিন্দারা অবিলম্বে নিকটস্থ আশ্রয়কেন্দ্রে অবস্থান নিন।'
+          : 'জরুরি বন্যা সতর্কতা: মুহুরী নদীর পানি বৃদ্ধি পাচ্ছে। পরশুরাম ও ফুলগাজীর নিচু এলাকার বাসিন্দারা অবিলম্বে নিকটস্থ আশ্রয়কেন্দ্রে অবস্থান নিন।';
+
+      final client = HttpClient()..connectionTimeout = const Duration(seconds: 4);
+      final req = await client.postUrl(Uri.parse('${widget.apiBase}/warnings/drafts'));
+      req.headers.contentType = ContentType.json;
+      req.write(jsonEncode({
+        'bodyBn': warningBody,
+        'bodyEn': 'Emergency Flood Evacuation Alert issued by District Disaster Authority.'
+      }));
+      final resp = await req.close();
+      if (resp.statusCode == 200 || resp.statusCode == 201) {
+        final bodyText = await resp.transform(utf8.decoder).join();
+        final json = jsonDecode(bodyText);
+        final newId = json['id']?.toString();
+        if (newId != null) {
+          await _approveWarning(newId);
+          return;
+        }
+      }
+    } catch (_) {
+    } finally {
+      if (mounted) setState(() => _isBroadcasting = false);
+    }
   }
 
   Future<String?> _resolveToken() async {
@@ -3599,7 +3779,10 @@ class _ResponderDeskViewState extends State<ResponderDeskView> {
       ),
       body: SafeArea(
         child: RefreshIndicator(
-          onRefresh: _fetchLiveIncidents,
+          onRefresh: () async {
+            await _fetchLiveIncidents();
+            await _fetchWarnings();
+          },
           child: SingleChildScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
             padding: const EdgeInsets.all(16),
@@ -3717,6 +3900,10 @@ class _ResponderDeskViewState extends State<ResponderDeskView> {
                   const SizedBox(height: 14),
                 ],
 
+                // Official DC Evacuation Warning & Broadcast Card
+                _buildAuthorityBroadcastCard(isDark),
+                const SizedBox(height: 14),
+
                 // Primary SOS-7K4M Card (Required for widget tests and default incident)
                 _buildCriticalCard(isDark),
                 const SizedBox(height: 14),
@@ -3736,6 +3923,159 @@ class _ResponderDeskViewState extends State<ResponderDeskView> {
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildAuthorityBroadcastCard(bool isDark) {
+    final activeWarning = _liveWarnings.firstWhere(
+      (w) => w['state'] == 'APPROVED' || w['state'] == 'SENT_SIMULATED',
+      orElse: () => <String, dynamic>{},
+    );
+    final pendingWarnings = _liveWarnings.where((w) => w['state'] == 'PENDING_APPROVAL' || w['state'] == 'DRAFT').toList();
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1E1E2E) : const Color(0xFFF0FDF4),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: const Color(0xFF10B981), width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF10B981).withValues(alpha: 0.08),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF10B981).withValues(alpha: 0.15),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.campaign, color: Color(0xFF10B981), size: 22),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      widget.districtCode == 'SYLHET'
+                          ? '🚨 সিলেট ডিসি জরুরি সতর্কতা ও ব্রডকাস্ট'
+                          : '🚨 ফেনী ডিসি জরুরি সতর্কতা ও ব্রডকাস্ট',
+                      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                    ),
+                    const Text(
+                      'Official Authority Warning & Mosque PA Approval',
+                      style: TextStyle(fontSize: 10, color: Colors.grey),
+                    ),
+                  ],
+                ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.refresh, size: 20),
+                onPressed: _fetchWarnings,
+                tooltip: 'Refresh Warnings',
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          if (activeWarning.isNotEmpty) ...[
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF0F172A) : Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: const Color(0xFF10B981).withValues(alpha: 0.4)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF10B981),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Text('BROADCAST ACTIVE', style: TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold)),
+                      ),
+                      const SizedBox(width: 6),
+                      const Text('মাইকিং ও মোবাইল সতর্কতা সক্রিয়', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF10B981))),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    activeWarning['body_bn']?.toString() ?? '',
+                    style: const TextStyle(fontSize: 12),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 10),
+          ],
+          if (pendingWarnings.isNotEmpty) ...[
+            const Text(
+              'অপেক্ষমান খসড়া সতর্কতা (Pending Approval):',
+              style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.orange),
+            ),
+            const SizedBox(height: 6),
+            ...pendingWarnings.map((pw) => Container(
+              margin: const EdgeInsets.only(bottom: 6),
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF1E293B) : const Color(0xFFFFFBEB),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.orange.shade300),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(
+                    pw['body_bn']?.toString() ?? '',
+                    style: const TextStyle(fontSize: 11),
+                  ),
+                  const SizedBox(height: 6),
+                  ElevatedButton.icon(
+                    onPressed: _isBroadcasting ? null : () => _approveWarning(pw['id'].toString()),
+                    icon: const Icon(Icons.check_circle, size: 16),
+                    label: const Text('✓ অনুমোদন ও মাইকিং ব্রডকাস্ট চালু করুন', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF10B981),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                    ),
+                  ),
+                ],
+              ),
+            )),
+            const SizedBox(height: 6),
+          ],
+          ElevatedButton.icon(
+            onPressed: _isBroadcasting ? null : _issueQuickWarning,
+            icon: _isBroadcasting
+                ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                : const Icon(Icons.notification_important, size: 18),
+            label: Text(
+              _isBroadcasting ? 'জারি হচ্ছে…' : '📢 নতুন জরুরি মাইকিং ও ব্রডকাস্ট জারি করুন',
+              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+            ),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFDC2626),
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 11),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+          ),
+        ],
       ),
     );
   }
