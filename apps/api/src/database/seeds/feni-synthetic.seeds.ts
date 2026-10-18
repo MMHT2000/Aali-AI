@@ -127,6 +127,17 @@ export const SYNTHETIC_FENI_SEEDS: SeedData = {
       provenance_note: 'Reconstructed pre-monsoon deluge in Surma-Kushiyara basin triggered by Meghalaya upstream rainfall.',
       is_reconstructed: true,
     },
+    {
+      id: '11111111-1111-1111-1111-111111111106',
+      name: 'Sylhet Active Synthetic Exercise 2026',
+      region_code: 'SYLHET',
+      start_at: new Date('2026-10-09T00:00:00Z'),
+      end_at: null,
+      status: 'ACTIVE',
+      mode: FloodEventMode.DEMO,
+      provenance_note: 'Synthetic Sylhet exercise; separate from the June 2022 and May 2024 historical replays.',
+      is_reconstructed: false,
+    },
   ],
 
   areas: [

@@ -28,7 +28,7 @@ export class BrainService implements OnApplicationBootstrap, OnModuleDestroy {
   private controlsHealthy = false;
   private readonly automaticReviews = new Map<string, number>();
   private readonly worker = { enabled: false, running: false, lastStartedAt: null as string | null, lastCompletedAt: null as string | null, nextRunAt: null as string | null, areas: {} as Record<string, { mode: string; runId?: string; checkedAt: string; status: string; riskLevel?: string }> };
-  autonomyStatus() { return { ...structuredClone(this.worker), controlsHealthy: this.controlsHealthy, controls: [...this.controls.values()].map(control => ({ scope: control.scope, paused: control.paused, reason: control.reason, updatedAt: control.updated_at.toISOString() })), intervalMinutes: 15, browserRequired: false, notificationDelivery: 'IN_APP_ONLY', operationalActions: 'REQUIRE_AUTHORIZED_REVIEW' }; }
+  autonomyStatus() { return { ...structuredClone(this.worker), controlsHealthy: this.controlsHealthy, controls: [...this.controls.values()].map(control => ({ scope: control.scope, paused: control.paused, reason: control.reason, updatedAt: control.updated_at.toISOString() })), agent: { provider: this.config.get<string>('OPENAI_API_KEY')?.trim() ? 'OPENAI' : 'LOCAL_PLANNER', model: this.config.get<string>('OPENAI_MODEL', 'gpt-4.1-mini'), configured: Boolean(this.config.get<string>('OPENAI_API_KEY')?.trim()) }, intervalMinutes: 15, browserRequired: false, notificationDelivery: 'IN_APP_ONLY', operationalActions: 'REQUIRE_AUTHORIZED_REVIEW' }; }
 
   async setAutonomyControl(dto: BrainControlDto, actor: { id: string; role: UserRole }) {
     if (![UserRole.AUTHORITY, UserRole.ADMIN].includes(actor.role)) throw new ForbiddenException('Authority or Admin intervention required.');
@@ -95,7 +95,7 @@ export class BrainService implements OnApplicationBootstrap, OnModuleDestroy {
           const plan = await this.run(query, false);
           this.worker.areas[key] = { mode: query.mode, runId: plan.id, checkedAt: new Date().toISOString(), status: plan.risk.level === 'UNKNOWN' ? 'DATA_UNAVAILABLE' : 'MONITORED', riskLevel: plan.risk.level };
         } catch {
-          this.worker.areas[key] = { mode: query.mode, checkedAt: new Date().toISOString(), status: 'RETRY_NEXT_SWEEP' };
+          this.worker.areas[key] = { mode: query.mode, checkedAt: new Date().toISOString(), status: this.paused(query.areaId) ? 'PAUSED_BY_HUMAN' : 'RETRY_NEXT_SWEEP' };
           this.logger.warn('Automatic area analysis unavailable; retry scheduled.');
         }
       }
@@ -141,8 +141,15 @@ export class BrainService implements OnApplicationBootstrap, OnModuleDestroy {
     const [data, facts] = await Promise.all([mode === 'EXERCISE' ? Promise.resolve(exerciseEnvironment(area)) : this.environment.get(area), this.operationalFacts(area, mode)]);
     const plan = buildBrainPlan(randomUUID(), area, mode, data, facts);
     const key = area.id + ':' + mode;
-    const fingerprint = (value: BrainPlan) => JSON.stringify({ risk: value.risk, days: value.environment.days, evidence: value.environment.evidence.map(e => [e.id, e.status, e.validAt]), operations: value.operations });
+    const fingerprint = (value: BrainPlan) => JSON.stringify({ risk: value.risk, days: value.environment.days, evidence: value.environment.evidence.map(e => [e.id, e.status, e.kind === 'SYNTHETIC' ? e.validAt?.slice(0, 10) : e.validAt]), operations: value.operations });
     const changed = !previous || fingerprint(previous) !== fingerprint(plan);
+    if (!changed && previous) {
+      for (const action of plan.actions) {
+        const reviewed = previous.actions.find(item => item.id === action.id && item.title === action.title && item.detail === action.detail && item.priority === action.priority && item.requiredRole === action.requiredRole && JSON.stringify(item.sourceIds) === JSON.stringify(action.sourceIds));
+        if (reviewed?.state === 'ACKNOWLEDGED' || reviewed?.state === 'DISMISSED') action.state = reviewed.state;
+      }
+      if (plan.actions.some(action => action.state === 'ACKNOWLEDGED' || action.state === 'DISMISSED')) plan.limitations.push(`Unchanged task reviews carried forward from analysis ${previous.id}. Original audit entries remain on that analysis.`);
+    }
     // At most one automatic GPT attempt per area/mode/hour, including provider failures.
     const lastAttempt = this.automaticReviews.get(key) ?? (previous?.agent.provider === 'OPENAI' ? Date.parse(previous.createdAt) : 0);
     if (useLlm || ((changed || previous?.agent.provider !== 'OPENAI') && Date.now() - lastAttempt >= 3600000)) {
@@ -203,6 +210,7 @@ export class BrainService implements OnApplicationBootstrap, OnModuleDestroy {
 
   async review(runId: string, dto: BrainReviewDto, actor: { id: string; role: UserRole }) {
     this.available();
+    if (dto.reason.trim().length < 5) throw new BadRequestException('Provide a meaningful review reason.');
     return this.runs.manager.transaction(async manager => {
       const run = await manager.findOne(BrainRun, { where: { id: runId }, lock: { mode: 'pessimistic_write' } });
       if (!run) throw new NotFoundException('Analysis not found');
@@ -211,7 +219,7 @@ export class BrainService implements OnApplicationBootstrap, OnModuleDestroy {
       if (!action) throw new NotFoundException('Action not found');
       if (actor.role !== action.requiredRole) throw new ForbiddenException('Your operational role cannot review this task.');
       if (action.state === dto.decision) return run.plan;
-      if (action.state !== 'PENDING_REVIEW') throw new ConflictException('Task already reviewed.');
+      if (action.state !== 'PENDING_REVIEW' && action.state !== 'READY') throw new ConflictException('Task already reviewed.');
       const before = action.state; action.state = dto.decision;
       await manager.save(run);
       await manager.save(AuditLog, manager.create(AuditLog, { id: randomUUID(), actor_user_id: actor.id, action: 'BRAIN_TASK_REVIEW', entity_type: 'BRAIN_RUN', entity_id: run.id, occurred_at: new Date(), reason: dto.reason, before_summary: { actionId: action.id, state: before }, after_summary: { state: action.state, operationalActionExecuted: false } }));

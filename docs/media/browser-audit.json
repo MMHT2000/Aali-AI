@@ -1,0 +1,217 @@
+{
+  "generatedAt": "2026-10-18T14:38:38.503Z",
+  "checks": [
+    {
+      "role": "AUTHORITY",
+      "path": "/control-room/brain",
+      "errors": [],
+      "apiErrors": [],
+      "overflow": false,
+      "passed": true
+    },
+    {
+      "role": "AUTHORITY",
+      "path": "/control-room/map",
+      "errors": [],
+      "apiErrors": [],
+      "overflow": false,
+      "passed": true
+    },
+    {
+      "role": "AUTHORITY",
+      "path": "/control-room/responder",
+      "errors": [],
+      "apiErrors": [],
+      "overflow": false,
+      "passed": true
+    },
+    {
+      "role": "AUTHORITY",
+      "path": "/control-room/alerts",
+      "errors": [],
+      "apiErrors": [],
+      "overflow": false,
+      "passed": true
+    },
+    {
+      "role": "AUTHORITY",
+      "path": "/control-room/replay",
+      "errors": [],
+      "apiErrors": [],
+      "overflow": false,
+      "passed": true
+    },
+    {
+      "role": "AUTHORITY",
+      "path": "/control-room/recovery",
+      "errors": [],
+      "apiErrors": [],
+      "overflow": false,
+      "passed": true
+    },
+    {
+      "role": "AUTHORITY",
+      "path": "/control-room/simulator",
+      "errors": [],
+      "apiErrors": [],
+      "overflow": false,
+      "passed": true
+    },
+    {
+      "role": "AUTHORITY",
+      "path": "/control-room/language",
+      "errors": [],
+      "apiErrors": [],
+      "overflow": false,
+      "passed": true
+    },
+    {
+      "role": "AUTHORITY",
+      "path": "/control-room/audit",
+      "errors": [],
+      "apiErrors": [],
+      "overflow": false,
+      "passed": true
+    },
+    {
+      "role": "AUTHORITY",
+      "path": "brain/mobile",
+      "overflow": false,
+      "passed": true
+    },
+    {
+      "role": "AUTHORITY",
+      "path": "brain/tile-failure-list",
+      "passed": true
+    },
+    {
+      "role": "ADMIN",
+      "path": "/control-room/brain",
+      "errors": [],
+      "apiErrors": [],
+      "overflow": false,
+      "passed": true
+    },
+    {
+      "role": "ADMIN",
+      "path": "/control-room/map",
+      "errors": [],
+      "apiErrors": [],
+      "overflow": false,
+      "passed": true
+    },
+    {
+      "role": "ADMIN",
+      "path": "/control-room/alerts",
+      "errors": [],
+      "apiErrors": [],
+      "overflow": false,
+      "passed": true
+    },
+    {
+      "role": "ADMIN",
+      "path": "/control-room/replay",
+      "errors": [],
+      "apiErrors": [],
+      "overflow": false,
+      "passed": true
+    },
+    {
+      "role": "ADMIN",
+      "path": "/control-room/simulator",
+      "errors": [],
+      "apiErrors": [],
+      "overflow": false,
+      "passed": true
+    },
+    {
+      "role": "ADMIN",
+      "path": "/control-room/audit",
+      "errors": [],
+      "apiErrors": [],
+      "overflow": false,
+      "passed": true
+    },
+    {
+      "role": "ADMIN",
+      "path": "/control-room/settings",
+      "errors": [],
+      "apiErrors": [],
+      "overflow": false,
+      "passed": true
+    },
+    {
+      "role": "RESPONDER",
+      "path": "/control-room/brain",
+      "errors": [],
+      "apiErrors": [],
+      "overflow": false,
+      "passed": true
+    },
+    {
+      "role": "RESPONDER",
+      "path": "/control-room/responder",
+      "errors": [],
+      "apiErrors": [],
+      "overflow": false,
+      "passed": true
+    },
+    {
+      "role": "RESPONDER",
+      "path": "/control-room/replay",
+      "errors": [],
+      "apiErrors": [],
+      "overflow": false,
+      "passed": true
+    },
+    {
+      "role": "RESPONDER",
+      "path": "/control-room/simulator",
+      "errors": [],
+      "apiErrors": [],
+      "overflow": false,
+      "passed": true
+    },
+    {
+      "role": "RECOVERY_COORDINATOR",
+      "path": "/control-room/brain",
+      "errors": [],
+      "apiErrors": [],
+      "overflow": false,
+      "passed": true
+    },
+    {
+      "role": "RECOVERY_COORDINATOR",
+      "path": "/control-room/recovery",
+      "errors": [],
+      "apiErrors": [],
+      "overflow": false,
+      "passed": true
+    },
+    {
+      "role": "VOLUNTEER",
+      "path": "/control-room/field",
+      "errors": [],
+      "apiErrors": [],
+      "overflow": false,
+      "passed": true
+    },
+    {
+      "role": "VIEWER",
+      "path": "/control-room/viewer",
+      "errors": [],
+      "apiErrors": [],
+      "overflow": false,
+      "passed": true
+    },
+    {
+      "role": "VIEWER",
+      "path": "/control-room/replay",
+      "errors": [],
+      "apiErrors": [],
+      "overflow": false,
+      "passed": true
+    }
+  ],
+  "failed": 0
+}

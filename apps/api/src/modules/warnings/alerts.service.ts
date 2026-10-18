@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, OnModuleInit, Optional } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException, OnModuleInit, Optional } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import {
@@ -318,13 +318,15 @@ export class AlertsService implements OnModuleInit {
     return w;
   }
 
-  async simulateBroadcast(id: string): Promise<{ success: boolean; simulation: true; deliveryMethod: string; timestamp: string }> {
+  async simulateBroadcast(id: string, actorId?: string): Promise<{ success: boolean; simulation: true; deliveryMethod: string; timestamp: string }> {
     let w = this.warnings.find((item) => item.id === id);
     if (!w && this.warningRepository) {
       w = (await this.warningRepository.findOne({ where: { id } })) || undefined;
     }
     if (!w) throw new NotFoundException('Warning not found');
 
+    if (w.state !== WarningState.APPROVED && w.state !== WarningState.SENT_SIMULATED) throw new ConflictException('Approve this warning before simulating delivery.');
+    await this.auditService?.record({ actorUserId: actorId, action: 'SEND_WARNING_SIMULATED', entityType: 'WARNING', entityId: w.id, reason: 'Synthetic broadcast only; no external delivery.', beforeSummary: { state: w.state }, afterSummary: { state: WarningState.SENT_SIMULATED, simulation: true } });
     w.state = WarningState.SENT_SIMULATED;
     w.delivery_simulation = {
       method: 'SIMULATED_CELL_BROADCAST_AND_SMS',
@@ -361,11 +363,12 @@ export class AlertsService implements OnModuleInit {
     };
   }
 
-  getLoudspeakerAudio(id: string) {
+  async getLoudspeakerAudio(id: string) {
     let w = this.warnings.find((item) => item.id === id);
     if (!w) {
-      w = this.warnings[0];
+      w = this.warningRepository ? (await this.warningRepository.findOne({ where: { id } })) ?? undefined : undefined;
     }
+    if (!w) throw new NotFoundException('Warning not found');
     const isSylhet = w?.event_id === '11111111-1111-1111-1111-111111111104' ||
       w?.event_id === '11111111-1111-1111-1111-111111111105' ||
       w?.body_bn?.includes('সুরমা') ||
@@ -378,11 +381,13 @@ export class AlertsService implements OnModuleInit {
       warningId: id,
       areaName: area,
       broadcastScriptBn: scriptBn,
-      audioFormat: 'audio/wav',
+      simulation: true,
+      artifactType: 'SCRIPT_ONLY',
+      audioFormat: null,
       recommendedMedium: 'MOSQUE_LOUDSPEAKER_AND_UNION_MEGAPHONE',
-      sampleRateHz: 16000,
-      durationSeconds: 28,
-      downloadFileName: `aali-loudspeaker-warning-${id}.wav`,
+      sampleRateHz: null,
+      durationSeconds: null,
+      downloadFileName: null,
       generatedAt: new Date().toISOString(),
     };
   }

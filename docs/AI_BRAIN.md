@@ -112,3 +112,7 @@ Enabled in the local ignored `.env` and key-free example. `GET /api/v1/brain/aut
 New tests cover area-failure isolation, full coverage, exercise separation, overlapping sweeps, shutdown, GPT failure cooldown and briefing reuse. Type checking and production builds passed; lint has zero errors and eight existing warnings. Web tests: 65 passed. Final backend suite: 180 tests passed across 32 suites, including the cooldown/reuse cases. Existing Vite bundle and React test warnings remain.
 
 Always-on hosting and phone push/SMS delivery are not configured. Closing the browser is supported; switching off the API machine is not. Existing reviewed tasks are not silently approved by the worker. Verified field data, route safety, shelter reservations and real dispatch remain outside autonomous execution.
+
+## Human intervention and map audit
+
+The area map, persisted global/per-area pause/resume controls, optional READY guidance reviews and full API/browser audit are documented in [SYSTEM_AUDIT.md](SYSTEM_AUDIT.md). Admin can inspect aggregate monitoring and intervention controls without operational plan access. The new migration 1792290000000 creates brain_controls. Sylhet exercise event 106 is separate from historical events 104/105.

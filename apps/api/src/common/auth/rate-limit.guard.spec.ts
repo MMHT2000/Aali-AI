@@ -45,9 +45,9 @@ describe('RateLimitGuard', () => {
     try {
       guard.canActivate(ctx);
       fail('Expected 429 HttpException');
-    } catch (err: any) {
+    } catch (err: unknown) {
       expect(err).toBeInstanceOf(HttpException);
-      expect(err.getStatus()).toBe(HttpStatus.TOO_MANY_REQUESTS);
+      expect((err as HttpException).getStatus()).toBe(HttpStatus.TOO_MANY_REQUESTS);
     }
   });
   it('does not let an AI request consume the SOS route allowance', () => {

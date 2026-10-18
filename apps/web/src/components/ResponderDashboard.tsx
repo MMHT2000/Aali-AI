@@ -79,7 +79,7 @@ export function ResponderDashboard({
         return;
       }
       setLiveReports([]);
-      const selectedEventId = eventId ?? '11111111-1111-1111-1111-111111111103';
+      const selectedEventId = eventId ?? (districtCode === 'SYLHET_DIST' ? '11111111-1111-1111-1111-111111111106' : '11111111-1111-1111-1111-111111111103');
       const [incRes, silentRes] = await Promise.all([
         fetch(`/api/v1/incidents?eventId=${encodeURIComponent(selectedEventId)}`),
         fetch(`/api/v1/incidents/silent-areas?eventId=${encodeURIComponent(selectedEventId)}`),
@@ -168,7 +168,7 @@ export function ResponderDashboard({
         alert(text);
         setIsPlayingAudio(false);
       }
-    } catch (_) {
+    } catch {
       setIsPlayingAudio(false);
     }
   };

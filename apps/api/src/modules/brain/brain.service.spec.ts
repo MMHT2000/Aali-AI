@@ -94,6 +94,16 @@ describe('brain persistence, scope and approval boundary', () => {
     expect(agent.review).toHaveBeenCalledTimes(1); expect(next.agent.provider).toBe('OPENAI');
     expect(next.agent.focusActionIds).not.toContain('invalid-reference');
   });
+  it('keeps an optional human dismissal when the evidence and task stay unchanged', async () => {
+    const fixed = exerciseEnvironment(BRAIN_AREAS[0]);
+    environment.get.mockResolvedValueOnce(fixed).mockResolvedValueOnce(fixed);
+    const previous = await service.run({ areaId: 'feni', mode: 'LIVE' });
+    previous.actions[0].state = 'DISMISSED';
+    previous.createdAt = new Date(Date.now() - 120000).toISOString();
+    const next = await service.run({ areaId: 'feni', mode: 'LIVE' }, false);
+    expect(next.actions[0].state).toBe('DISMISSED');
+    expect(next.limitations.some(note => note.includes(previous.id))).toBe(true);
+  });
   it('saves one analysis for concurrent requests and avoids repeated LLM calls', async () => {
     const results = await Promise.all([service.run({ areaId: 'feni', mode: 'LIVE' }), service.run({ areaId: 'feni', mode: 'LIVE' })]);
     expect(save).toHaveBeenCalledTimes(1); expect(agent.review).toHaveBeenCalledTimes(1); expect(results[0].id).toBe(results[1].id);

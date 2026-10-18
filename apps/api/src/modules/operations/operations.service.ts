@@ -38,7 +38,7 @@ export class OperationsService {
       area.source_name === 'SYNTHETIC_SYLHET_FIXTURE';
     const readingData = {
       id: `field-reading-${Date.now()}`,
-      event_id: isSylhet ? '11111111-1111-1111-1111-111111111104' : '11111111-1111-1111-1111-111111111103',
+      event_id: isSylhet ? '11111111-1111-1111-1111-111111111106' : '11111111-1111-1111-1111-111111111103',
       area_id: area.id,
       gauge_id: isSylhet ? '33333333-3333-3333-3333-333333333302' : '33333333-3333-3333-3333-333333333301',
       submitted_by: submittedBy,
@@ -96,11 +96,11 @@ export class OperationsService {
     const shouldLoadReports = canSeeRescueRecords && (mode === OperationsMode.LIVE || mode === OperationsMode.EXERCISE);
     const shouldLoadIncidents = canSeeRescueRecords && mode === OperationsMode.EXERCISE;
     const [allIncidents, allReports] = await Promise.all([
-      shouldLoadIncidents ? this.incidents.getIncidents() : Promise.resolve([]),
+      shouldLoadIncidents ? this.incidents.getIncidents(context.event?.id) : Promise.resolve([]),
       shouldLoadReports ? this.sos.getReports() : Promise.resolve([]),
     ]);
     const activeEventIds = new Set(SYNTHETIC_FENI_SEEDS.floodEvents.filter((event) => event.status === 'ACTIVE').map((event) => event.id));
-    const reports = mode === OperationsMode.HISTORICAL
+    let reports = mode === OperationsMode.HISTORICAL
       ? []
       : mode === OperationsMode.EXERCISE
         ? allReports.filter((report) => report.event_id === context.event?.id)
@@ -121,6 +121,12 @@ export class OperationsService {
         SYNTHETIC_FENI_SEEDS.areas.filter((v) => v.parent_id === a.id).forEach((v) => allowedAreaIds.add(v.id!));
       });
     }
+
+    reports = reports.filter(report => {
+      if (report.area_id) return allowedAreaIds.has(report.area_id);
+      const sourceEvent = SYNTHETIC_FENI_SEEDS.floodEvents.find(event => event.id === report.event_id);
+      return sourceEvent?.region_code === (targetDistrictCode === 'SYLHET_DIST' ? 'SYLHET' : 'FENI');
+    });
 
     const areas = SYNTHETIC_FENI_SEEDS.areas
       .filter((area) => (allowedAreaIds.size === 0 || allowedAreaIds.has(area.id!)) && !isAdmin && (!(isVolunteer || isRecovery) || area.area_type === 'VILLAGE'))
@@ -237,22 +243,22 @@ export class OperationsService {
                 return { id: incident.id, label: incident.summary, latitude: area?.latitude, longitude: area?.longitude, status: incident.status, peopleCount: incident.peopleCount, provenance: OperationsProvenance.SYNTHETIC_FIXTURE };
               }))) : [],
       sos: canSeeReports ? (() => {
-        const liveDbReports = reports.map((report, idx) => {
+        const liveDbReports = reports.map((report) => {
           let area = SYNTHETIC_FENI_SEEDS.areas.find((item) => item.id === report.area_id);
           if (!area && report.geohash7) {
             area = SYNTHETIC_FENI_SEEDS.areas.find((item) => item.geohash7 === report.geohash7);
           }
           const defaultLabel = targetDistrictCode === 'SYLHET_DIST' ? 'Sylhet District' : 'Feni District';
           const areaLabel = area ? (area.name_bn || area.name_en) : defaultLabel;
-          const lat = report.location_lat ?? area?.latitude ?? (targetDistrictCode === 'SYLHET_DIST' ? (25.08 + ((idx * 7) % 20 - 10) * 0.003) : (23.015 + ((idx * 7) % 20 - 10) * 0.003));
-          const lng = report.location_lng ?? area?.longitude ?? (targetDistrictCode === 'SYLHET_DIST' ? (91.75 + ((idx * 13) % 20 - 10) * 0.003) : (91.397 + ((idx * 13) % 20 - 10) * 0.003));
+          const lat = report.location_lat ?? area?.latitude ?? null;
+          const lng = report.location_lng ?? area?.longitude ?? null;
           return {
             id: report.id,
             shortId: report.packet_short_id,
             name: area ? `${area.name_en} (${report.packet_short_id})` : `SOS ${report.packet_short_id ?? report.id.slice(0, 8)}`,
             label: `${areaLabel} · ${report.people_count} people affected`,
-            latitude: Number(lat),
-            longitude: Number(lng),
+            latitude: lat === null ? null : Number(lat),
+            longitude: lng === null ? null : Number(lng),
             status: report.review_status,
             peopleCount: report.people_count,
             hasChild: report.has_child,
@@ -265,62 +271,6 @@ export class OperationsService {
           };
         });
 
-        if (targetDistrictCode === 'SYLHET_DIST') {
-          const syntheticSylhet = [
-            {
-              id: 'sylhet-sos-synthetic-01',
-              shortId: 'SYL-01',
-              name: 'Rustampur Village Compound (SYL-01)',
-              label: 'রুস্তমপুর গ্রাম · ৭ জন পানিবন্দি',
-              latitude: 25.092,
-              longitude: 91.785,
-              status: 'NEEDS_REVIEW',
-              peopleCount: 7,
-              hasChild: true,
-              hasMedicalNeed: false,
-              isTrapped: true,
-              elderlyCount: 2,
-              geohash7: 'wh1quuk',
-              receivedAt: new Date(Date.now() - 12 * 60000).toISOString(),
-              provenance: OperationsProvenance.API_SUBMITTED_REPORT,
-            },
-            {
-              id: 'sylhet-sos-synthetic-02',
-              shortId: 'SYL-02',
-              name: 'Companiganj BNSB High School Point (SYL-02)',
-              label: 'কোম্পানীগঞ্জ বাজার · ১২ জন আশ্রয়প্রার্থী',
-              latitude: 25.0815,
-              longitude: 91.7535,
-              status: 'NEEDS_REVIEW',
-              peopleCount: 12,
-              hasChild: true,
-              hasMedicalNeed: true,
-              isTrapped: false,
-              elderlyCount: 3,
-              geohash7: 'wh1qu1m',
-              receivedAt: new Date(Date.now() - 25 * 60000).toISOString(),
-              provenance: OperationsProvenance.API_SUBMITTED_REPORT,
-            },
-            {
-              id: 'sylhet-sos-synthetic-03',
-              shortId: 'SYL-03',
-              name: 'Gowainghat River Bank (SYL-03)',
-              label: 'গোয়াইনঘাট বাঁধঘাট · ৪ জন বয়স্ক',
-              latitude: 25.0565,
-              longitude: 91.9715,
-              status: 'ASSIGNED',
-              peopleCount: 4,
-              hasChild: false,
-              hasMedicalNeed: true,
-              isTrapped: true,
-              elderlyCount: 4,
-              geohash7: 'wh1rp6w',
-              receivedAt: new Date(Date.now() - 40 * 60000).toISOString(),
-              provenance: OperationsProvenance.API_SUBMITTED_REPORT,
-            },
-          ];
-          return [...liveDbReports, ...syntheticSylhet];
-        }
         return liveDbReports;
       })() : [],
     };
@@ -389,7 +339,7 @@ export class OperationsService {
     if (event && targetDistrictCode) {
       const expectedRegion = targetDistrictCode === 'SYLHET_DIST' ? 'SYLHET' : 'FENI';
       if (event.region_code !== expectedRegion) {
-        event = candidates.find((candidate) => candidate.region_code === expectedRegion) ?? event;
+        throw new BadRequestException('Selected event does not belong to the selected district.');
       }
     }
     if (!event && !eventId) {

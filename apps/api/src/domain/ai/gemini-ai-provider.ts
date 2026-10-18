@@ -2,7 +2,6 @@ import { Logger } from '@nestjs/common';
 import {
   CommunicationDraftResult,
   DuplicateExplanationResult,
-  ShiftSummaryResult,
   SosExtractedFields,
   SosUnderstandingResult,
 } from './ai-interfaces';

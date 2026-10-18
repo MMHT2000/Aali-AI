@@ -14,15 +14,22 @@ import {
 } from 'lucide-react';
 import { apiFetch as fetch } from '../lib/authenticated-fetch';
 import { OperationsMode } from '../lib/operations-client';
+import { buildClientDisasterPacket } from '../lib/packet';
+import type { SosUnderstandingResult } from '../../../api/src/domain/ai/ai-interfaces';
+
+function examplePacket(isSylhet: boolean) {
+  return buildClientDisasterPacket({ geohash7: isSylhet ? 'wh1quuk' : 'wh0xs6m', peopleCount: isSylhet ? 6 : 5, flags: { elderly: true, child: false, medical: isSylhet, trapped: true }, shortId: isSylhet ? 'SY01' : 'FE01' }).rawPacket;
+}
 
 interface JudgeDemoRunnerProps {
   currentMode: OperationsMode;
   onSetMode: (mode: OperationsMode, eventId?: string) => void;
   districtCode?: string;
   eventId?: string;
+  role?: string;
 }
 
-export function JudgeDemoRunner({ currentMode, onSetMode, districtCode = 'FENI_DIST', eventId }: JudgeDemoRunnerProps) {
+export function JudgeDemoRunner({ currentMode, onSetMode, districtCode = 'FENI_DIST', eventId, role = 'AUTHORITY' }: JudgeDemoRunnerProps) {
   const navigate = useNavigate();
   const isSylhet = districtCode === 'SYLHET_DIST';
   const targetDistrictCode = isSylhet ? 'SYLHET_DIST' : 'FENI_DIST';
@@ -35,18 +42,19 @@ export function JudgeDemoRunner({ currentMode, onSetMode, districtCode = 'FENI_D
   const [isAutoPlaying, setIsAutoPlaying] = useState(false);
 
   // Packet & Dialect Tester State
-  const [packetInput, setPacketInput] = useState(isSylhet ? 'A1|S|wh1quuk|06|E1M1|0617-1500|SY01' : 'A1|S|wh0r2q8|05|E1M0|0821-1430|7Q2K');
+  const [packetInput, setPacketInput] = useState(() => examplePacket(isSylhet));
   const [dialectText, setDialectText] = useState(
     isSylhet
       ? 'কোম্পানীগঞ্জ বাজারে পানি উটি গেছে, ৬ জন আটকা রইছি, বাইচ্চা ও বুড়া মানুষ আছে'
       : 'ফুলগাজী স্কুলে পানি উঠতাছে, ৫ জন ছাদে আটকাইছি, একজন প্যারালাইজড বুড়া'
   );
-  const [packetResult, setPacketResult] = useState<any>(null);
-  const [aiExtractResult, setAiExtractResult] = useState<any>(null);
+  const [packetResult, setPacketResult] = useState<{ status: string } | null>(null);
+  const [aiExtractResult, setAiExtractResult] = useState<SosUnderstandingResult | null>(null);
+  const [inspectorError, setInspectorError] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
-    setPacketInput(isSylhet ? 'A1|S|wh1quuk|06|E1M1|0617-1500|SY01' : 'A1|S|wh0r2q8|05|E1M0|0821-1430|7Q2K');
+    setPacketInput(examplePacket(isSylhet));
     setDialectText(
       isSylhet
         ? 'কোম্পানীগঞ্জ বাজারে পানি উটি গেছে, ৬ জন আটকা রইছি, বাইচ্চা ও বুড়া মানুষ আছে'
@@ -118,26 +126,29 @@ export function JudgeDemoRunner({ currentMode, onSetMode, districtCode = 'FENI_D
 
   const handleTestPacket = async () => {
     setIsProcessing(true);
+    setPacketResult(null); setInspectorError('');
     try {
-      const res = await fetch('/api/v1/gateway/sms', {
+      const res = await fetch('/api/v1/packets/decode', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ rawMessage: packetInput, sender: '+8801812345678' })
+        body: JSON.stringify({ packet: packetInput })
       });
       if (res.ok) {
         setPacketResult(await res.json());
-      }
-    } catch (e) {
-      console.error(e);
+      } else setInspectorError(`Packet validation request failed (${res.status}).`);
+    } catch {
+      setInspectorError('Packet validation unavailable. Check the API connection.');
     } finally {
       setIsProcessing(false);
     }
   };
 
   const handleTestDialect = async (preset?: string) => {
+    if (!['AUTHORITY', 'RESPONDER'].includes(role)) { setInspectorError('Language extraction requires an Authority or Responder account.'); return; }
     const textToTest = preset || dialectText;
     if (preset) setDialectText(preset);
     setIsProcessing(true);
+    setInspectorError('');
     try {
       const res = await fetch('/api/v1/ai/understand-sos', {
         method: 'POST',
@@ -146,9 +157,9 @@ export function JudgeDemoRunner({ currentMode, onSetMode, districtCode = 'FENI_D
       });
       if (res.ok) {
         setAiExtractResult(await res.json());
-      }
-    } catch (e) {
-      console.error(e);
+      } else setInspectorError(`Language extraction failed (${res.status}).`);
+    } catch {
+      setInspectorError('Language extraction unavailable. Check the API connection.');
     } finally {
       setIsProcessing(false);
     }
@@ -450,11 +461,12 @@ export function JudgeDemoRunner({ currentMode, onSetMode, districtCode = 'FENI_D
               </button>
             </header>
 
+            {inspectorError && <p role="alert">{inspectorError}</p>}
             <div className="judge-modal-body modal-split">
               {/* Left Column: Disaster Packet */}
               <div className="inspector-column">
                 <h3>1. Single-SMS Disaster Packet (160 Bytes Max)</h3>
-                <p className="column-desc">Works over 2G GSM, satellite SMS (D2C), or local store-and-forward queue.</p>
+                <p className="column-desc">ASCII packet validation preview. Real carrier and satellite transport are not connected.</p>
                 
                 <div className="packet-input-group">
                   <label htmlFor="raw-packet-input">Raw Disaster Packet:</label>
@@ -481,15 +493,8 @@ export function JudgeDemoRunner({ currentMode, onSetMode, districtCode = 'FENI_D
 
                 <div className="packet-breakdown-card">
                   <h4>Field Structure:</h4>
-                  <code>{isSylhet ? 'A1 | S | wh1quuk | 06 | E1M1 | 0617-1500 | SY01' : 'A1 | S | wh0r2q8 | 05 | E1M0 | 0821-1430 | 7Q2K'}</code>
-                  <ul className="packet-fields-list">
-                    <li><code>A1</code>: Protocol Version 1</li>
-                    <li><code>S</code>: Type = SOS (Distress)</li>
-                    <li><code>{isSylhet ? 'wh1quuk' : 'wh0r2q8'}</code>: 7-char Geohash (~150m accuracy in {isSylhet ? 'Companiganj' : 'Fulgazi'})</li>
-                    <li><code>{isSylhet ? '06' : '05'}</code>: {isSylhet ? '6' : '5'} people requiring rescue</li>
-                    <li><code>{isSylhet ? 'E1M1' : 'E1M0'}</code>: Urgent Flags (Elderly: 1, Medical: {isSylhet ? '1' : '0'})</li>
-                    <li><code>{isSylhet ? '0617-1500' : '0821-1430'}</code>: Timestamp {isSylhet ? '17 Jun, 15:00 BST' : '21 Aug, 14:30 BST'}</li>
-                    <li><code>{isSylhet ? 'SY01' : '7Q2K'}</code>: Integrity Checksum</li>
+                  <code>{packetInput}</code>
+                  <ul className="packet-fields-list"><li>A1: protocol version. S: SOS packet type.</li><li>Location: seven-character geohash cell; it does not establish GPS accuracy.</li><li>Flags: elderly, child, medical and trapped.</li><li>Timestamp: YYMMDD-HHMM in UTC.</li><li>Final fields: report short ID, followed by a validated CRC checksum.</li>
                   </ul>
                 </div>
 
@@ -497,8 +502,8 @@ export function JudgeDemoRunner({ currentMode, onSetMode, districtCode = 'FENI_D
                   <div className="packet-success-alert">
                     <CheckCircle2 size={16} />
                     <div>
-                      <strong>Packet Ingested Successfully!</strong>
-                      <p>Mapped to incident in {isSylhet ? 'Companiganj' : 'Fulgazi'}. Server acknowledgement: {packetResult.reportId || 'ACK_ACCEPTED'}</p>
+                      <strong>{packetResult.status === 'VALID' ? 'Packet validated successfully' : `Packet rejected: ${packetResult.status}`}</strong>
+                      <p>Validation preview only. No SOS, incident or transport receipt was created.</p>
                     </div>
                   </div>
                 )}

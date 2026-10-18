@@ -4,6 +4,7 @@
  */
 
 const http = require('http');
+const assert = require('node:assert/strict');
 
 const API_BASE = 'http://127.0.0.1:3001/api/v1';
 
@@ -36,6 +37,7 @@ function request(path, method = 'GET', data = null, headers = {}) {
     );
 
     req.on('error', reject);
+    req.setTimeout(15000, () => req.destroy(new Error('API request timed out')));
     if (data) {
       req.write(JSON.stringify(data));
     }
@@ -89,7 +91,7 @@ async function runJudgeDemoSmoke() {
     throw new Error('Could not load historical scenarios');
   }
   console.log(`✅ Loaded ${scenarios.data.length} historical scenarios. Selected: ${scenarios.data[0].titleBn || scenarios.data[0].id}`);
-  console.log(`   Baseline: 605–616 of 653 towers severed by August 2024 floodwaters.\n`);
+  console.log(`   Historical synthetic reconstruction loaded; no live transport claim.\n`);
 
   // Step 2: Moment 2 — BEFORE: 3-Signal Alert & Blank Gauge Escalation
   console.log('--- Moment 2 (0:30–1:30): BEFORE — 3 Signals & Blank Gauge Rule ---');
@@ -125,7 +127,7 @@ async function runJudgeDemoSmoke() {
   console.log(`   Reasons: ${alertEval.data.reasonsBn.slice(0, 2).join(' | ')}\n`);
 
   // Step 3: Moment 3 — DURING: Blackout SOS Packet & Dialect Extraction
-  console.log('--- Moment 3 (1:30–2:30): DURING — 42-Byte Disaster Packet & Dialect AI ---');
+  console.log('--- Moment 3 (1:30–2:30): DURING — ASCII Disaster Packet & Dialect AI ---');
   const shortId = 'SM' + String(Math.floor(Math.random() * 90 + 10));
   const testPacket = encodeTestPacket('wh0r789', 5, shortId);
   const packetRes = await request('/gateway/simulated/ingest', 'POST', {
@@ -136,14 +138,18 @@ async function runJudgeDemoSmoke() {
     throw new Error(`Packet ingest failed: ${packetRes.status} -> ${JSON.stringify(packetRes.data || packetRes.raw)}`);
   }
   console.log(`✅ Disaster Packet Ingested & Decoded: ${testPacket}`);
+  assert.equal(packetRes.data.simulation, true);
+  assert.ok(packetRes.data.reportId);
   console.log(`   Decoded Status: ${packetRes.data.status || 'ACCEPTED'}, ReportId: ${packetRes.data.reportId || 'IDEMPOTENT'}`);
 
   const aiDialect = await request('/ai/understand-sos', 'POST', {
     text: 'ফুলগাজী স্কুলে পানি উঠতাছে, ৫ জন ছাদে আটকাইছি, একজন প্যারালাইজড বুড়া',
   }, authHeaders);
+  assert.equal(aiDialect.status, 201);
+  assert.equal(aiDialect.data.extracted.peopleCount, 5);
   console.log(`✅ Dialect NLP Extracted: People: ${aiDialect.data.extracted.peopleCount}, Trapped: ${aiDialect.data.extracted.urgencyFlags.trapped}, Elderly: ${aiDialect.data.extracted.urgencyFlags.elderly}`);
 
-  // Test Mobile App Starlink D2C Wi-Fi direct SOS transmission
+  // Test synthetic mobile API submission; satellite transport is not verified.
   const mobileRef = `SOS-D2C-${Math.floor(Math.random() * 9000 + 1000)}`;
   const mobileSos = await request('/sos', 'POST', {
     clientReportId: mobileRef,
@@ -154,11 +160,12 @@ async function runJudgeDemoSmoke() {
     needsMedical: false,
     residentPhone: '01711000000',
     messageOriginal: 'Water rising in Parshuram Bazar, 4 trapped on roof',
-  }, { 'X-Transport-Type': 'STARLINK_D2C_WIFI' });
+  });
   if (mobileSos.status !== 201 && mobileSos.status !== 200) {
     throw new Error(`Mobile D2C SOS failed with status ${mobileSos.status}`);
   }
-  console.log(`✅ Mobile Starlink D2C SOS Ingested: Ref ${mobileRef} via STARLINK_D2C_WIFI (Status: ${mobileSos.status})\n`);
+  assert.equal(mobileSos.data.report.transport_kind, 'APP_DIRECT');
+  console.log('PASS: Synthetic mobile SOS accepted over APP_DIRECT; satellite transport is not verified.');
 
   // Step 4: Moment 4 — DURING: Boat Priority & Human Authorization
   console.log('--- Moment 4 (2:30–3:30): DURING — Boat Priority & Human Review ---');
@@ -175,6 +182,8 @@ async function runJudgeDemoSmoke() {
       decision: 'ACCEPT',
       reason: 'Incident commander authorized shallow-draft rescue mission',
     }, authHeaders);
+    assert.equal(reviewBoat.status, 201);
+    assert.equal(reviewBoat.data.incident.suggestedBoat.status, 'ACCEPTED');
     console.log(`✅ Operator Human Review Recorded: Status ${reviewBoat.status} (NO auto-dispatch)`);
   }
   console.log('');
@@ -185,8 +194,9 @@ async function runJudgeDemoSmoke() {
   if (recoverySummary.status !== 200 || !recoverySummary.data) {
     throw new Error('Failed to load recovery summary');
   }
-  console.log(`✅ Recovery Summary Loaded: Event ${recoverySummary.data.eventId || 'Feni Flood'}`);
-  console.log(`   Audited Villages: ${recoverySummary.data.villagesCount || 6}, Submerged Tube Wells: ${recoverySummary.data.submergedTubeWellsCount || 142}`);
+  assert.ok(Array.isArray(recoverySummary.data.villagesRanking));
+  console.log('PASS: Recovery summary loaded from API.');
+  console.log(`   Ranked areas: ${recoverySummary.data.villagesRanking.length}; reports: ${recoverySummary.data.totalReports}; receipts: ${recoverySummary.data.totalDeliveries}`);
 
   // Authenticate as Recovery Coordinator for idempotent relief ledger post
   const recAuth = await request('/auth/login', 'POST', {
@@ -196,20 +206,30 @@ async function runJudgeDemoSmoke() {
   const recToken = recAuth.data.accessToken || recAuth.data.access_token;
   const recHeaders = { Authorization: `Bearer ${recToken}` };
 
-  const aidRecord = await request('/recovery/deliveries', 'POST', {
-    villageId: 'vil-chitholia-01',
-    familyNidMasked: '1990************',
-    reliefPacksDelivered: 50,
-    waterPurificationTablets: 500,
-    dryFoodKg: 250,
-    idempotencyKey: `aid-e2e-demo-${Date.now()}`,
-    deliveryNote: 'Tabletop e2e demonstration delivery verified by district coordinator',
-  }, recHeaders);
-  console.log(`✅ Idempotent Aid Delivery Recorded: Status ${aidRecord.status} (Idempotent Ledger Guard Verified)\n`);
+  assert.equal(recAuth.status, 201);
+  const deliveryBody = {
+    eventId: '11111111-1111-1111-1111-111111111103',
+    areaId: '22222222-2222-2222-2222-222222222205',
+    organizationLabel: 'Synthetic demo verification',
+    itemCode: 'FOOD_PACK', quantity: 1, unit: 'PACKS',
+    idempotencyKey: 'aid-e2e-demo-' + Date.now(),
+    receiptNote: 'Synthetic verification only; no real delivery performed',
+  };
+  const aidRecord = await request('/recovery/deliveries', 'POST', deliveryBody, recHeaders);
+  assert.equal(aidRecord.status, 201, 'Delivery must succeed before it is reported as recorded');
+  assert.equal(aidRecord.data.isDuplicateIgnored, false);
+  assert.ok(aidRecord.data.delivery.id);
+  const retry = await request('/recovery/deliveries', 'POST', deliveryBody, recHeaders);
+  assert.equal(retry.status, 201); assert.equal(retry.data.isDuplicateIgnored, true);
+  assert.equal(retry.data.delivery.id, aidRecord.data.delivery.id);
+  const audit = await request('/audit-logs?entityType=AID_DELIVERY&entityId=' + encodeURIComponent(aidRecord.data.delivery.id), 'GET', null, authHeaders);
+  assert.equal(audit.status, 200);
+  assert.equal(audit.data.filter(row => row.action === 'RECORD_AID_DELIVERY').length, 1);
+  console.log('PASS: synthetic receipt saved, retry deduplicated, and exactly one persisted audit entry verified.\n');
 
   console.log('================================================================');
   console.log('🎉 [ACT-06 RESULT] 5-MINUTE JUDGE DEMO FLOW COMPLETED SUCCESSFULLY!');
-  console.log('   All 5 Moments executed with green assertions and immutable audit log.');
+  console.log('   All 5 synthetic moments passed; actual receipt retry and audit assertions verified.');
   console.log('================================================================\n');
 }
 

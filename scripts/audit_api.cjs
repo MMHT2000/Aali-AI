@@ -101,6 +101,8 @@ function packet() {
   await check('POST '+base+'brain/autonomy/control', 'POST', base+'brain/autonomy/control', { scope: 'ALL', paused: true, reason: 'Unauthorized audit' }, 'responder', [403], 'role restriction');
   await check('GET '+base+'events/{id}', 'GET', base+'events/'+missing, undefined, 'authority', [404], 'unknown event');
   await check('GET '+base+'replay/runs/{id}', 'GET', base+'replay/runs/'+missing, undefined, 'authority', [404], 'unknown run');
+  await check('GET '+base+'warnings/{id}/loudspeaker-audio', 'GET', base+'warnings/'+missing+'/loudspeaker-audio', undefined, 'anonymous', [404], 'unknown warning');
+  await check('POST '+base+'replay/runs/{id}/step', 'POST', base+'replay/runs/'+replay.data.runId+'/step', { direction: 'SET_TICK', targetTick: 1.5 }, 'authority', [400], 'fractional replay index');
   // Check every role, district, and data mode using actual API projections.
   for (const role of Object.keys(tokens)) for (const districtCode of ['FENI_DIST','SYLHET_DIST']) for (const mode of ['LIVE','EXERCISE','HISTORICAL']) await check('GET '+base+'operations/snapshot', 'GET', base+'operations/snapshot?'+new URLSearchParams({mode,districtCode}), undefined, role, [200], role+'/'+districtCode+'/'+mode);
   const operations = Object.entries(spec.paths).flatMap(([route, verbs]) => Object.keys(verbs).filter(verb => ['get','post','put','patch','delete'].includes(verb)).map(verb=>verb.toUpperCase()+' '+route));

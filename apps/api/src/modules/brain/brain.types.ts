@@ -5,7 +5,7 @@ export interface BrainArea {
 }
 export const BRAIN_AREAS: readonly BrainArea[] = [
   { id: 'feni', name: 'Feni · Parshuram', basin: 'Muhuri', latitude: 23.22, longitude: 91.44, bounds: [91.20, 22.90, 91.65, 23.40], rainWatchMm: 60, rainHighMm: 120, districtCode: 'FENI_DIST', exerciseEventId: '11111111-1111-1111-1111-111111111103' },
-  { id: 'sylhet', name: 'Sylhet · Companiganj', basin: 'Surma / Meghalaya foothills', latitude: 25.08, longitude: 91.75, bounds: [91.45, 24.80, 92.10, 25.20], rainWatchMm: 70, rainHighMm: 140, districtCode: 'SYLHET_DIST', exerciseEventId: '11111111-1111-1111-1111-111111111104' },
+  { id: 'sylhet', name: 'Sylhet · Companiganj', basin: 'Surma / Meghalaya foothills', latitude: 25.08, longitude: 91.75, bounds: [91.45, 24.80, 92.10, 25.20], rainWatchMm: 70, rainHighMm: 140, districtCode: 'SYLHET_DIST', exerciseEventId: '11111111-1111-1111-1111-111111111106' },
   { id: 'sunamganj', name: 'Sunamganj', basin: 'Surma / haor', latitude: 25.07, longitude: 91.40, bounds: [91.10, 24.80, 91.65, 25.20], rainWatchMm: 70, rainHighMm: 140 },
   { id: 'kurigram', name: 'Kurigram', basin: 'Brahmaputra / Dharla', latitude: 25.81, longitude: 89.65, bounds: [89.35, 25.50, 89.90, 26.10], rainWatchMm: 60, rainHighMm: 120 },
   { id: 'sirajganj', name: 'Sirajganj', basin: 'Jamuna', latitude: 24.45, longitude: 89.72, bounds: [89.40, 24.15, 89.95, 24.75], rainWatchMm: 60, rainHighMm: 120 },
@@ -32,7 +32,7 @@ export type ActionKind = 'PREPARE' | 'VERIFY_DATA' | 'REVIEW_RESCUE' | 'VERIFY_S
 export interface BrainAction {
   id: string; kind: ActionKind; title: string; detail: string; priority: number; sourceIds: string[];
   requiredRole: 'AUTHORITY' | 'RESPONDER' | 'RECOVERY_COORDINATOR';
-  state: 'PENDING_REVIEW' | 'ACKNOWLEDGED' | 'DISMISSED';
+  state: 'READY' | 'PENDING_REVIEW' | 'ACKNOWLEDGED' | 'DISMISSED';
 }
 export interface BrainPlan {
   id: string; areaId: string; mode: 'LIVE' | 'EXERCISE'; createdAt: string;

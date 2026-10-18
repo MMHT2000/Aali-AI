@@ -16,7 +16,7 @@ const { chromium } = require(process.env.AALI_PLAYWRIGHT_PATH || 'playwright-cor
     const submitted = page.waitForResponse(response => response.url().endsWith('/api/v1/sos') && response.request().method() === 'POST');
     await page.getByRole('button', { name: /Submit SOS/ }).click();
     const response = await submitted; assert.equal(response.status(), 201);
-    const result = await response.json(); assert.equal(result.report.event_id, '11111111-1111-1111-1111-111111111104');
+    const result = await response.json(); assert.equal(result.report.event_id, '11111111-1111-1111-1111-111111111106');
     assert.equal(snapshots.length, 0); assert.equal(await page.evaluate(() => localStorage.getItem('aali_session')), null);
     console.log('PASS: emergency link opens public SOS; anonymous Sylhet report accepted; no protected snapshot request.');
 

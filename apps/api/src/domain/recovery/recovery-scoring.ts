@@ -34,7 +34,7 @@ export interface VillageNeedScoreOutput {
   waterCoverageRatio: number; // [0, 1]
   foodCoverageRatio: number; // [0, 1]
   overallCoveragePercentage: number;
-  coordinates: { lat: number; lng: number };
+  coordinates?: { lat: number; lng: number };
   stagingSuggestionBn: string;
   disclaimer: string;
 }
@@ -124,7 +124,7 @@ export function calculateVillageNeedScore(
     waterCoverageRatio: parseFloat(waterRatio.toFixed(2)),
     foodCoverageRatio: parseFloat(foodRatio.toFixed(2)),
     overallCoveragePercentage: Math.round(averageCoverage * 100),
-    coordinates: input.coordinates || { lat: 23.2100, lng: 91.4300 },
+    coordinates: input.coordinates,
     stagingSuggestionBn,
     disclaimer: 'Rankings support logistical coordination and relief transparency, not beneficiary eligibility.',
   };

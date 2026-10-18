@@ -79,7 +79,7 @@ export function AuditViewer() {
                     {new Date(log.occurred_at).toLocaleString('en-GB', { timeZone: 'Asia/Dhaka', hour12: false })}
                   </td>
                   <td style={{ padding: '0.6rem 0.8rem', fontWeight: 'bold', color: '#38bdf8' }}>
-                    {log.user_id || log.actor || 'SYSTEM'}
+                    {log.actor_user_id || log.actor || 'SYSTEM'}
                   </td>
                   <td style={{ padding: '0.6rem 0.8rem' }}>
                     <span style={{

@@ -32,10 +32,10 @@ async function bootstrap() {
   // Permissive CORS for development, LAN mobile access, and local testing
   app.enableCors({
     origin: (origin, callback) => {
-      if (!origin || /^http:\/\/(localhost|127\.0\.0\.1|192\.168\.\d+\.\d+|10\.0\.2\.2)(:\d+)?$/.test(origin)) {
+      if (!origin || origin === webOrigin || (nodeEnv !== 'production' && /^http:\/\/(localhost|127\.0\.0\.1|192\.168\.\d+\.\d+|10\.0\.2\.2)(:\d+)?$/.test(origin))) {
         callback(null, true);
       } else {
-        callback(null, true);
+        callback(null, false);
       }
     },
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',

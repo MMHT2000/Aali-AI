@@ -103,7 +103,7 @@ export function ThreeTapSos({ onReportCreated, districtCode = 'FENI_DIST' }: Thr
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           clientReportId,
-          eventId: isSylhet ? '11111111-1111-1111-1111-111111111104' : '11111111-1111-1111-1111-111111111103',
+          eventId: isSylhet ? '11111111-1111-1111-1111-111111111106' : '11111111-1111-1111-1111-111111111103',
           village: selectedVillage,
           peopleCount,
           elderlyCount,

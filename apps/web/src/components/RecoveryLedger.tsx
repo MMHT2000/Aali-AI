@@ -37,10 +37,12 @@ export function RecoveryLedger({
   mode = 'EXERCISE',
   eventId,
   districtCode = 'FENI_DIST',
+  role = 'RECOVERY_COORDINATOR',
 }: {
   mode?: OperationsMode;
   eventId?: string;
   districtCode?: string;
+  role?: string;
 }) {
   const isSylhet = districtCode === 'SYLHET_DIST';
   const [rankings, setRankings] = useState<VillageRankItem[]>([]);
@@ -50,7 +52,7 @@ export function RecoveryLedger({
 
   // Form states for delivery entry
   const [selectedVillageId, setSelectedVillageId] = useState<string>(
-    isSylhet ? '22222222-2222-2222-2222-222222222204' : '22222222-2222-2222-2222-222222222205'
+    isSylhet ? '22222222-2222-2222-2222-222222222207' : '22222222-2222-2222-2222-222222222205'
   );
   const [orgLabel, setOrgLabel] = useState<string>('Bangladesh Red Crescent Society');
   const [itemCode, setItemCode] = useState<string>('CLEAN_WATER');
@@ -59,6 +61,8 @@ export function RecoveryLedger({
   const [idempotencyKey, setIdempotencyKey] = useState<string>(`del-${Date.now()}`);
   const [showFootprint, setShowFootprint] = useState<boolean>(false);
   const [scopeNotice, setScopeNotice] = useState<string | null>(null);
+  const exerciseEvent = isSylhet ? '11111111-1111-1111-1111-111111111106' : '11111111-1111-1111-1111-111111111103';
+  useEffect(() => { setSelectedVillageId(isSylhet ? '22222222-2222-2222-2222-222222222207' : '22222222-2222-2222-2222-222222222205'); }, [isSylhet]);
 
   const fetchData = async () => {
     setLoading(true);
@@ -69,9 +73,7 @@ export function RecoveryLedger({
       setLoading(false);
       return;
     }
-    const defaultEvent = isSylhet
-      ? '11111111-1111-1111-1111-111111111105'
-      : '11111111-1111-1111-1111-111111111103';
+    const defaultEvent = exerciseEvent;
     const selectedEventId = eventId ?? defaultEvent;
     setScopeNotice(mode === 'HISTORICAL' ? 'No recovery records are linked to this reconstructed event.' : null);
     try {
@@ -100,7 +102,7 @@ export function RecoveryLedger({
   const handleRecordDelivery = async (e: React.FormEvent) => {
     e.preventDefault();
     setFeedback(null);
-    if (mode !== 'EXERCISE') {
+    if (mode !== 'EXERCISE' || role !== 'RECOVERY_COORDINATOR') {
       setFeedback('Recording deliveries is enabled for the synthetic exercise only.');
       return;
     }
@@ -109,7 +111,7 @@ export function RecoveryLedger({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          eventId: eventId ?? '11111111-1111-1111-1111-111111111103',
+          eventId: eventId ?? exerciseEvent,
           areaId: selectedVillageId,
           organizationLabel: orgLabel,
           itemCode,
@@ -334,9 +336,9 @@ export function RecoveryLedger({
             >
               {isSylhet ? (
                 <>
-                  <option value="22222222-2222-2222-2222-222222222204">কোম্পানীগঞ্জ (Companiganj)</option>
-                  <option value="22222222-2222-2222-2222-222222222205">গোয়াইনঘাট (Gowainghat)</option>
-                  <option value="22222222-2222-2222-2222-222222222206">রুস্তমপুর (Rustampur)</option>
+                  <option value="22222222-2222-2222-2222-222222222207">কোম্পানীগঞ্জ (Companiganj)</option>
+                  <option value="22222222-2222-2222-2222-222222222208">গোয়াইনঘাট (Gowainghat)</option>
+                  <option value="22222222-2222-2222-2222-222222222209">রুস্তমপুর (Rustampur)</option>
                 </>
               ) : (
                 <>
@@ -364,7 +366,7 @@ export function RecoveryLedger({
               value={itemCode}
               onChange={(e) => {
                 setItemCode(e.target.value);
-                setUnit(e.target.value === 'CLEAN_WATER' ? 'LITRES' : 'PACKS');
+                setUnit(e.target.value === 'CLEAN_WATER' ? 'LITRES' : e.target.value === 'MEDICINE_KIT' ? 'KITS' : 'PACKS');
               }}
               style={{ width: '100%', background: '#0f172a', color: '#f8fafc', border: '1px solid #475569', borderRadius: '4px', padding: '0.35rem' }}
             >
@@ -397,7 +399,7 @@ export function RecoveryLedger({
           <div>
             <button
               type="submit"
-              disabled={mode !== 'EXERCISE'}
+              disabled={mode !== 'EXERCISE' || role !== 'RECOVERY_COORDINATOR' || !Number.isFinite(quantity) || quantity <= 0 || !orgLabel.trim() || !idempotencyKey.trim()}
               style={{ width: '100%', background: '#0284c7', color: 'white', border: 'none', padding: '0.45rem', borderRadius: '4px', fontWeight: 'bold', fontSize: '0.85rem', cursor: 'pointer' }}
             >
               ত্রাণ জমা দিন (Submit Receipt)

@@ -1,6 +1,7 @@
 import { ReviewRequest, SplitRequest, TriageRequest } from '../../common/validation/workflow.dto';
 import {
   Body,
+  BadRequestException,
   Controller,
   Get,
   NotFoundException,
@@ -103,6 +104,7 @@ export class IncidentsController {
     @Body() body: TriageRequest,
     @Request() req: { user: { id: string } },
   ) {
+    if (!body.decision && !body.action) throw new BadRequestException('Provide a triage decision or action.');
     const decision = body.decision || (body.action === 'CONFIRM' ? 'ACCEPT' : 'REJECT');
     const reason = body.reason || body.note || 'Responder triage confirmation';
     return this.incidentsService.reviewBoatSuggestion(

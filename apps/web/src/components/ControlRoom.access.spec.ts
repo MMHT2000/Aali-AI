@@ -18,6 +18,10 @@ describe('role workspace navigation policy', () => {
     expect(canAccessControlRoomRoute('/control-room/alerts', 'VIEWER')).toBe(false);
     expect(canAccessControlRoomRoute('/control-room/viewer', 'VIEWER')).toBe(true);
     expect(canAccessControlRoomRoute('/control-room/settings', 'ADMIN')).toBe(true);
+    expect(canAccessControlRoomRoute('/control-room/brain', 'ADMIN')).toBe(true);
+    expect(canAccessControlRoomRoute('/control-room/responder', 'ADMIN')).toBe(false);
+    expect(canAccessControlRoomRoute('/control-room/field', 'ADMIN')).toBe(false);
+    expect(canAccessControlRoomRoute('/control-room/recovery', 'ADMIN')).toBe(false);
   });
 
   it('routes each role to its task-focused home workspace', () => {

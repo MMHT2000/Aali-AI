@@ -14,7 +14,7 @@ async function login(username) { return (await api('auth/login', { username, pas
   assert.equal(plan.mode, 'EXERCISE'); assert.equal(plan.risk.level, 'HIGH'); assert.ok(['LOCAL_PLANNER', 'OPENAI'].includes(plan.agent.provider));
   if (process.env.AALI_REQUIRE_OPENAI === 'true') assert.equal(plan.agent.provider, 'OPENAI', `Expected real GPT, received ${plan.agent.status}`);
   assert.ok(plan.actions.some(a => a.kind === 'REVIEW_RELIEF'));
-  const action = plan.actions.find(a => a.requiredRole === 'AUTHORITY' && a.state === 'PENDING_REVIEW') || plan.actions.find(a => a.requiredRole === 'AUTHORITY' && a.state === 'ACKNOWLEDGED'); assert.ok(action, 'Authority preparation task required');
+  const action = plan.actions.find(a => a.requiredRole === 'AUTHORITY' && ['PENDING_REVIEW', 'READY'].includes(a.state)) || plan.actions.find(a => a.requiredRole === 'AUTHORITY' && a.state === 'ACKNOWLEDGED'); assert.ok(action, 'Authority preparation task required');
   const body = { actionId: action.id, decision: 'ACKNOWLEDGED', reason: 'Synthetic database smoke: evidence reviewed' };
   await api(`brain/runs/${plan.id}/review`, body, responder, 403);
   const [reviewed] = await Promise.all([api(`brain/runs/${plan.id}/review`, body, authority), api(`brain/runs/${plan.id}/review`, body, authority)]); assert.equal(reviewed.actions.find(a => a.id === action.id).state, 'ACKNOWLEDGED');

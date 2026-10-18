@@ -62,7 +62,7 @@ describe('ThreeTapSos Component', () => {
     fireEvent.click(screen.getByRole('button', { name: /Submit SOS/i }));
     await waitFor(() => expect(request).toHaveBeenCalled());
     const body = JSON.parse(request.mock.calls[0][1].body);
-    expect(body.eventId).toBe('11111111-1111-1111-1111-111111111104');
+    expect(body.eventId).toBe('11111111-1111-1111-1111-111111111106');
     expect(body.village).toContain('Companiganj');
   });
 });

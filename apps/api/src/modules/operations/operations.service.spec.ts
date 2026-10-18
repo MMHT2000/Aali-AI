@@ -56,6 +56,17 @@ function createService(bmdCapService?: BmdCapService) {
 }
 
 describe('OperationsService snapshot context and role projections', () => {
+  it('uses a dedicated Sylhet exercise event and scopes incident loading to it', async () => {
+    const { service, incidentsService } = createService();
+    const snapshot = await service.getSnapshot(UserRole.AUTHORITY, { mode: OperationsMode.EXERCISE, districtCode: 'SYLHET_DIST' });
+    expect(snapshot.context.event?.id).toBe('11111111-1111-1111-1111-111111111106');
+    expect(incidentsService.getIncidents).toHaveBeenCalledWith('11111111-1111-1111-1111-111111111106');
+    expect(snapshot.mapLayers.sos).toHaveLength(0);
+  });
+  it('rejects an explicit cross-district event instead of silently switching events', async () => {
+    const { service } = createService();
+    await expect(service.getSnapshot(UserRole.AUTHORITY, { mode: OperationsMode.HISTORICAL, districtCode: 'SYLHET_DIST', eventId: historicalEventId })).rejects.toThrow('district');
+  });
   it('defaults to the active synthetic exercise and scopes exercise reports to the selected event', async () => {
     const { service } = createService();
     const snapshot = await service.getSnapshot(UserRole.AUTHORITY);

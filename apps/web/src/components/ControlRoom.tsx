@@ -161,7 +161,7 @@ export function ControlRoom({ session, onLogout }: ControlRoomProps) {
         <button className="logout-button" onClick={onLogout} aria-label="Sign out"><LogOut size={16} /><span>Sign out</span></button>
       </div>
     </header>
-    <JudgeDemoRunner currentMode={mode} districtCode={districtCode} eventId={eventId} onSetMode={setOperatingContext} />
+    <JudgeDemoRunner role={session.role} currentMode={mode} districtCode={districtCode} eventId={eventId} onSetMode={setOperatingContext} />
     <div className="control-body">
       <aside className="control-sidebar">
         <nav className="control-navigation" aria-label="Operations workspaces">
@@ -182,7 +182,7 @@ export function ControlRoom({ session, onLogout }: ControlRoomProps) {
         <Route path="/control-room/responder" element={allowed('/control-room/responder') ? <ResponderDashboard mode={mode} eventId={eventId} districtCode={districtCode} /> : <Navigate to={{ pathname: fallback, search: location.search }} replace />} />
         <Route path="/control-room/alerts" element={allowed('/control-room/alerts') ? <FloodReplayWarning mode={mode} eventId={eventId} districtCode={districtCode} session={session} /> : <Navigate to={{ pathname: fallback, search: location.search }} replace />} />
         <Route path="/control-room/replay" element={allowed('/control-room/replay') ? <FloodReplayWarning mode={mode} eventId={eventId} districtCode={districtCode} session={session} /> : <Navigate to={{ pathname: fallback, search: location.search }} replace />} />
-        <Route path="/control-room/recovery" element={allowed('/control-room/recovery') ? <RecoveryLedger mode={mode} eventId={eventId} districtCode={districtCode} /> : <Navigate to={{ pathname: fallback, search: location.search }} replace />} />
+        <Route path="/control-room/recovery" element={allowed('/control-room/recovery') ? <RecoveryLedger role={session.role} mode={mode} eventId={eventId} districtCode={districtCode} /> : <Navigate to={{ pathname: fallback, search: location.search }} replace />} />
         <Route path="/control-room/field" element={session.role === 'VOLUNTEER' || session.role === 'ADMIN' ? <VolunteerRoute mode={mode} eventId={eventId} districtCode={districtCode} /> : <Navigate to={{ pathname: fallback, search: location.search }} replace />} />
         <Route path="/control-room/simulator" element={allowed('/control-room/simulator') ? <><ResidentSimulator districtCode={districtCode} /><ThreeTapSos districtCode={districtCode} /><GatewaySimulator districtCode={districtCode} /></> : <Navigate to={{ pathname: fallback, search: location.search }} replace />} />
         <Route path="/control-room/language" element={allowed('/control-room/language') ? <AiLanguageAssistant districtCode={districtCode} /> : <Navigate to={{ pathname: fallback, search: location.search }} replace />} />

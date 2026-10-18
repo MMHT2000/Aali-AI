@@ -350,3 +350,5 @@ These are approved redesigns being delivered in reviewable increments. The prese
 
 
 - [x] Server-side autonomous full-area monitoring, startup sweep, bounded GPT review, worker status and read-only no-browser verification (18 October 2026).
+
+- [x] Registered-route API audit (76 operations/185 checks), role/browser audit (27 checks), map with fallback/reduced motion, persisted human intervention, and corrected district/provenance/validation defects. See docs/SYSTEM_AUDIT.md.

@@ -1,9 +1,9 @@
 {
-  "generatedAt": "2026-10-18T14:20:18.696Z",
+  "generatedAt": "2026-10-18T14:34:42.787Z",
   "operations": 76,
   "coveredOperations": 76,
-  "checks": 183,
-  "failed": 6,
+  "checks": 185,
+  "failed": 0,
   "uncovered": [],
   "limitations": [
     "Synthetic local environment only; external carrier/dispatch integrations are not connected.",
@@ -404,9 +404,8 @@
       "expected": [
         404
       ],
-      "actual": 500,
-      "passed": false,
-      "error": "Unexpected HTTP status"
+      "actual": 404,
+      "passed": true
     },
     {
       "operation": "POST /api/v1/incidents/{id}/duplicate-candidates/{candidateId}/review",
@@ -423,9 +422,8 @@
       "expected": [
         404
       ],
-      "actual": 500,
-      "passed": false,
-      "error": "Unexpected HTTP status"
+      "actual": 404,
+      "passed": true
     },
     {
       "operation": "POST /api/v1/incidents/{id}/split",
@@ -442,9 +440,8 @@
       "expected": [
         404
       ],
-      "actual": 500,
-      "passed": false,
-      "error": "Unexpected HTTP status"
+      "actual": 404,
+      "passed": true
     },
     {
       "operation": "POST /api/v1/incidents/{id}/boat-recommendation/review",
@@ -461,9 +458,8 @@
       "expected": [
         404
       ],
-      "actual": 500,
-      "passed": false,
-      "error": "Unexpected HTTP status"
+      "actual": 404,
+      "passed": true
     },
     {
       "operation": "POST /api/v1/incidents/{id}/review",
@@ -872,13 +868,12 @@
     },
     {
       "operation": "GET /api/v1/recovery/reports",
-      "check": "invalid input rejected",
+      "check": "functional",
       "expected": [
-        400
+        200
       ],
-      "actual": "NETWORK_ERROR",
-      "passed": false,
-      "error": "Request with GET/HEAD method cannot have body."
+      "actual": 200,
+      "passed": true
     },
     {
       "operation": "GET /api/v1/recovery/reports",
@@ -909,13 +904,12 @@
     },
     {
       "operation": "GET /api/v1/recovery/deliveries",
-      "check": "invalid input rejected",
+      "check": "functional",
       "expected": [
-        400
+        200
       ],
-      "actual": "NETWORK_ERROR",
-      "passed": false,
-      "error": "Request with GET/HEAD method cannot have body."
+      "actual": 200,
+      "passed": true
     },
     {
       "operation": "GET /api/v1/recovery/deliveries",
@@ -1335,6 +1329,24 @@
         404
       ],
       "actual": 404,
+      "passed": true
+    },
+    {
+      "operation": "GET /api/v1/warnings/{id}/loudspeaker-audio",
+      "check": "unknown warning",
+      "expected": [
+        404
+      ],
+      "actual": 404,
+      "passed": true
+    },
+    {
+      "operation": "POST /api/v1/replay/runs/{id}/step",
+      "check": "fractional replay index",
+      "expected": [
+        400
+      ],
+      "actual": 400,
       "passed": true
     },
     {

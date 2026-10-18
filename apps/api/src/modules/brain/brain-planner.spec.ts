@@ -10,7 +10,7 @@ const plan = (env = exerciseEnvironment(area, now), facts = empty) => buildBrain
 describe('area intelligence planner', () => {
   it('uses visible rules rather than claiming a learned flood probability', () => {
     const result = plan(); expect(result.risk.level).toBe('HIGH'); expect(result.risk.dischargeRisePercent).toBe(90);
-    expect(result.risk.label).toContain('not a calibrated'); expect(result.actions.every(a => a.state === 'PENDING_REVIEW')).toBe(true);
+    expect(result.risk.label).toContain('not a calibrated'); expect(result.actions.every(a => ['PREPARE', 'VERIFY_DATA'].includes(a.kind) ? a.state === 'READY' : a.state === 'PENDING_REVIEW')).toBe(true);
   });
   it('does not interpret missing providers as safe zero rainfall', () => {
     const env: EnvironmentalData = { evidence: [], days: [], imagery: [], grid: null };

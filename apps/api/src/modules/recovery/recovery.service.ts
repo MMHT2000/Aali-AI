@@ -1,4 +1,4 @@
-import { Injectable, Logger, OnModuleInit, Optional } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger, OnModuleInit, Optional } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import {
@@ -206,6 +206,8 @@ export class RecoveryService implements OnModuleInit {
   }
 
   async recordDelivery(dto: RecordDeliveryDto): Promise<{ delivery: AidDelivery; isDuplicateIgnored: boolean }> {
+    const expectedUnit = { CLEAN_WATER: 'LITRES', FOOD_PACK: 'PACKS', MEDICINE_KIT: 'KITS' }[dto.itemCode];
+    if (!expectedUnit || dto.unit !== expectedUnit) throw new BadRequestException('Delivery unit does not match the item.');
     if (this.deliveryRepository) {
       try {
         const existing = await this.deliveryRepository.findOne({ where: { idempotency_key: dto.idempotencyKey } });
@@ -315,10 +317,10 @@ export class RecoveryService implements OnModuleInit {
 
       const areaDeliveries = allDeliveries.filter((d) => d.area_id === areaId);
       const deliveredWater = areaDeliveries
-        .filter((d) => d.item_code === 'CLEAN_WATER')
+        .filter((d) => d.item_code === 'CLEAN_WATER' && d.unit === 'LITRES')
         .reduce((sum, d) => sum + Number(d.quantity), 0);
       const deliveredFood = areaDeliveries
-        .filter((d) => d.item_code === 'FOOD_PACK')
+        .filter((d) => d.item_code === 'FOOD_PACK' && d.unit === 'PACKS')
         .reduce((sum, d) => sum + Number(d.quantity), 0);
 
       const needsData = latest.needs_json as Record<string, number> | null;
@@ -327,7 +329,7 @@ export class RecoveryService implements OnModuleInit {
 
       const villageInput: VillageNeedInput = {
         villageId: areaId,
-        villageName: villageNames[areaId] || 'Feni Village',
+        villageName: villageNames[areaId] || 'Area name unavailable',
         damageLevel: (latest.damage_level as VillageNeedInput['damageLevel']) || 'MODERATE',
         tubeWellContaminated: latest.tube_well_status === 'CONTAMINATED',
         roadPassability: (latest.road_passability as VillageNeedInput['roadPassability']) || 'OPEN',
@@ -337,7 +339,7 @@ export class RecoveryService implements OnModuleInit {
         estimatedFamilies: needsData?.families ?? 100,
         reportedWaterLitresNeed: waterNeed,
         reportedFoodPacksNeed: foodNeed,
-        coordinates: villageCoords[areaId] || { lat: 23.210, lng: 91.430 },
+        coordinates: villageCoords[areaId],
       };
 
       return calculateVillageNeedScore(villageInput, {
