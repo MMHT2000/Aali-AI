@@ -23,3 +23,4 @@ export async function safeJson<T = any>(res: any): Promise<T | null> {
   }
   return null;
 }
+

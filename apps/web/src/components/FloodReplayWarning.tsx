@@ -254,11 +254,22 @@ export function FloodReplayWarning({ mode, eventId, districtCode, session }: { m
   const handleCreateCustomDraft = async () => {
     if (!newDraftText.trim()) return;
     setIsDrafting(true);
+    const targetEventId = eventId || (isSylhet ? '11111111-1111-1111-1111-111111111104' : '11111111-1111-1111-1111-111111111101');
+    const targetAreaId = isSylhet ? '22222222-2222-2222-2222-222222222204' : '22222222-2222-2222-2222-222222222202';
+    const targetAreaName = isSylhet ? 'Companiganj' : 'Parshuram';
+    const targetShelterName = isSylhet ? 'Companiganj Degree College Shelter' : 'Parshuram Pilot High School Cyclone Shelter';
+
     try {
       const res = await fetch('/api/v1/warnings/drafts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          eventId: targetEventId,
+          areaId: targetAreaId,
+          areaName: targetAreaName,
+          alertLevel: 'WARNING',
+          supportingSignals: ['MANUAL_AUTHORITY_BROADCAST'],
+          shelterName: targetShelterName,
           bodyBn: newDraftText.trim(),
           bodyEn: 'Official Evacuation Broadcast Alert issued by Disaster Management Authority.'
         }),
@@ -267,6 +278,9 @@ export function FloodReplayWarning({ mode, eventId, districtCode, session }: { m
         setNewDraftText('');
         loadWarnings();
         setActionFeedback('নতুন অফিসিয়াল সতর্কতা খসড়া সফলভাবে প্রস্তুত হয়েছে (Draft Warning Created).');
+      } else {
+        const err = await res.json().catch(() => ({}));
+        setActionFeedback(`Failed to create draft warning: ${err.message || res.status}`);
       }
     } catch {
       setActionFeedback('Failed to create draft warning.');
