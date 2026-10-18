@@ -45,6 +45,16 @@ import { BrainControls1792290000000 } from './database/migrations/1792290000000-
         username: config.get<string>('MYSQL_USER', 'aali_dev'),
         password: config.get<string>('MYSQL_PASSWORD', 'change-this-local-password'),
         database: config.get<string>('MYSQL_DATABASE', 'aali_ai'),
+        ...(config.get<string>('MYSQL_SSL', 'false') === 'true'
+          ? {
+              ssl: {
+                rejectUnauthorized: true,
+                ...(config.get<string>('MYSQL_SSL_CA')
+                  ? { ca: config.get<string>('MYSQL_SSL_CA') }
+                  : {}),
+              },
+            }
+          : {}),
         entities: allEntities,
         migrations: [InitialAaliSchema1728490000000, ResidentAccounts1791600000000, SimulationRunState1791600000001, BrainRuns1792280000000, BrainControls1792290000000],
         synchronize: false,

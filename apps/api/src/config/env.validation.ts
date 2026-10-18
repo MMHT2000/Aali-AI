@@ -2,6 +2,7 @@ import { plainToInstance } from 'class-transformer';
 import {
   IsBoolean,
   IsEnum,
+  IsIn,
   IsNumber,
   IsOptional,
   IsString,
@@ -30,6 +31,14 @@ export class EnvironmentVariables {
 
   @IsString() @IsOptional() @IsEnum({ enabled: 'true', disabled: 'false' })
   BRAIN_AUTORUN_ENABLED: string = 'false';
+
+  @IsIn(['true', 'false'])
+  @IsOptional()
+  MYSQL_SSL: string = 'false';
+
+  @IsString()
+  @IsOptional()
+  MYSQL_SSL_CA?: string;
 
   @IsEnum(Environment)
   @IsOptional()
