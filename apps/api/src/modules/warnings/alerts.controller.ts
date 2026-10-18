@@ -115,6 +115,13 @@ export class AlertsController {
     return this.alertsService.simulateBroadcast(id, req.user.id);
   }
 
+  @ApiOperation({ summary: 'Simulate warning broadcast (alias for /send-simulated)' })
+  @Post('warnings/:id/broadcast')
+  @Roles(UserRole.AUTHORITY)
+  broadcastWarning(@Param('id') id: string, @Request() req: { user: { id: string } }) {
+    return this.alertsService.simulateBroadcast(id, req.user.id);
+  }
+
   @ApiOperation({ summary: 'Get ready-to-air loudspeaker audio announcement script and metadata for mosque broadcast' })
   @Get('warnings/:id/loudspeaker-audio')
   @Public()

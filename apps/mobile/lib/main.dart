@@ -3571,9 +3571,9 @@ class _ResponderDeskViewState extends State<ResponderDeskView> {
       if (token != null) req.headers.set('Authorization', 'Bearer $token');
       req.write(jsonEncode({'note': 'Approved via Mobile Authority Control'}));
       final resp = await req.close();
-      if (resp.statusCode == 200) {
+      if (resp.statusCode == 200 || resp.statusCode == 201) {
         final bClient = HttpClient()..connectionTimeout = const Duration(seconds: 4);
-        final bReq = await bClient.postUrl(Uri.parse('${widget.apiBase}/warnings/$warningId/broadcast'));
+        final bReq = await bClient.postUrl(Uri.parse('${widget.apiBase}/warnings/$warningId/send-simulated'));
         if (token != null) bReq.headers.set('Authorization', 'Bearer $token');
         await bReq.close();
 
@@ -3602,10 +3602,18 @@ class _ResponderDeskViewState extends State<ResponderDeskView> {
           ? 'জরুরি বন্যা সতর্কতা: সুরমা নদীর পানি বৃদ্ধি পাচ্ছে। কোম্পানীগঞ্জ ও গোয়াইনঘাটের নিচু এলাকার বাসিন্দারা অবিলম্বে নিকটস্থ আশ্রয়কেন্দ্রে অবস্থান নিন।'
           : 'জরুরি বন্যা সতর্কতা: মুহুরী নদীর পানি বৃদ্ধি পাচ্ছে। পরশুরাম ও ফুলগাজীর নিচু এলাকার বাসিন্দারা অবিলম্বে নিকটস্থ আশ্রয়কেন্দ্রে অবস্থান নিন।';
 
+      final token = await _resolveToken();
       final client = HttpClient()..connectionTimeout = const Duration(seconds: 4);
       final req = await client.postUrl(Uri.parse('${widget.apiBase}/warnings/drafts'));
       req.headers.contentType = ContentType.json;
+      if (token != null) req.headers.set('Authorization', 'Bearer $token');
       req.write(jsonEncode({
+        'eventId': isSylhet ? '11111111-1111-1111-1111-111111111104' : '11111111-1111-1111-1111-111111111101',
+        'areaId': isSylhet ? '22222222-2222-2222-2222-222222222207' : '22222222-2222-2222-2222-222222222202',
+        'areaName': isSylhet ? 'কোম্পানীগঞ্জ' : 'পরশুরাম',
+        'alertLevel': 'WARNING',
+        'supportingSignals': ['SW212_RISING_RAPIDLY', 'UPSTREAM_PRECIPITATION_HIGH'],
+        'shelterName': isSylhet ? 'কোম্পানীগঞ্জ উচ্চ বিদ্যালয়' : 'পরশুরাম মডেল সরকারি পাইলট হাই স্কুল',
         'bodyBn': warningBody,
         'bodyEn': 'Emergency Flood Evacuation Alert issued by District Disaster Authority.'
       }));
@@ -3634,7 +3642,7 @@ class _ResponderDeskViewState extends State<ResponderDeskView> {
       final client = HttpClient()..connectionTimeout = const Duration(seconds: 3);
       final req = await client.postUrl(Uri.parse('${widget.apiBase}/auth/login'));
       req.headers.contentType = ContentType.json;
-      req.write(jsonEncode({'username': 'responder_feni', 'password': 'Admin123!'}));
+      req.write(jsonEncode({'username': 'authority_dc', 'password': 'Admin123!'}));
       final resp = await req.close();
       if (resp.statusCode == 200 || resp.statusCode == 201) {
         final body = await resp.transform(utf8.decoder).join();

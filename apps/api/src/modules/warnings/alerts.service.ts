@@ -29,12 +29,12 @@ export interface ReplayRunState {
 }
 
 export interface WarningDraftDto {
-  eventId: string;
-  areaId: string;
-  areaName: string;
-  alertLevel: string;
-  supportingSignals: string[];
-  shelterName: string;
+  eventId?: string;
+  areaId?: string;
+  areaName?: string;
+  alertLevel?: string;
+  supportingSignals?: string[];
+  shelterName?: string;
   bodyBn?: string;
   bodyEn?: string;
 }
@@ -202,11 +202,14 @@ export class AlertsService implements OnModuleInit {
   async createWarningDraft(dto: WarningDraftDto, userId: string): Promise<Warning> {
     const w = new Warning();
     w.id = `warn-${Date.now()}`;
-    w.event_id = dto.eventId;
-    w.area_id = dto.areaId;
+    w.event_id = dto.eventId || '11111111-1111-1111-1111-111111111101';
+    w.area_id = dto.areaId || '22222222-2222-2222-2222-222222222202';
     w.state = WarningState.PENDING_APPROVAL;
-    w.body_bn = dto.bodyBn || `জরুরি বন্যা সতর্কতা: অতিবৃষ্টি ও পাহাড়ি ঢলের কারণে ${dto.areaName} এলাকার নিম্নাঞ্চল প্লাবিত হওয়ার ঝুঁকি রয়েছে। সকল বাসিন্দাকে নিকটস্থ ${dto.shelterName} আশ্রয়কেন্দ্রে অবস্থানের অনুরোধ করা হচ্ছে।`;
-    w.body_en = dto.bodyEn || `Emergency Alert [${dto.alertLevel}] for ${dto.areaName}. Safe shelter: ${dto.shelterName}.`;
+    const areaName = dto.areaName || 'পরশুরাম';
+    const shelterName = dto.shelterName || 'নিকটস্থ আশ্রয়কেন্দ্র';
+    const alertLevel = dto.alertLevel || 'WARNING';
+    w.body_bn = dto.bodyBn || `জরুরি বন্যা সতর্কতা: অতিবৃষ্টি ও পাহাড়ি ঢলের কারণে ${areaName} এলাকার নিম্নাঞ্চল প্লাবিত হওয়ার ঝুঁকি রয়েছে। সকল বাসিন্দাকে নিকটস্থ ${shelterName} আশ্রয়কেন্দ্রে অবস্থানের অনুরোধ করা হচ্ছে।`;
+    w.body_en = dto.bodyEn || `Emergency Alert [${alertLevel}] for ${areaName}. Safe shelter: ${shelterName}.`;
     w.created_by = userId;
     w.approved_by = null;
     w.approved_at = null;

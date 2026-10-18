@@ -83,12 +83,12 @@ export class SplitRequest {
   @IsOptional() @IsString() @Length(1, 1000) reason?: string;
 }
 export class WarningDraftRequest {
-  @IsString() @Length(1, 36) eventId!: string;
-  @IsString() @Length(1, 36) areaId!: string;
-  @IsString() @Length(1, 150) areaName!: string;
-  @IsIn(['NORMAL', 'WATCH', 'WARNING', 'ACT']) alertLevel!: string;
-  @IsArray() @ArrayMaxSize(100) @IsString({ each: true }) supportingSignals!: string[];
-  @IsString() @Length(1, 200) shelterName!: string;
+  @IsOptional() @IsString() @Length(1, 36) eventId?: string;
+  @IsOptional() @IsString() @Length(1, 36) areaId?: string;
+  @IsOptional() @IsString() @Length(1, 150) areaName?: string;
+  @IsOptional() @IsIn(['NORMAL', 'WATCH', 'WARNING', 'ACT']) alertLevel?: string;
+  @IsOptional() @IsArray() @ArrayMaxSize(100) @IsString({ each: true }) supportingSignals?: string[];
+  @IsOptional() @IsString() @Length(1, 200) shelterName?: string;
   @IsOptional() @IsString() @MaxLength(4000) bodyBn?: string;
   @IsOptional() @IsString() @MaxLength(4000) bodyEn?: string;
 }
