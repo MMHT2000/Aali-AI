@@ -6,6 +6,8 @@
 > *একটি টেকসই, অফলাইন-বান্ধব দুর্যোগ সিদ্ধান্ত-সহায়তা প্ল্যাটফর্ম — ফেনীর ভয়াবহ বন্যা প্রতিরোধ ও উদ্ধার ব্যবস্থার জন্য তৈরি।*
 
 [![CI Status](https://img.shields.io/badge/CI-100%25%20Passing-emerald?style=flat-square)](https://github.com/MMHT2000/Aali-AI)
+[![Live Web Demo](https://img.shields.io/badge/Live%20Demo-Vercel%20Production-success?style=flat-square)](https://aali-ai-woad.vercel.app)
+[![Live Backend API](https://img.shields.io/badge/Live%20API-Render%20Cloud-blue?style=flat-square)](https://aali-ai-api.onrender.com/api/v1/health)
 [![Audit Score](https://img.shields.io/badge/Audited%20Score-96%20%2F%20100-cyan?style=flat-square)](docs/judging/FINAL_VERDICT.md)
 [![Mobile App Score](https://img.shields.io/badge/Mobile%20Audit-92%20%2F%20100-blue?style=flat-square)](docs/judging/mobile_app_audit.md)
 [![License](https://img.shields.io/badge/License-UNLICENSED%20(Hackathon)-amber?style=flat-square)](LICENSE)
@@ -13,6 +15,25 @@
 [![Frontend](https://img.shields.io/badge/Frontend-React%2018%20%7C%20TypeScript%20%7C%20Vite-blue?style=flat-square)](apps/web)
 [![Mobile](https://img.shields.io/badge/Mobile-Flutter%203.x%20%7C%20Material%203-teal?style=flat-square)](apps/mobile)
 [![SMPP Gateway](https://img.shields.io/badge/Telecom-SMPP%20v3.4%20%7C%20Shortcode%201090-purple?style=flat-square)](packages/smpp-gateway)
+
+---
+
+## 🌐 Live Cloud Deployment Links
+
+The complete Aali AI platform is deployed live to production cloud infrastructure and connected to a live managed database:
+
+| Service / View | Public Cloud URL | Access Requirements |
+| :--- | :--- | :--- |
+| **Situation Room & Operations Command** | [https://aali-ai-woad.vercel.app](https://aali-ai-woad.vercel.app) | Public landing / 1-click Staff Demo Login |
+| **Emergency SOS (Zero-Install)** | [https://aali-ai-woad.vercel.app/sos](https://aali-ai-woad.vercel.app/sos) | **No login required** · 3-tap citizen distress |
+| **Household Preparedness** | [https://aali-ai-woad.vercel.app/preparedness](https://aali-ai-woad.vercel.app/preparedness) | **No login required** · Area risk & checklists |
+| **Live Bounded Situation Map** | [https://aali-ai-woad.vercel.app/map](https://aali-ai-woad.vercel.app/map) | **No login required** · Leaflet vector map |
+| **AI Brain & Area Intelligence** | [https://aali-ai-woad.vercel.app/control-room/brain](https://aali-ai-woad.vercel.app/control-room/brain) | Operational Staff (`authority_dc`, `responder_feni`) |
+| **Warnings & Broadcast Approvals** | [https://aali-ai-woad.vercel.app/control-room/alerts](https://aali-ai-woad.vercel.app/control-room/alerts) | Human Authority sign-off (`authority_dc`, `admin`) |
+| **Backend REST API Gateway** | [https://aali-ai-api.onrender.com](https://aali-ai-api.onrender.com) | HTTPS endpoints under `/api/v1` |
+| **Interactive OpenAPI / Swagger** | [https://aali-ai-api.onrender.com/api/docs](https://aali-ai-api.onrender.com/api/docs) | Full interactive schema explorer |
+| **API Health & Readiness Probe** | [https://aali-ai-api.onrender.com/api/v1/health/readiness](https://aali-ai-api.onrender.com/api/v1/health/readiness) | Returns live database connection & uptime |
+| **Managed Cloud Database** | TiDB Cloud (AWS `ap-southeast-1`) | Fully migrated with synthetic demo seed |
 
 ---
 
@@ -33,10 +54,10 @@ In late August 2024, catastrophic flash floods inundated Feni District (Parshura
 
 Every feature claimed in this repository is implemented in code and verified by automated test suites:
 
-| Component | Architecture & Tech Stack | Exposed Ports | Test & Verification Status |
+| Component | Architecture & Tech Stack | Exposed Ports / URLs | Test & Verification Status |
 | :--- | :--- | :--- | :--- |
-| **Backend API Gateway** | NestJS 10, TypeScript, TypeORM, MySQL 8.4, SSE Stream | `:3001` (Dev)<br>`:3002` (Docker) | **113 / 113 Tests Passed** (26 test suites, `jest --runInBand`) |
-| **Web Situation Room & PWA** | React 18, TypeScript, Vite, Zero-Install PWA, Pure Dark UI | `:5173` (Dev)<br>`:5174` (Docker) | **48 / 48 Tests Passed** (13 test suites, `vitest run`) |
+| **Backend API Gateway** | NestJS 10, TypeScript, TypeORM, MySQL 8.4, SSE Stream | `:3001` (Dev)<br>`:3002` (Docker)<br>[Render Cloud](https://aali-ai-api.onrender.com) | **113 / 113 Tests Passed** (26 test suites, `jest --runInBand`) |
+| **Web Situation Room & PWA** | React 18, TypeScript, Vite, Zero-Install PWA, Pure Dark UI | `:5173` (Dev)<br>`:5174` (Docker)<br>[Vercel Prod](https://aali-ai-woad.vercel.app) | **65 / 65 Tests Passed** (16 test suites, `vitest run`) |
 | **Tactile Mobile Client** | Flutter 3.x, Material 3, Canvas Vector Map, Durable Outbox | Android Device<br>(ADB Wireless) | **16 / 16 Tests Passed** (`flutter test`)<br>Installed & running live on Android device |
 | **Telecom SMPP Gateway** | Node.js TCP PDU Server (SMPP v3.4), GSM 03.38 | `:2775` (SMPP)<br>`:2776` (Admin) | **GSM 7-bit PDU Parsing & Shortcode 1090 routing verified** |
 | **End-to-End Demo Smoke** | Headless 5-Moment Demo Orchestration Script | Terminal CLI | **5 / 5 Moments Passed Green** (`npm.cmd run test:e2e`) |
