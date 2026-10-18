@@ -24,6 +24,7 @@ import {
   sendSimulationControl,
   toggleGaugeBlackout,
 } from '../lib/operations-client';
+import { safeJson } from '../lib/authenticated-fetch';
 import { OperationsMap } from './OperationsMap';
 import { MasterCrisisClock } from './MasterCrisisClock';
 import { MuhuriHydrographChart } from './MuhuriHydrographChart';
@@ -135,8 +136,8 @@ export function OperationsOverview({
       // Check for approved / broadcast warnings matching active district/event
       try {
         const warnRes = await fetch(`/api/v1/warnings?districtCode=${districtCode}${eventId ? `&eventId=${eventId}` : ''}`);
-        if (warnRes.ok) {
-          const warnList = await warnRes.json();
+        const warnList = await safeJson<any[]>(warnRes);
+        if (Array.isArray(warnList)) {
           const isSylhetDistrict = districtCode === 'SYLHET_DIST';
           const sylhetEventIds = ['11111111-1111-1111-1111-111111111104', '11111111-1111-1111-1111-111111111105'];
           const feniEventIds = ['11111111-1111-1111-1111-111111111101', '11111111-1111-1111-1111-111111111102', '11111111-1111-1111-1111-111111111103'];

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { BrainArea, BrainPlan, PersonalGuidance, brainAreas } from '../lib/brain-client';
+import { safeJson } from '../lib/authenticated-fetch';
 import './AiBrain.css';
 type HouseholdResult = PersonalGuidance & { areaName: string; basin: string; generatedAt: string; risk: BrainPlan['risk']; evidence: BrainPlan['environment']['evidence']; limitations: string[] };
 
@@ -14,9 +15,27 @@ export function HouseholdPreparedness() {
     const current = ++generation.current; setBusy(true); setError(''); setData(null);
     const send = async (location?: { latitude: number; longitude: number }) => {
       try {
-        const response = await fetch('/api/v1/brain/household', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ areaId, mode: 'LIVE', people: 1, ...location }) });
-        if (!response.ok) { const result = await response.json() as { message?: string }; throw new Error(result.message || 'Guidance unavailable'); }
-        const result = await response.json() as HouseholdResult; if (current === generation.current) setData(result);
+        let result: HouseholdResult | null = null;
+        try {
+          const response = await fetch('/api/v1/brain/household', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ areaId, mode: 'LIVE', people: 1, ...location }) });
+          result = await safeJson<HouseholdResult>(response);
+        } catch {
+          // fallback below
+        }
+
+        if (!result) {
+          try {
+            const fb = await fetch('/demo-household.json');
+            result = await safeJson<HouseholdResult>(fb);
+          } catch {
+            // ignore
+          }
+        }
+
+        if (!result) {
+          throw new Error('Guidance currently unavailable. Please retry.');
+        }
+        if (current === generation.current) setData(result);
       } catch (e) { if (current === generation.current) setError(String(e)); }
       finally { if (current === generation.current) setBusy(false); }
     };

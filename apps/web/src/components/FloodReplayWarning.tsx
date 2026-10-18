@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { apiFetch as fetch } from '../lib/authenticated-fetch';
+import { apiFetch as fetch, safeJson } from '../lib/authenticated-fetch';
 import { OperationsMode } from '../lib/operations-client';
 import { UserSession } from './Login';
 
@@ -88,9 +88,8 @@ export function FloodReplayWarning({ mode, eventId, districtCode, session }: { m
     const isDistrictSylhet = districtCode === 'SYLHET_DIST';
     fetch(`/api/v1/warnings?all=true&districtCode=${districtCode}${eventId ? `&eventId=${eventId}` : ''}`)
       .then(async (res) => {
-        if (!res.ok) return [];
-        const text = await res.text();
-        return text.startsWith('[') ? JSON.parse(text) : [];
+        const data = await safeJson<WarningView[]>(res);
+        return Array.isArray(data) ? data : [];
       })
       .then((data: WarningView[]) => {
         const sylhetEventIds = ['11111111-1111-1111-1111-111111111104', '11111111-1111-1111-1111-111111111105', '11111111-1111-1111-1111-111111111106'];
@@ -128,9 +127,8 @@ export function FloodReplayWarning({ mode, eventId, districtCode, session }: { m
 
     fetch('/api/v1/replay/scenarios')
       .then(async (res) => {
-        if (!res.ok) return [];
-        const text = await res.text();
-        return text.startsWith('[') ? JSON.parse(text) : [];
+        const data = await safeJson<ReplayScenarioView[]>(res);
+        return Array.isArray(data) ? data : [];
       })
       .then((data: ReplayScenarioView[]) => {
         const selected = data.filter((scenario) => scenario.id === targetEventId);

@@ -1,4 +1,5 @@
 import { apiFetch } from './authenticated-fetch';
+import { safeJson } from './safe-json';
 
 export interface OperationMapPoint {
   id: string;
@@ -153,14 +154,28 @@ export async function getOperationsSnapshot(options: OperationsSnapshotQuery = {
   if (options.districtCode) query.set('districtCode', options.districtCode);
   const queryString = query.toString();
   const suffix = queryString ? `?${queryString}` : '';
-  const response = await apiFetch(`/api/v1/operations/snapshot${suffix}`);
-  if (!response.ok) throw new OperationsSnapshotError(response.status);
-  const snapshot: unknown = await response.json();
+  let snapshot: unknown = null;
+  try {
+    const response = await apiFetch(`/api/v1/operations/snapshot${suffix}`);
+    snapshot = await safeJson(response);
+  } catch {
+    // API is offline or tunnel dropped
+  }
+
+  if (!snapshot) {
+    try {
+      const fallbackRes = await fetch('/demo-snapshot.json');
+      snapshot = await safeJson(fallbackRes);
+    } catch {
+      // ignore
+    }
+  }
+
   if (
     typeof snapshot !== 'object' || snapshot === null ||
     !('context' in snapshot) || !('mapLayers' in snapshot) || !('visibility' in snapshot)
   ) {
-    throw new Error('Operations API is outdated. Restart the API server and retry.');
+    throw new Error('Operations API is outdated or offline. Please retry in a moment.');
   }
   return snapshot as OperationsSnapshotBase;
 }

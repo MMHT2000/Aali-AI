@@ -1,7 +1,7 @@
 import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { Activity, BrainCircuit, CloudRain, MapPin, RefreshCw, Satellite, ShieldCheck } from 'lucide-react';
 import { BrainArea, BrainPlan, PersonalGuidance, brainAreas, latestBrain, personalBrain, reviewBrain, runBrain } from '../lib/brain-client';
-import { apiFetch } from '../lib/authenticated-fetch';
+import { apiFetch, safeJson } from '../lib/authenticated-fetch';
 import { OperationsMode } from '../lib/operations-client';
 import './AiBrain.css';
 const BrainMap = lazy(() => import('./BrainMap'));
@@ -21,7 +21,9 @@ export function AiBrain({ role, mode, districtCode }: { role: string; mode: Oper
     try {
       const response = await apiFetch('/api/v1/brain/autonomy/control', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ scope, paused, reason: controlReason }) });
       if (!response.ok) throw new Error(`Intervention failed (${response.status}); control was not confirmed.`);
-      setWorker(await response.json() as WorkerStatus); setControlReason('');
+      const data = await safeJson<WorkerStatus>(response);
+      if (data) setWorker(data);
+      setControlReason('');
     } catch (error) { setWorkerError(String(error)); }
     finally { setControlBusy(false); }
   };
@@ -40,13 +42,13 @@ export function AiBrain({ role, mode, districtCode }: { role: string; mode: Oper
   useEffect(() => {
     const controller = new AbortController(); const current = ++generation.current;
     setPlan(null); setGuidance(null); setError(''); setBusy(false);
-    if (!historical && !oversight) latestBrain(areaId, mode, controller.signal).then(data => { if (current === generation.current) setPlan(data); }).catch(e => { if (!controller.signal.aborted) setError(String(e)); });
+    if (!historical && !oversight) latestBrain(areaId, mode, controller.signal).then(data => { if (current === generation.current) setPlan(data && typeof data === 'object' && 'risk' in data ? data : null); }).catch(e => { if (!controller.signal.aborted) setError(String(e)); });
     return () => { controller.abort(); generation.current++; };
   }, [areaId, mode, historical, oversight]);
   useEffect(() => {
     if (!auto || historical || oversight) return;
     const controller = new AbortController();
-    const timer = setInterval(() => { const current = generation.current; void latestBrain(areaId, mode, controller.signal).then(data => { if (current === generation.current) { setPlan(data); setGuidance(null); } }).catch(e => { if (!controller.signal.aborted) setError(String(e)); }); }, 15000);
+    const timer = setInterval(() => { const current = generation.current; void latestBrain(areaId, mode, controller.signal).then(data => { if (current === generation.current) { setPlan(data && typeof data === 'object' && 'risk' in data ? data : null); setGuidance(null); } }).catch(e => { if (!controller.signal.aborted) setError(String(e)); }); }, 15000);
     return () => { clearInterval(timer); controller.abort(); };
   }, [auto, areaId, mode, historical, oversight]);
   const analyze = async () => {
@@ -74,11 +76,11 @@ export function AiBrain({ role, mode, districtCode }: { role: string; mode: Oper
   };
   useEffect(() => {
     const controller = new AbortController();
-    const check = () => { void apiFetch('/api/v1/brain/autonomy/status', { signal: controller.signal }).then(response => { if (!response.ok) throw new Error('Worker status unavailable (' + response.status + ')'); return response.json(); }).then(value => { if (!value || typeof value.enabled !== 'boolean' || !Array.isArray(value.controls) || !value.areas) throw new Error('Worker returned an invalid status response'); if (!controller.signal.aborted) { setWorker(value); setWorkerError(''); } }).catch(error => { if (!controller.signal.aborted) setWorkerError(String(error)); }); };
+    const check = () => { void apiFetch('/api/v1/brain/autonomy/status', { signal: controller.signal }).then(async response => { if (!response.ok) throw new Error('Worker status unavailable (' + response.status + ')'); const value = await safeJson<WorkerStatus>(response); if (!value || typeof value.enabled !== 'boolean' || !Array.isArray(value.controls) || !value.areas) throw new Error('Worker returned an invalid status response'); return value; }).then(value => { if (!controller.signal.aborted) { setWorker(value); setWorkerError(''); } }).catch(error => { if (!controller.signal.aborted) setWorkerError(String(error)); }); };
     check(); const timer = setInterval(check, 15000);
     return () => { controller.abort(); clearInterval(timer); };
   }, []);
-  const stale = plan && Date.now() - Date.parse(plan.createdAt) > 30 * 60000;
+  const stale = plan && plan.createdAt && Date.now() - Date.parse(plan.createdAt) > 30 * 60000;
   return <div className="ai-brain">
     <header className="brain-hero"><div><span className="brain-eyebrow"><BrainCircuit size={18} /> AALI INTELLIGENCE</span><h1>One area. A shared response plan.</h1><p>The server monitors areas and prepares plans even while this page is closed. Forecast signals, satellite context and operational evidence inform each plan.</p></div><span className={`brain-mode ${mode === 'EXERCISE' ? 'exercise' : ''}`}>{mode === 'EXERCISE' ? 'SYNTHETIC EXERCISE' : mode}</span></header>
     <div className="brain-toolbar"><label>Analysis area<select value={areaId} onChange={e => setAreaId(e.target.value)}>{areas.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}</select></label><div><small>BASIN</small><strong>{area?.basin ?? 'Loading areas…'}</strong></div><button className="brain-primary" onClick={() => void analyze()} disabled={busy || historical || oversight}><RefreshCw size={16} /> {busy ? 'Analysing evidence…' : 'Run area analysis'}</button><label className="brain-auto"><input type="checkbox" checked={auto} disabled={historical} onChange={e => setAuto(e.target.checked)} /> Show server updates every 15 seconds</label></div>
@@ -97,7 +99,7 @@ export function AiBrain({ role, mode, districtCode }: { role: string; mode: Oper
     {stale && <p className="brain-error" role="status">This analysis is over 30 minutes old. Refresh before reviewing tasks or requesting guidance.</p>}
     {oversight && <p role="status">Admin oversight shows monitoring status and intervention controls. Operational plans remain scoped to operational roles.</p>}
     {!plan && !busy && !historical && !oversight && <section className="brain-card"><h2>Start with the evidence</h2><p>The background worker prepares saved plans automatically when enabled. You can also request an immediate analysis. Live queries free public forecast and satellite catalogues. Exercise uses explicit synthetic weather and existing exercise records.</p></section>}
-    {plan && <>
+    {plan && plan.risk && <>
       <div className="brain-metrics"><section className={`brain-card risk-${plan.risk.level.toLowerCase()}`}><Activity /><small>EXPERIMENTAL SCREENING</small><h2>{plan.risk.level}</h2><p>{plan.risk.label}</p></section><section className="brain-card"><CloudRain /><small>CURRENT UTC DAY · RAIN FORECAST</small><h2>{plan.risk.rain24hMm === null ? 'Unknown' : `${plan.risk.rain24hMm} mm`}</h2><p>Area forecast, not an observed street condition.</p></section><section className="brain-card"><ShieldCheck /><small>OPEN COORDINATION TASKS</small><h2>{plan.actions.filter(a => a.state === 'PENDING_REVIEW' && !['PREPARE', 'VERIFY_DATA'].includes(a.kind)).length}</h2><p>No warning, boat or relief delivery is sent automatically.</p></section></div>
       <section className="brain-card brain-agent"><div className="brain-section-title"><BrainCircuit /><h2>Agent briefing</h2><span>{plan.agent.provider}</span></div><p>{plan.agent.summary}</p><small>{plan.agent.status} · {plan.agent.provider === 'OPENAI' ? 'AI draft: verify against source records.' : 'Local deterministic planner active.'}</small><div className="brain-trace">{plan.agent.trace.map((t, i) => <span key={i}>{t.tool} · {t.status}</span>)}</div><small>Saved {new Date(plan.createdAt).toLocaleString('en-GB', { timeZone: 'Asia/Dhaka' })} · Asia/Dhaka</small></section>
       <div className="brain-columns"><section className="brain-card"><h2>Forecast outlook</h2><ul>{plan.risk.reasons.map(r => <li key={r}>{r}</li>)}</ul><div className="brain-table-wrap"><table><caption>Model forecasts · UTC dates · missing values remain unknown</caption><thead><tr><th>Date</th><th>Rain mm</th><th>River m³/s</th><th>Ensemble P25–P75</th></tr></thead><tbody>{plan.environment.days.map(d => <tr key={d.date}><td>{d.date}</td><td>{d.rainMm ?? '—'}</td><td>{d.discharge ?? '—'}</td><td>{d.p25 ?? '—'}–{d.p75 ?? '—'}</td></tr>)}</tbody></table></div>{plan.environment.grid && <small>Selected river grid: {plan.environment.grid.latitude}, {plan.environment.grid.longitude}. River match requires verification.</small>}</section>

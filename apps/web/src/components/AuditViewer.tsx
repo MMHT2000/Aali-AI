@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { apiFetch as fetch } from '../lib/authenticated-fetch';
+import { apiFetch as fetch, safeJson } from '../lib/authenticated-fetch';
 
 interface AuditLogRecord {
   id: string;
@@ -20,8 +20,9 @@ export function AuditViewer() {
     setLoading(true);
     try {
       const res = await fetch('/api/v1/audit-logs');
-      if (res.ok) {
-        setLogs(await res.json());
+      const data = await safeJson<AuditLogRecord[]>(res);
+      if (Array.isArray(data)) {
+        setLogs(data);
       }
     } catch {
       // offline / mock

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { apiFetch as fetch } from '../lib/authenticated-fetch';
+import { apiFetch as fetch, safeJson } from '../lib/authenticated-fetch';
 import { OperationsMode } from '../lib/operations-client';
 
 export interface VillageRankItem {
@@ -81,12 +81,13 @@ export function RecoveryLedger({
         fetch(`/api/v1/recovery/summary?eventId=${encodeURIComponent(selectedEventId)}`),
         fetch(`/api/v1/recovery/deliveries?eventId=${encodeURIComponent(selectedEventId)}`),
       ]);
-      if (sumRes.ok) {
-        const sumData = await sumRes.json();
-        setRankings(sumData.villagesRanking || []);
+      const sumData = await safeJson<{ villagesRanking?: VillageRankItem[] }>(sumRes);
+      if (sumData?.villagesRanking) {
+        setRankings(sumData.villagesRanking);
       }
-      if (delRes.ok) {
-        setDeliveries(await delRes.json());
+      const delData = await safeJson<AidDeliveryItem[]>(delRes);
+      if (Array.isArray(delData)) {
+        setDeliveries(delData);
       }
     } catch {
       // offline / mock mode

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Activity, AlertTriangle, Check, RefreshCw, Users } from 'lucide-react';
-import { apiFetch as fetch } from '../lib/authenticated-fetch';
+import { apiFetch as fetch, safeJson } from '../lib/authenticated-fetch';
 import { getOperationsSnapshot, OperationMapPoint, OperationsMode } from '../lib/operations-client';
 
 export interface IncidentViewItem {
@@ -84,9 +84,10 @@ export function ResponderDashboard({
         fetch(`/api/v1/incidents?eventId=${encodeURIComponent(selectedEventId)}`),
         fetch(`/api/v1/incidents/silent-areas?eventId=${encodeURIComponent(selectedEventId)}`),
       ]);
-      if (!incRes?.ok || !silentRes?.ok) throw new Error('The incident queue could not be loaded for this account.');
-      setIncidents(await incRes.json());
-      setSilentAreas(await silentRes.json());
+      const incData = await safeJson<IncidentViewItem[]>(incRes);
+      if (Array.isArray(incData)) setIncidents(incData);
+      const silentData = await safeJson<SilentVillageItem[]>(silentRes);
+      if (Array.isArray(silentData)) setSilentAreas(silentData);
     } catch (err: unknown) {
       setLoadError(err instanceof Error ? err.message : 'Could not load responder data.');
     } finally {

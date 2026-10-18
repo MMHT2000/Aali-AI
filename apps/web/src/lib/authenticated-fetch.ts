@@ -43,3 +43,5 @@ export async function apiFetch(input: RequestInfo | URL, init: RequestInit = {})
 
   return response;
 }
+
+export { safeJson } from './safe-json';
