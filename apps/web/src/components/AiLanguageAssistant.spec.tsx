@@ -63,17 +63,14 @@ describe('AiLanguageAssistant Component', () => {
         return Promise.resolve({
           ok: true,
           json: async () => ({
-            shiftTitle: 'রাত্রিকালীন বন্যা অপারেশন শিফট (Night Shift Handover)',
-            generatedAt: new Date().toISOString(),
-            sourceIncidentIds: ['sos-001', 'sos-002'],
+            sourceRecordIds: ['sos-001', 'sos-002'],
             summaryBn: '📋 শিফট বিবরণী: মোট প্রক্রিয়াকৃত এসওএস: ১৪ | উদ্ধার সম্পন্ন: ৬',
-            disclaimer: 'এই বিবরণীটি নথিবদ্ধ ডেটার উপর ভিত্তি করে তৈরি। অতিরঞ্জিত কোনো তথ্য যুক্ত করা হয়নি।',
-            counts: {
-              totalSosProcessed: 14,
-              evacuationsCompleted: 6,
-              silentVillagesFlagged: 2,
-              reliefDeliveriesLogged: 9,
-            },
+            totalSosProcessed: 14,
+            criticalEvacuationsCount: 6,
+            silentVillagesFlaggedCount: 2,
+            reliefDeliveriesLoggedCount: 9,
+            isEditable: true,
+            generatedBy: 'deterministic_shift_summarizer',
           }),
         });
       }
@@ -136,6 +133,7 @@ describe('AiLanguageAssistant Component', () => {
       expect(screen.getByText(/মানুষের সংখ্যা নির্ভুলতা:/i)).toBeInTheDocument();
       expect(screen.getByText(/93.3%/)).toBeInTheDocument();
       expect(screen.getByText(/100%/)).toBeInTheDocument(); // fallback rate
+      expect(screen.getByText('Not measured')).toBeInTheDocument();
     });
   });
 
@@ -146,18 +144,18 @@ describe('AiLanguageAssistant Component', () => {
     fireEvent.click(analyzeBtn);
 
     await waitFor(() => {
-      expect(screen.getByText('সংরক্ষণ করুন (Verify & Save)')).toBeInTheDocument();
+      expect(screen.getByText('সংশোধন দেখুন (Preview correction)')).toBeInTheDocument();
     });
 
-    const saveBtn = screen.getByText('সংরক্ষণ করুন (Verify & Save)');
+    const saveBtn = screen.getByText('সংশোধন দেখুন (Preview correction)');
     fireEvent.click(saveBtn);
 
     await waitFor(() => {
-      expect(screen.getByText(/অপারেটর সংশোধন সংরক্ষিত হয়েছে: মানুষের সংখ্যা 5/i)).toBeInTheDocument();
+      expect(screen.getByText(/Local preview only; no report was saved or verified/i)).toBeInTheDocument();
     });
   });
 
-  it('generates fact-constrained shift handover summary upon operator request', async () => {
+  it('renders the actual backend summary contract and labels sample counts as synthetic', async () => {
     render(<AiLanguageAssistant />);
 
     const genBtn = screen.getByText(/শিফট সারসংক্ষেপ তৈরি করুন \(Generate\)/i);
@@ -167,7 +165,7 @@ describe('AiLanguageAssistant Component', () => {
       expect(screen.getByText(/রাত্রিকালীন বন্যা অপারেশন শিফট \(Night Shift Handover\)/i)).toBeInTheDocument();
       expect(screen.getByText(/উৎস আইডি: sos-001, sos-002/i)).toBeInTheDocument();
       expect(screen.getByText(/📋 শিফট বিবরণী: মোট প্রক্রিয়াকৃত এসওএস: ১৪ | উদ্ধার সম্পন্ন: ৬/i)).toBeInTheDocument();
-      expect(screen.getByText(/অতিরঞ্জিত কোনো তথ্য যুক্ত করা হয়নি/i)).toBeInTheDocument();
+      expect(screen.getByText(/Counts are supplied examples, not verified rescue outcomes/i)).toBeInTheDocument();
     });
   });
 });

@@ -78,7 +78,7 @@ export function FloodReplayWarning({ mode, eventId, districtCode, session }: { m
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [playingAudioId, setPlayingAudioId] = useState<string | null>(null);
 
-  const canApprove = session.role === 'AUTHORITY' || session.role === 'ADMIN';
+  const canApprove = session.role === 'AUTHORITY';
   const replayEnabled = mode === 'HISTORICAL';
 
   // Replay fixtures and warning drafts follow the shared event selection.
@@ -193,7 +193,7 @@ export function FloodReplayWarning({ mode, eventId, districtCode, session }: { m
       : 'পরশুরাম সরকারি মডেল উচ্চ বিদ্যালয় আশ্রয়কেন্দ্র';
 
     // Natural, dignified Bengali announcement copy without technical English reason codes
-    let bodyBn = '';
+    let bodyBn: string;
     if (isSylhet) {
       if (evaluation.computedLevel === 'ACT') {
         bodyBn = `জরুরি বন্যা সতর্কতা: মেঘালয় ও চেরাপুঞ্জির অতিবৃষ্টি এবং পাহাড়ি ঢলের কারণে সুরমা নদীর পানি বিপদসীমার উপর দিয়ে তীব্র বেগে প্রবাহিত হচ্ছে। নদী তীরবর্তী ও নিম্নাঞ্চলের সকল বাসিন্দাদের অবিলম্বে নিকটস্থ ${shelterName} আশ্রয়কেন্দ্রে আশ্রয় নেওয়ার জন্য অনুরোধ করা হচ্ছে।`;

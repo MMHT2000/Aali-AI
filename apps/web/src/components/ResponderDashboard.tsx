@@ -146,9 +146,9 @@ export function ResponderDashboard({
           if (data.type === 'NEW_SOS' || data.type === 'BOAT_REVIEW' || data.type === 'DEMO_MOMENT') {
             void fetchData();
           }
-        } catch (_) {}
+        } catch { /* Ignore malformed stream messages; preserve the incident list. */ }
       };
-    } catch (_) {}
+    } catch { /* The normal incident refresh remains available. */ }
     return () => es?.close();
   }, [eventId, mode]);
 

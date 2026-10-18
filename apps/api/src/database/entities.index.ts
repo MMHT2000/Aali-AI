@@ -13,6 +13,8 @@ import { RecoveryReport, AidDelivery } from '../modules/recovery/entities/recove
 import { AuditLog } from '../modules/audit/entities/audit-log.entity';
 import { ResidentAccount } from '../modules/auth/entities/resident-account.entity';
 import { SimulationRunState } from '../modules/operations/entities/simulation-run-state.entity';
+import { BrainRun } from '../modules/brain/brain-run.entity';
+import { BrainControl } from '../modules/brain/brain-control.entity';
 
 export const allEntities = [
   User,
@@ -37,5 +39,7 @@ export const allEntities = [
   AuditLog,
   ResidentAccount,
   SimulationRunState,
+  BrainRun,
+  BrainControl,
 ];
 

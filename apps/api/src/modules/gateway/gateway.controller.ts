@@ -1,6 +1,6 @@
 import { Body, Controller, Get, Headers, Post } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { SimulatedGatewayIngestDto } from './dto/gateway-ingest.dto';
+import { SimulatedGatewayIngestDto, SmsGatewayRequest } from './dto/gateway-ingest.dto';
 import { GatewayService } from './gateway.service';
 import { SmsGatewayIngestResult } from './transport-adapter.interface';
 import { Roles } from '../../common/auth/roles.decorator';
@@ -35,7 +35,7 @@ export class GatewayController {
   @Roles(UserRole.AUTHORITY, UserRole.RESPONDER)
   @ApiOperation({ summary: 'SMS / Telecom Short-Code Gateway Ingestion Endpoint' })
   async ingestSmsPacket(
-    @Body() body: any,
+    @Body() body: SmsGatewayRequest,
     @Headers('x-carrier-signature') signature?: string,
   ): Promise<SmsGatewayIngestResult> {
     const packet = body.packet || body.rawMessage || body.rawPacket || '';

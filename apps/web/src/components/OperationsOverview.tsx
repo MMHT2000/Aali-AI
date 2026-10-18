@@ -163,7 +163,7 @@ export function OperationsOverview({
           );
           setActiveBroadcastWarning(latestBroadcast ?? null);
         }
-      } catch (_) {}
+      } catch { /* Keep the last known warning when the advisory request fails. */ }
       setError(null);
 
       const currentSos: OperationMapPoint[] = next.mapLayers?.sos ?? [];
@@ -209,53 +209,12 @@ export function OperationsOverview({
       es.onmessage = (event) => {
         try {
           const parsed = JSON.parse(event.data);
-          if (parsed.type === 'NEW_SOS') {
-            if (soundEnabled) playEmergencyBeep();
-            const transport = parsed.payload?.transportKind;
-            const transportLabel = transport === 'STARLINK_D2C_WIFI' || transport === 'APP_DIRECT'
-              ? 'STARLINK D2C'
-              : 'SMS 1090';
-            setActiveAlert({
-              id: parsed.payload?.reportId || `sse-${Date.now()}`,
-              shortId: parsed.payload?.shortId || 'D2C',
-              title: `Live SOS: ${parsed.payload?.village || (districtCode === 'SYLHET_DIST' ? 'Companiganj' : 'Parshuram')}`,
-              location: parsed.payload?.village || (districtCode === 'SYLHET_DIST' ? 'Companiganj Area' : 'Parshuram Area'),
-              peopleCount: parsed.payload?.peopleCount || 1,
-              flags: [
-                parsed.payload?.isTrapped ? 'Trapped' : '',
-                parsed.payload?.hasElderly ? 'Elderly' : '',
-                transportLabel,
-              ].filter(Boolean),
-              provenance: 'LIVE_SSE_STREAM · REAL-TIME INGESTION',
-              receivedAt: parsed.timestamp || new Date().toISOString(),
-            });
-            void refresh();
-          } else if (parsed.type === 'ALERT_CHANGE') {
-            if (soundEnabled) playEmergencyBeep();
-            if (parsed.payload) {
-              const isSylhetDistrict = districtCode === 'SYLHET_DIST';
-              const sylhetEventIds = ['11111111-1111-1111-1111-111111111104', '11111111-1111-1111-1111-111111111105'];
-              const payloadEventId = parsed.payload.eventId as string | undefined;
-              const payloadBody = (parsed.payload.bodyBn as string) || '';
-              const isPayloadSylhet = payloadEventId
-                ? sylhetEventIds.includes(payloadEventId)
-                : (payloadBody.includes('সুরমা') || payloadBody.includes('কোম্পানীগঞ্জ') || payloadBody.includes('গোয়াইনঘাট') || payloadBody.includes('সিলেট'));
-
-              if (isSylhetDistrict === isPayloadSylhet) {
-                setActiveBroadcastWarning({
-                  id: (parsed.payload.warningId as string) || `warn-${Date.now()}`,
-                  state: (parsed.payload.state as string) || 'SENT_SIMULATED',
-                  body_bn: payloadBody,
-                });
-              }
-            }
-            void refresh();
-          } else if (parsed.type === 'DEMO_MOMENT' || parsed.type === 'BOAT_REVIEW') {
-            void refresh();
-          }
-        } catch (_) {}
+          // Public events signal changes only. Fetch details through the
+          // authenticated, district/mode-projected snapshot before showing alerts.
+          if (['NEW_SOS', 'ALERT_CHANGE', 'DEMO_MOMENT', 'BOAT_REVIEW'].includes(parsed.type)) void refresh();
+        } catch { /* Ignore malformed stream messages; polling remains available. */ }
       };
-    } catch (_) {}
+    } catch { /* Polling remains available if EventSource cannot connect. */ }
 
     return () => {
       window.clearInterval(timer);

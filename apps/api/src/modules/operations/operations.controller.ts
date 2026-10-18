@@ -1,3 +1,4 @@
+import { DemoMomentRequest, SimulationGaugeRequest, SimulationTickRequest } from '../../common/validation/workflow.dto';
 import { Body, Controller, Get, Patch, Post, Query, Request } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { Roles } from '../../common/auth/roles.decorator';
@@ -32,7 +33,7 @@ export class OperationsController {
   @Post('operations/demo-moment')
   @Public()
   @ApiOperation({ summary: 'Broadcast a stage demo moment event across all connected dashboards' })
-  broadcastMoment(@Body() body: { moment: number; title: string; payload?: Record<string, unknown> }) {
+  broadcastMoment(@Body() body: DemoMomentRequest) {
     this.streamService.emit('DEMO_MOMENT', {
       moment: body.moment,
       title: body.title,
@@ -83,13 +84,13 @@ export class OperationsController {
 
   @Patch('simulation/gauge')
   @Roles(UserRole.AUTHORITY, UserRole.ADMIN, UserRole.RESPONDER, UserRole.VIEWER)
-  toggleGauge(@Body() body: { available?: boolean }) {
+  toggleGauge(@Body() body: SimulationGaugeRequest) {
     return this.simulation.toggleGauge(body.available);
   }
 
   @Patch('simulation/tick')
   @Roles(UserRole.AUTHORITY, UserRole.ADMIN, UserRole.RESPONDER, UserRole.VIEWER)
-  setTick(@Body() body: { tickIndex: number }) {
+  setTick(@Body() body: SimulationTickRequest) {
     return this.simulation.setTick(body.tickIndex);
   }
 }

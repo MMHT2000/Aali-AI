@@ -18,10 +18,12 @@ import { canAccessControlRoomRoute, getRoleHomePath } from '../lib/control-room-
 import { ViewerSituationSummary } from './ViewerSituationSummary';
 import { checkApiHealth, ApiHealthResponse } from '../lib/api-client';
 import { JudgeDemoRunner } from './JudgeDemoRunner';
+import { AiBrain } from './AiBrain';
 import './ControlRoom.css';
 
 interface ControlRoomProps { session: UserSession; onLogout: () => void }
 const routes = [
+  { path: '/control-room/brain', label: 'AI Brain · Area intelligence', group: 'BEFORE · PREPAREDNESS', icon: Activity },
   // BEFORE · PREPAREDNESS & WARNINGS
   { path: '/control-room/map', label: 'Situation room', group: 'BEFORE · PREPAREDNESS', icon: Map },
   { path: '/control-room/viewer', label: 'Situation summary', group: 'BEFORE · PREPAREDNESS', icon: Activity },
@@ -174,6 +176,7 @@ export function ControlRoom({ session, onLogout }: ControlRoomProps) {
       </aside>
       <main className="control-content" id="main-content" tabIndex={-1} aria-label={`${activeRoute?.label ?? 'Operations'} workspace`}>
         <Routes>
+        <Route path="/control-room/brain" element={allowed('/control-room/brain') ? <AiBrain role={session.role} mode={mode} districtCode={districtCode} /> : <Navigate to={{ pathname: fallback, search: location.search }} replace />} />
         <Route path="/control-room/map" element={allowed('/control-room/map') ? <OperationsOverview mode={mode} eventId={eventId} districtCode={districtCode} /> : <Navigate to={{ pathname: fallback, search: location.search }} replace />} />
         <Route path="/control-room/viewer" element={allowed('/control-room/viewer') ? <ViewerSituationSummary mode={mode} eventId={eventId} districtCode={districtCode} /> : <Navigate to={{ pathname: fallback, search: location.search }} replace />} />
         <Route path="/control-room/responder" element={allowed('/control-room/responder') ? <ResponderDashboard mode={mode} eventId={eventId} districtCode={districtCode} /> : <Navigate to={{ pathname: fallback, search: location.search }} replace />} />

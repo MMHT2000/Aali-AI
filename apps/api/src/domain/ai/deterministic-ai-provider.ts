@@ -190,11 +190,15 @@ export class DeterministicAiProvider {
     let peopleCorrect = 0;
     let vulnCorrect = 0;
     let trendCorrect = 0;
+    let completed = 0;
 
     const total = SYNTHETIC_SOS_BENCHMARK.length;
 
     for (const item of SYNTHETIC_SOS_BENCHMARK) {
       const ext = this.extractSosFields(item.text);
+      if ((ext.peopleCount === null || (Number.isInteger(ext.peopleCount) && ext.peopleCount > 0)) &&
+        Object.values(ext.urgencyFlags).every(value => typeof value === 'boolean') &&
+        Array.isArray(ext.locationWords) && ['RISING_RAPID', 'RISING_STEADY', 'STABLE', 'RECEDING', 'UNKNOWN'].includes(ext.waterTrend)) completed++;
 
       if (ext.peopleCount === item.expectedPeopleCount) {
         peopleCorrect++;
@@ -218,15 +222,6 @@ export class DeterministicAiProvider {
     const vulnAccuracy = parseFloat(((vulnCorrect / total) * 100).toFixed(1));
     const trendAccuracy = parseFloat(((trendCorrect / total) * 100).toFixed(1));
     const overallAccuracy = parseFloat((((peopleAccuracy + vulnAccuracy + trendAccuracy) / 3)).toFixed(1));
-    const rocCurve = [
-      { fpr: 0.0, tpr: 0.0, threshold: 1.0 },
-      { fpr: 0.02, tpr: 0.78, threshold: 0.8 },
-      { fpr: 0.05, tpr: 0.89, threshold: 0.6 },
-      { fpr: 0.08, tpr: 0.94, threshold: 0.4 },
-      { fpr: 0.14, tpr: 0.98, threshold: 0.2 },
-      { fpr: 1.0, tpr: 1.0, threshold: 0.0 },
-    ];
-    const aucScore = 0.945;
 
     return {
       totalMessages: total,
@@ -234,9 +229,8 @@ export class DeterministicAiProvider {
       vulnerabilityAccuracy: vulnAccuracy,
       waterTrendAccuracy: trendAccuracy,
       overallAccuracy,
-      fallbackSuccessRate: 100.0,
-      rocCurve,
-      aucScore,
+      // Schema completion on this synthetic dataset; not extraction accuracy or real-world reliability.
+      fallbackSuccessRate: parseFloat(((completed / total) * 100).toFixed(1)),
       evaluatedAt: new Date().toISOString(),
     };
   }

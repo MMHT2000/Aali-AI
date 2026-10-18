@@ -137,6 +137,13 @@ export interface OperationsSnapshotBase {
 
 export type OperationsSnapshot = OperationsSnapshotBase & { simulation: NonNullable<OperationsSnapshotBase['simulation']> };
 
+export class OperationsSnapshotError extends Error {
+  constructor(public readonly status: number) {
+    super(status === 401 ? 'Your session is missing or expired. Sign in again to view the situation summary.' : `Operations snapshot failed (${status})`);
+    this.name = 'OperationsSnapshotError';
+  }
+}
+
 export function getOperationsSnapshot(): Promise<OperationsSnapshot>;
 export function getOperationsSnapshot(options: OperationsSnapshotQuery): Promise<OperationsSnapshotBase>;
 export async function getOperationsSnapshot(options: OperationsSnapshotQuery = {}): Promise<OperationsSnapshotBase> {
@@ -147,7 +154,7 @@ export async function getOperationsSnapshot(options: OperationsSnapshotQuery = {
   const queryString = query.toString();
   const suffix = queryString ? `?${queryString}` : '';
   const response = await apiFetch(`/api/v1/operations/snapshot${suffix}`);
-  if (!response.ok) throw new Error(`Operations snapshot failed (${response.status})`);
+  if (!response.ok) throw new OperationsSnapshotError(response.status);
   const snapshot: unknown = await response.json();
   if (
     typeof snapshot !== 'object' || snapshot === null ||

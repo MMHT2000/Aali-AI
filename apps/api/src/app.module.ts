@@ -25,6 +25,9 @@ import { AuditModule } from './modules/audit/audit.module';
 import { JwtAuthGuard } from './common/auth/jwt-auth.guard';
 import { RolesGuard } from './common/auth/roles.guard';
 import { RateLimitGuard } from './common/auth/rate-limit.guard';
+import { BrainModule } from './modules/brain/brain.module';
+import { BrainRuns1792280000000 } from './database/migrations/1792280000000-BrainRuns';
+import { BrainControls1792290000000 } from './database/migrations/1792290000000-BrainControls';
 
 @Module({
   imports: [
@@ -43,7 +46,7 @@ import { RateLimitGuard } from './common/auth/rate-limit.guard';
         password: config.get<string>('MYSQL_PASSWORD', 'change-this-local-password'),
         database: config.get<string>('MYSQL_DATABASE', 'aali_ai'),
         entities: allEntities,
-        migrations: [InitialAaliSchema1728490000000, ResidentAccounts1791600000000, SimulationRunState1791600000001],
+        migrations: [InitialAaliSchema1728490000000, ResidentAccounts1791600000000, SimulationRunState1791600000001, BrainRuns1792280000000, BrainControls1792290000000],
         synchronize: false,
         manualInitialization: true,
         connectTimeout: 5000,
@@ -62,6 +65,7 @@ import { RateLimitGuard } from './common/auth/rate-limit.guard';
     RecoveryModule,
     AuditModule,
     OperationsModule,
+    BrainModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: JwtAuthGuard },

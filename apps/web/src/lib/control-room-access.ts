@@ -19,15 +19,16 @@ const ROLE_TABS: Record<string, readonly ControlRoomTab[]> = {
 };
 
 export const CONTROL_ROOM_ROUTES: readonly { path: string; roles: readonly string[] }[] = [
+  { path: '/control-room/brain', roles: ['AUTHORITY', 'RESPONDER', 'RECOVERY_COORDINATOR', 'ADMIN'] },
   { path: '/control-room/map', roles: ['AUTHORITY', 'ADMIN'] },
   { path: '/control-room/viewer', roles: ['VIEWER'] },
-  { path: '/control-room/responder', roles: ['AUTHORITY', 'ADMIN', 'RESPONDER'] },
+  { path: '/control-room/responder', roles: ['AUTHORITY', 'RESPONDER'] },
   { path: '/control-room/alerts', roles: ['AUTHORITY', 'ADMIN'] },
   { path: '/control-room/replay', roles: ['AUTHORITY', 'ADMIN', 'RESPONDER', 'VIEWER'] },
-  { path: '/control-room/recovery', roles: ['AUTHORITY', 'ADMIN', 'RECOVERY_COORDINATOR'] },
-  { path: '/control-room/field', roles: ['VOLUNTEER', 'ADMIN'] },
+  { path: '/control-room/recovery', roles: ['AUTHORITY', 'RECOVERY_COORDINATOR'] },
+  { path: '/control-room/field', roles: ['VOLUNTEER'] },
   { path: '/control-room/simulator', roles: ['AUTHORITY', 'ADMIN', 'RESPONDER'] },
-  { path: '/control-room/language', roles: ['AUTHORITY', 'ADMIN'] },
+  { path: '/control-room/language', roles: ['AUTHORITY'] },
   { path: '/control-room/audit', roles: ['AUTHORITY', 'ADMIN'] },
   { path: '/control-room/settings', roles: ['ADMIN'] },
 ];

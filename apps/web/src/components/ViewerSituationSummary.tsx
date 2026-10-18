@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { OperationsMode, OperationsSnapshotBase, getOperationsSnapshot } from '../lib/operations-client';
+import { OperationsMode, OperationsSnapshotBase, OperationsSnapshotError, getOperationsSnapshot } from '../lib/operations-client';
 import { ThreeTapSos } from './ThreeTapSos';
 
 export function ViewerSituationSummary({
@@ -15,6 +15,7 @@ export function ViewerSituationSummary({
   const [snapshot, setSnapshot] = useState<OperationsSnapshotBase | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [needsSignIn, setNeedsSignIn] = useState(false);
 
   const refresh = useCallback(async () => {
     try {
@@ -27,7 +28,9 @@ export function ViewerSituationSummary({
       }
       setSnapshot(result);
       setError(null);
+      setNeedsSignIn(false);
     } catch (failure) {
+      setNeedsSignIn(failure instanceof OperationsSnapshotError && failure.status === 401);
       setError(failure instanceof Error ? failure.message : 'Unable to load the aggregate situation summary.');
       setSnapshot(null);
     } finally {
@@ -36,12 +39,17 @@ export function ViewerSituationSummary({
   }, [districtCode, eventId, mode]);
 
   useEffect(() => {
+    if (needsSignIn) return;
     void refresh();
     const timer = window.setInterval(() => void refresh(), 15_000);
     return () => window.clearInterval(timer);
-  }, [refresh]);
+  }, [refresh, needsSignIn]);
 
   if (loading) return <section className="viewer-summary" aria-busy="true"><p role="status">Loading aggregate situation summary…</p></section>;
+  if (needsSignIn) return <section className="viewer-summary"><h1>Sign-in required</h1><p role="alert">Your session is missing or expired. Sign in again to view the situation summary.</p><a href="/" onClick={() => {
+    try { window.localStorage.removeItem('aali_session'); } catch { /* Sign-in remains available without storage. */ }
+    window.dispatchEvent(new CustomEvent('aali_session_expired'));
+  }}>Sign in again</a><p><a href="/sos">Submit an SOS without signing in</a></p></section>;
   if (error) return <section className="viewer-summary"><h1>Situation summary unavailable</h1><p role="alert">{error}</p><button type="button" onClick={() => { setLoading(true); void refresh(); }}>Retry</button></section>;
   if (!snapshot) return null;
 

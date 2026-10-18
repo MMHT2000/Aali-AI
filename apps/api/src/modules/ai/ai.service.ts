@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, NotImplementedException } from '@nestjs/common';
 import { DeterministicAiProvider } from '../../domain/ai/deterministic-ai-provider';
 import {
   BenchmarkReport,
@@ -166,8 +166,10 @@ export class AiService {
     transcriptBn: string;
     dialectDetected: string;
     extractedFields: SosUnderstandingResult;
-    confidence: number;
+    confidence: null;
+    simulation: true;
   }> {
+    if (dto.audioBase64) throw new NotImplementedException('Audio transcription is not connected. Use an explicitly synthetic transcript fixture for this demonstration.');
     const dialectSampleMap: Record<string, string> = {
       'sample-feni-parshuram-01': 'পানি ছাদের কিনারা ছুইয়া গেছে, আমাগো টিনের চালে ৫ জন আটকা, একজন প্যারালাইজড বৃদ্ধা আছেন, পানি দ্রুত বাড়তেছে।',
       'sample-noakhali-fulgazi-02': 'ঘর ভাসি যাইতেছে, চারটা বাচ্চা লইয়া গাছের উপরে আছি, তাড়াতাড়ি বোট পাঠান, পানির তোড় বেশি।',
@@ -184,7 +186,8 @@ export class AiService {
       transcriptBn: transcript,
       dialectDetected: dto.dialect ?? 'Feni/Noakhali Coastal Dialect',
       extractedFields: understanding,
-      confidence: 0.88,
+      confidence: null,
+      simulation: true,
     };
   }
 }

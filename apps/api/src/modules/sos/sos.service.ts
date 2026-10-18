@@ -74,9 +74,9 @@ export class SosService {
     report.has_child = hasChild;
     report.has_medical_need = hasMedicalNeed;
     report.is_trapped = dto.isTrapped;
-    let lat = dto.locationLat || null;
-    let lng = dto.locationLng || null;
-    if ((!lat || !lng) && areaId) {
+    let lat = dto.locationLat ?? null;
+    let lng = dto.locationLng ?? null;
+    if ((lat === null || lng === null) && areaId) {
       const area = SYNTHETIC_FENI_SEEDS.areas.find((item) => item.id === areaId);
       if (area) {
         lat = area.latitude ?? null;

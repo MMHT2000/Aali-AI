@@ -1,5 +1,7 @@
 # Aali AI (আলি এআই) — Feni Disaster Resilience Platform
 
+**New: AI Brain and area intelligence.** Staff can open `/control-room/brain`; residents can use `/preparedness` without signing in. Six Bangladesh areas, public GloFAS/weather forecasts, dated Sentinel-2 imagery context, saved review tasks and optional GPT with local fallback are implemented. [Setup, capabilities and verification boundaries](docs/AI_BRAIN.md). Satellite imagery is context, not a trained flood predictor; operational actions require human approval.
+
 > **"When the towers die, the SOS doesn't."**  
 > *একটি টেকসই, অফলাইন-বান্ধব দুর্যোগ সিদ্ধান্ত-সহায়তা প্ল্যাটফর্ম — ফেনীর ভয়াবহ বন্যা প্রতিরোধ ও উদ্ধার ব্যবস্থার জন্য তৈরি।*
 

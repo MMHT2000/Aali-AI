@@ -1,11 +1,7 @@
+import { UnderstandSosRequest, DuplicateSimilarityRequest, DraftCommunicationRequest, OutageRequest, ShiftSummaryRequest, VoiceRequest } from '../../common/validation/workflow.dto';
 import { Body, Controller, Get, Post, Put } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
-import {
-  AiService,
-  DraftCommunicationDto,
-  DuplicateSimilarityDto,
-  UnderstandSosDto,
-} from './ai.service';
+import { AiService } from './ai.service';
 import { Roles } from '../../common/auth/roles.decorator';
 import { UserRole } from '../users/entities/user-role.enum';
 
@@ -24,28 +20,28 @@ export class AiController {
   @ApiOperation({ summary: 'Toggle simulated AI provider outage to demonstrate deterministic fallback' })
   @Put('status/outage')
   @Roles(UserRole.ADMIN)
-  setOutageState(@Body('outage') outage: boolean) {
-    return this.aiService.setOutageState(outage);
+  setOutageState(@Body() body: OutageRequest) {
+    return this.aiService.setOutageState(body.outage);
   }
 
   @ApiOperation({ summary: 'Extract structured SOS fields from Bangla/Banglish text' })
   @Post('understand-sos')
   @Roles(UserRole.AUTHORITY, UserRole.RESPONDER)
-  understandSos(@Body() body: UnderstandSosDto) {
+  understandSos(@Body() body: UnderstandSosRequest) {
     return this.aiService.understandSos(body);
   }
 
   @ApiOperation({ summary: 'Explain text duplicate candidate similarity' })
   @Post('duplicate-similarity')
   @Roles(UserRole.AUTHORITY, UserRole.RESPONDER)
-  duplicateSimilarity(@Body() body: DuplicateSimilarityDto) {
+  duplicateSimilarity(@Body() body: DuplicateSimilarityRequest) {
     return this.aiService.explainDuplicateSimilarity(body);
   }
 
   @ApiOperation({ summary: 'Draft Bangla emergency communication citing source record IDs' })
   @Post('draft-communication')
   @Roles(UserRole.AUTHORITY)
-  draftCommunication(@Body() body: DraftCommunicationDto) {
+  draftCommunication(@Body() body: DraftCommunicationRequest) {
     return this.aiService.draftCommunication(body);
   }
 
@@ -68,27 +64,17 @@ export class AiController {
   @Roles(UserRole.AUTHORITY, UserRole.ADMIN)
   generateShiftSummary(
     @Body()
-    body: {
-      totalSos?: number;
-      criticalEvacuations?: number;
-      silentVillages?: number;
-      deliveriesLogged?: number;
-      recordIds?: string[];
-    },
+    body: ShiftSummaryRequest,
   ) {
     return this.aiService.generateShiftSummary(body || {});
   }
 
-  @ApiOperation({ summary: 'Transcribe and parse panicked Bangla/dialect voice note SOS' })
+  @ApiOperation({ summary: 'Synthetic voice transcript fixture; real audio transcription is not connected' })
   @Post('transcribe-voice-sos')
   @Roles(UserRole.AUTHORITY, UserRole.RESPONDER, UserRole.ADMIN)
   transcribeVoiceSos(
     @Body()
-    body: {
-      audioBase64?: string;
-      simulatedVoiceNoteId?: string;
-      dialect?: string;
-    },
+    body: VoiceRequest,
   ) {
     return this.aiService.transcribeVoiceSos(body || {});
   }

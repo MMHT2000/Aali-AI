@@ -1,0 +1,1665 @@
+{
+  "generatedAt": "2026-10-18T14:20:18.696Z",
+  "operations": 76,
+  "coveredOperations": 76,
+  "checks": 183,
+  "failed": 6,
+  "uncovered": [],
+  "limitations": [
+    "Synthetic local environment only; external carrier/dispatch integrations are not connected.",
+    "Some mutation routes are verified through validation, missing-record and authorization cases; happy-path state changes are covered separately by unit/integration tests.",
+    "External providers may change availability. This does not prove all field conditions or prediction accuracy."
+  ],
+  "results": [
+    {
+      "operation": "GET /health",
+      "check": "functional",
+      "expected": [
+        200
+      ],
+      "actual": 200,
+      "passed": true
+    },
+    {
+      "operation": "GET /api/v1/health",
+      "check": "functional",
+      "expected": [
+        200
+      ],
+      "actual": 200,
+      "passed": true
+    },
+    {
+      "operation": "GET /api/v1/health/readiness",
+      "check": "functional",
+      "expected": [
+        200
+      ],
+      "actual": 200,
+      "passed": true
+    },
+    {
+      "operation": "POST /api/v1/auth/login",
+      "check": "functional",
+      "expected": [
+        201
+      ],
+      "actual": 201,
+      "passed": true
+    },
+    {
+      "operation": "GET /api/v1/auth/me",
+      "check": "functional",
+      "expected": [
+        200
+      ],
+      "actual": 200,
+      "passed": true
+    },
+    {
+      "operation": "GET /api/v1/auth/me",
+      "check": "authentication",
+      "expected": [
+        401
+      ],
+      "actual": 401,
+      "passed": true
+    },
+    {
+      "operation": "POST /api/v1/auth/resident-register",
+      "check": "functional",
+      "expected": [
+        400
+      ],
+      "actual": 400,
+      "passed": true
+    },
+    {
+      "operation": "GET /api/v1/users/demo-accounts",
+      "check": "functional",
+      "expected": [
+        200
+      ],
+      "actual": 200,
+      "passed": true
+    },
+    {
+      "operation": "GET /api/v1/users/demo-accounts",
+      "check": "authentication",
+      "expected": [
+        401
+      ],
+      "actual": 401,
+      "passed": true
+    },
+    {
+      "operation": "POST /api/v1/users/authority-action",
+      "check": "functional",
+      "expected": [
+        201
+      ],
+      "actual": 201,
+      "passed": true
+    },
+    {
+      "operation": "POST /api/v1/users/authority-action",
+      "check": "authentication",
+      "expected": [
+        401
+      ],
+      "actual": 401,
+      "passed": true
+    },
+    {
+      "operation": "POST /api/v1/users/responder-action",
+      "check": "functional",
+      "expected": [
+        201
+      ],
+      "actual": 201,
+      "passed": true
+    },
+    {
+      "operation": "POST /api/v1/users/responder-action",
+      "check": "authentication",
+      "expected": [
+        401
+      ],
+      "actual": 401,
+      "passed": true
+    },
+    {
+      "operation": "GET /api/v1/events",
+      "check": "functional",
+      "expected": [
+        200
+      ],
+      "actual": 200,
+      "passed": true
+    },
+    {
+      "operation": "GET /api/v1/events",
+      "check": "authentication",
+      "expected": [
+        401
+      ],
+      "actual": 401,
+      "passed": true
+    },
+    {
+      "operation": "GET /api/v1/events/{id}",
+      "check": "functional",
+      "expected": [
+        200
+      ],
+      "actual": 200,
+      "passed": true
+    },
+    {
+      "operation": "GET /api/v1/events/{id}",
+      "check": "authentication",
+      "expected": [
+        401
+      ],
+      "actual": 401,
+      "passed": true
+    },
+    {
+      "operation": "GET /api/v1/areas",
+      "check": "functional",
+      "expected": [
+        200
+      ],
+      "actual": 200,
+      "passed": true
+    },
+    {
+      "operation": "GET /api/v1/areas",
+      "check": "authentication",
+      "expected": [
+        401
+      ],
+      "actual": 401,
+      "passed": true
+    },
+    {
+      "operation": "GET /api/v1/shelters",
+      "check": "functional",
+      "expected": [
+        200
+      ],
+      "actual": 200,
+      "passed": true
+    },
+    {
+      "operation": "GET /api/v1/shelters",
+      "check": "authentication",
+      "expected": [
+        401
+      ],
+      "actual": 401,
+      "passed": true
+    },
+    {
+      "operation": "GET /api/v1/assets",
+      "check": "functional",
+      "expected": [
+        200
+      ],
+      "actual": 200,
+      "passed": true
+    },
+    {
+      "operation": "GET /api/v1/assets",
+      "check": "authentication",
+      "expected": [
+        401
+      ],
+      "actual": 401,
+      "passed": true
+    },
+    {
+      "operation": "POST /api/v1/sos",
+      "check": "functional",
+      "expected": [
+        201
+      ],
+      "actual": 201,
+      "passed": true
+    },
+    {
+      "operation": "GET /api/v1/sos",
+      "check": "functional",
+      "expected": [
+        200
+      ],
+      "actual": 200,
+      "passed": true
+    },
+    {
+      "operation": "GET /api/v1/sos",
+      "check": "authentication",
+      "expected": [
+        401
+      ],
+      "actual": 401,
+      "passed": true
+    },
+    {
+      "operation": "POST /api/v1/packets/decode",
+      "check": "functional",
+      "expected": [
+        201
+      ],
+      "actual": 201,
+      "passed": true
+    },
+    {
+      "operation": "POST /api/v1/packets/decode",
+      "check": "authentication",
+      "expected": [
+        401
+      ],
+      "actual": 401,
+      "passed": true
+    },
+    {
+      "operation": "POST /api/v1/sos/packet",
+      "check": "functional",
+      "expected": [
+        201
+      ],
+      "actual": 201,
+      "passed": true
+    },
+    {
+      "operation": "GET /api/v1/sos/{id}",
+      "check": "functional",
+      "expected": [
+        200
+      ],
+      "actual": 200,
+      "passed": true
+    },
+    {
+      "operation": "GET /api/v1/sos/{id}",
+      "check": "authentication",
+      "expected": [
+        401
+      ],
+      "actual": 401,
+      "passed": true
+    },
+    {
+      "operation": "POST /api/v1/gateway/simulated/ingest",
+      "check": "functional",
+      "expected": [
+        201
+      ],
+      "actual": 201,
+      "passed": true
+    },
+    {
+      "operation": "POST /api/v1/gateway/simulated/ingest",
+      "check": "authentication",
+      "expected": [
+        401
+      ],
+      "actual": 401,
+      "passed": true
+    },
+    {
+      "operation": "POST /api/v1/gateway/sms",
+      "check": "functional",
+      "expected": [
+        201
+      ],
+      "actual": 201,
+      "passed": true
+    },
+    {
+      "operation": "POST /api/v1/gateway/sms",
+      "check": "authentication",
+      "expected": [
+        401
+      ],
+      "actual": 401,
+      "passed": true
+    },
+    {
+      "operation": "GET /api/v1/gateway/simulated/traces",
+      "check": "functional",
+      "expected": [
+        200
+      ],
+      "actual": 200,
+      "passed": true
+    },
+    {
+      "operation": "GET /api/v1/gateway/simulated/traces",
+      "check": "authentication",
+      "expected": [
+        401
+      ],
+      "actual": 401,
+      "passed": true
+    },
+    {
+      "operation": "GET /api/v1/incidents",
+      "check": "functional",
+      "expected": [
+        200
+      ],
+      "actual": 200,
+      "passed": true
+    },
+    {
+      "operation": "GET /api/v1/incidents",
+      "check": "authentication",
+      "expected": [
+        401
+      ],
+      "actual": 401,
+      "passed": true
+    },
+    {
+      "operation": "GET /api/v1/incidents/silent-areas",
+      "check": "functional",
+      "expected": [
+        200
+      ],
+      "actual": 200,
+      "passed": true
+    },
+    {
+      "operation": "GET /api/v1/incidents/silent-areas",
+      "check": "authentication",
+      "expected": [
+        401
+      ],
+      "actual": 401,
+      "passed": true
+    },
+    {
+      "operation": "GET /api/v1/incidents/{id}",
+      "check": "functional",
+      "expected": [
+        200
+      ],
+      "actual": 200,
+      "passed": true
+    },
+    {
+      "operation": "GET /api/v1/incidents/{id}",
+      "check": "authentication",
+      "expected": [
+        401
+      ],
+      "actual": 401,
+      "passed": true
+    },
+    {
+      "operation": "POST /api/v1/incidents/{id}/duplicate-candidates/{candidateId}/review",
+      "check": "functional",
+      "expected": [
+        404
+      ],
+      "actual": 500,
+      "passed": false,
+      "error": "Unexpected HTTP status"
+    },
+    {
+      "operation": "POST /api/v1/incidents/{id}/duplicate-candidates/{candidateId}/review",
+      "check": "authentication",
+      "expected": [
+        401
+      ],
+      "actual": 401,
+      "passed": true
+    },
+    {
+      "operation": "POST /api/v1/incidents/{id}/split",
+      "check": "functional",
+      "expected": [
+        404
+      ],
+      "actual": 500,
+      "passed": false,
+      "error": "Unexpected HTTP status"
+    },
+    {
+      "operation": "POST /api/v1/incidents/{id}/split",
+      "check": "authentication",
+      "expected": [
+        401
+      ],
+      "actual": 401,
+      "passed": true
+    },
+    {
+      "operation": "POST /api/v1/incidents/{id}/boat-recommendation/review",
+      "check": "functional",
+      "expected": [
+        404
+      ],
+      "actual": 500,
+      "passed": false,
+      "error": "Unexpected HTTP status"
+    },
+    {
+      "operation": "POST /api/v1/incidents/{id}/boat-recommendation/review",
+      "check": "authentication",
+      "expected": [
+        401
+      ],
+      "actual": 401,
+      "passed": true
+    },
+    {
+      "operation": "POST /api/v1/incidents/{id}/review",
+      "check": "functional",
+      "expected": [
+        404
+      ],
+      "actual": 500,
+      "passed": false,
+      "error": "Unexpected HTTP status"
+    },
+    {
+      "operation": "POST /api/v1/incidents/{id}/review",
+      "check": "authentication",
+      "expected": [
+        401
+      ],
+      "actual": 401,
+      "passed": true
+    },
+    {
+      "operation": "GET /api/v1/audit-logs",
+      "check": "functional",
+      "expected": [
+        200
+      ],
+      "actual": 200,
+      "passed": true
+    },
+    {
+      "operation": "GET /api/v1/audit-logs",
+      "check": "authentication",
+      "expected": [
+        401
+      ],
+      "actual": 401,
+      "passed": true
+    },
+    {
+      "operation": "POST /api/v1/alerts/evaluate",
+      "check": "functional",
+      "expected": [
+        201
+      ],
+      "actual": 201,
+      "passed": true
+    },
+    {
+      "operation": "POST /api/v1/alerts/evaluate",
+      "check": "authentication",
+      "expected": [
+        401
+      ],
+      "actual": 401,
+      "passed": true
+    },
+    {
+      "operation": "GET /api/v1/replay/scenarios",
+      "check": "functional",
+      "expected": [
+        200
+      ],
+      "actual": 200,
+      "passed": true
+    },
+    {
+      "operation": "GET /api/v1/replay/scenarios",
+      "check": "authentication",
+      "expected": [
+        401
+      ],
+      "actual": 401,
+      "passed": true
+    },
+    {
+      "operation": "POST /api/v1/replay/runs",
+      "check": "functional",
+      "expected": [
+        201
+      ],
+      "actual": 201,
+      "passed": true
+    },
+    {
+      "operation": "POST /api/v1/replay/runs",
+      "check": "authentication",
+      "expected": [
+        401
+      ],
+      "actual": 401,
+      "passed": true
+    },
+    {
+      "operation": "GET /api/v1/replay/runs/{id}",
+      "check": "functional",
+      "expected": [
+        200
+      ],
+      "actual": 200,
+      "passed": true
+    },
+    {
+      "operation": "GET /api/v1/replay/runs/{id}",
+      "check": "authentication",
+      "expected": [
+        401
+      ],
+      "actual": 401,
+      "passed": true
+    },
+    {
+      "operation": "POST /api/v1/replay/runs/{id}/step",
+      "check": "functional",
+      "expected": [
+        201
+      ],
+      "actual": 201,
+      "passed": true
+    },
+    {
+      "operation": "POST /api/v1/replay/runs/{id}/step",
+      "check": "authentication",
+      "expected": [
+        401
+      ],
+      "actual": 401,
+      "passed": true
+    },
+    {
+      "operation": "PATCH /api/v1/replay/runs/{id}/gauge-state",
+      "check": "functional",
+      "expected": [
+        200
+      ],
+      "actual": 200,
+      "passed": true
+    },
+    {
+      "operation": "PATCH /api/v1/replay/runs/{id}/gauge-state",
+      "check": "authentication",
+      "expected": [
+        401
+      ],
+      "actual": 401,
+      "passed": true
+    },
+    {
+      "operation": "GET /api/v1/warnings",
+      "check": "functional",
+      "expected": [
+        200
+      ],
+      "actual": 200,
+      "passed": true
+    },
+    {
+      "operation": "POST /api/v1/warnings/drafts",
+      "check": "invalid input rejected",
+      "expected": [
+        400
+      ],
+      "actual": 400,
+      "passed": true
+    },
+    {
+      "operation": "POST /api/v1/warnings/drafts",
+      "check": "authentication",
+      "expected": [
+        401
+      ],
+      "actual": 401,
+      "passed": true
+    },
+    {
+      "operation": "POST /api/v1/warnings/{id}/approve",
+      "check": "functional",
+      "expected": [
+        404
+      ],
+      "actual": 404,
+      "passed": true
+    },
+    {
+      "operation": "POST /api/v1/warnings/{id}/approve",
+      "check": "authentication",
+      "expected": [
+        401
+      ],
+      "actual": 401,
+      "passed": true
+    },
+    {
+      "operation": "POST /api/v1/warnings/{id}/reject",
+      "check": "functional",
+      "expected": [
+        404
+      ],
+      "actual": 404,
+      "passed": true
+    },
+    {
+      "operation": "POST /api/v1/warnings/{id}/reject",
+      "check": "authentication",
+      "expected": [
+        401
+      ],
+      "actual": 401,
+      "passed": true
+    },
+    {
+      "operation": "POST /api/v1/warnings/{id}/send-simulated",
+      "check": "functional",
+      "expected": [
+        404
+      ],
+      "actual": 404,
+      "passed": true
+    },
+    {
+      "operation": "POST /api/v1/warnings/{id}/send-simulated",
+      "check": "authentication",
+      "expected": [
+        401
+      ],
+      "actual": 401,
+      "passed": true
+    },
+    {
+      "operation": "GET /api/v1/warnings/{id}/loudspeaker-audio",
+      "check": "functional",
+      "expected": [
+        200
+      ],
+      "actual": 200,
+      "passed": true
+    },
+    {
+      "operation": "GET /api/v1/ai/status",
+      "check": "functional",
+      "expected": [
+        200
+      ],
+      "actual": 200,
+      "passed": true
+    },
+    {
+      "operation": "GET /api/v1/ai/status",
+      "check": "authentication",
+      "expected": [
+        401
+      ],
+      "actual": 401,
+      "passed": true
+    },
+    {
+      "operation": "PUT /api/v1/ai/status/outage",
+      "check": "functional",
+      "expected": [
+        200
+      ],
+      "actual": 200,
+      "passed": true
+    },
+    {
+      "operation": "PUT /api/v1/ai/status/outage",
+      "check": "authentication",
+      "expected": [
+        401
+      ],
+      "actual": 401,
+      "passed": true
+    },
+    {
+      "operation": "POST /api/v1/ai/understand-sos",
+      "check": "functional",
+      "expected": [
+        201
+      ],
+      "actual": 201,
+      "passed": true
+    },
+    {
+      "operation": "POST /api/v1/ai/understand-sos",
+      "check": "authentication",
+      "expected": [
+        401
+      ],
+      "actual": 401,
+      "passed": true
+    },
+    {
+      "operation": "POST /api/v1/ai/duplicate-similarity",
+      "check": "functional",
+      "expected": [
+        201
+      ],
+      "actual": 201,
+      "passed": true
+    },
+    {
+      "operation": "POST /api/v1/ai/duplicate-similarity",
+      "check": "authentication",
+      "expected": [
+        401
+      ],
+      "actual": 401,
+      "passed": true
+    },
+    {
+      "operation": "POST /api/v1/ai/draft-communication",
+      "check": "functional",
+      "expected": [
+        201
+      ],
+      "actual": 201,
+      "passed": true
+    },
+    {
+      "operation": "POST /api/v1/ai/draft-communication",
+      "check": "authentication",
+      "expected": [
+        401
+      ],
+      "actual": 401,
+      "passed": true
+    },
+    {
+      "operation": "GET /api/v1/ai/benchmark/samples",
+      "check": "functional",
+      "expected": [
+        200
+      ],
+      "actual": 200,
+      "passed": true
+    },
+    {
+      "operation": "GET /api/v1/ai/benchmark/samples",
+      "check": "authentication",
+      "expected": [
+        401
+      ],
+      "actual": 401,
+      "passed": true
+    },
+    {
+      "operation": "GET /api/v1/ai/benchmark",
+      "check": "functional",
+      "expected": [
+        200
+      ],
+      "actual": 200,
+      "passed": true
+    },
+    {
+      "operation": "GET /api/v1/ai/benchmark",
+      "check": "authentication",
+      "expected": [
+        401
+      ],
+      "actual": 401,
+      "passed": true
+    },
+    {
+      "operation": "POST /api/v1/ai/shift-summary",
+      "check": "functional",
+      "expected": [
+        201
+      ],
+      "actual": 201,
+      "passed": true
+    },
+    {
+      "operation": "POST /api/v1/ai/shift-summary",
+      "check": "authentication",
+      "expected": [
+        401
+      ],
+      "actual": 401,
+      "passed": true
+    },
+    {
+      "operation": "POST /api/v1/ai/transcribe-voice-sos",
+      "check": "functional",
+      "expected": [
+        201
+      ],
+      "actual": 201,
+      "passed": true
+    },
+    {
+      "operation": "POST /api/v1/ai/transcribe-voice-sos",
+      "check": "authentication",
+      "expected": [
+        401
+      ],
+      "actual": 401,
+      "passed": true
+    },
+    {
+      "operation": "POST /api/v1/recovery/reports",
+      "check": "invalid input rejected",
+      "expected": [
+        400
+      ],
+      "actual": 400,
+      "passed": true
+    },
+    {
+      "operation": "POST /api/v1/recovery/reports",
+      "check": "authentication",
+      "expected": [
+        401
+      ],
+      "actual": 401,
+      "passed": true
+    },
+    {
+      "operation": "GET /api/v1/recovery/reports",
+      "check": "invalid input rejected",
+      "expected": [
+        400
+      ],
+      "actual": "NETWORK_ERROR",
+      "passed": false,
+      "error": "Request with GET/HEAD method cannot have body."
+    },
+    {
+      "operation": "GET /api/v1/recovery/reports",
+      "check": "authentication",
+      "expected": [
+        401
+      ],
+      "actual": 401,
+      "passed": true
+    },
+    {
+      "operation": "POST /api/v1/recovery/deliveries",
+      "check": "invalid input rejected",
+      "expected": [
+        400
+      ],
+      "actual": 400,
+      "passed": true
+    },
+    {
+      "operation": "POST /api/v1/recovery/deliveries",
+      "check": "authentication",
+      "expected": [
+        401
+      ],
+      "actual": 401,
+      "passed": true
+    },
+    {
+      "operation": "GET /api/v1/recovery/deliveries",
+      "check": "invalid input rejected",
+      "expected": [
+        400
+      ],
+      "actual": "NETWORK_ERROR",
+      "passed": false,
+      "error": "Request with GET/HEAD method cannot have body."
+    },
+    {
+      "operation": "GET /api/v1/recovery/deliveries",
+      "check": "authentication",
+      "expected": [
+        401
+      ],
+      "actual": 401,
+      "passed": true
+    },
+    {
+      "operation": "GET /api/v1/recovery/summary",
+      "check": "functional",
+      "expected": [
+        200
+      ],
+      "actual": 200,
+      "passed": true
+    },
+    {
+      "operation": "GET /api/v1/recovery/summary",
+      "check": "authentication",
+      "expected": [
+        401
+      ],
+      "actual": 401,
+      "passed": true
+    },
+    {
+      "operation": "GET /api/v1/operations/live-stream",
+      "check": "SSE connection headers",
+      "actual": 200,
+      "passed": true
+    },
+    {
+      "operation": "POST /api/v1/operations/demo-moment",
+      "check": "functional",
+      "expected": [
+        201
+      ],
+      "actual": 201,
+      "passed": true
+    },
+    {
+      "operation": "GET /api/v1/operations/snapshot",
+      "check": "functional",
+      "expected": [
+        200
+      ],
+      "actual": 200,
+      "passed": true
+    },
+    {
+      "operation": "GET /api/v1/operations/snapshot",
+      "check": "authentication",
+      "expected": [
+        401
+      ],
+      "actual": 401,
+      "passed": true
+    },
+    {
+      "operation": "POST /api/v1/field-readings",
+      "check": "invalid input rejected",
+      "expected": [
+        400
+      ],
+      "actual": 400,
+      "passed": true
+    },
+    {
+      "operation": "POST /api/v1/field-readings",
+      "check": "authentication",
+      "expected": [
+        401
+      ],
+      "actual": 401,
+      "passed": true
+    },
+    {
+      "operation": "POST /api/v1/simulation/start",
+      "check": "functional",
+      "expected": [
+        201
+      ],
+      "actual": 201,
+      "passed": true
+    },
+    {
+      "operation": "POST /api/v1/simulation/start",
+      "check": "authentication",
+      "expected": [
+        401
+      ],
+      "actual": 401,
+      "passed": true
+    },
+    {
+      "operation": "POST /api/v1/simulation/pause",
+      "check": "functional",
+      "expected": [
+        201
+      ],
+      "actual": 201,
+      "passed": true
+    },
+    {
+      "operation": "POST /api/v1/simulation/pause",
+      "check": "authentication",
+      "expected": [
+        401
+      ],
+      "actual": 401,
+      "passed": true
+    },
+    {
+      "operation": "POST /api/v1/simulation/step",
+      "check": "functional",
+      "expected": [
+        201
+      ],
+      "actual": 201,
+      "passed": true
+    },
+    {
+      "operation": "POST /api/v1/simulation/step",
+      "check": "authentication",
+      "expected": [
+        401
+      ],
+      "actual": 401,
+      "passed": true
+    },
+    {
+      "operation": "POST /api/v1/simulation/reset",
+      "check": "functional",
+      "expected": [
+        201
+      ],
+      "actual": 201,
+      "passed": true
+    },
+    {
+      "operation": "POST /api/v1/simulation/reset",
+      "check": "authentication",
+      "expected": [
+        401
+      ],
+      "actual": 401,
+      "passed": true
+    },
+    {
+      "operation": "PATCH /api/v1/simulation/speed",
+      "check": "functional",
+      "expected": [
+        200
+      ],
+      "actual": 200,
+      "passed": true
+    },
+    {
+      "operation": "PATCH /api/v1/simulation/speed",
+      "check": "authentication",
+      "expected": [
+        401
+      ],
+      "actual": 401,
+      "passed": true
+    },
+    {
+      "operation": "PATCH /api/v1/simulation/connectivity",
+      "check": "functional",
+      "expected": [
+        200
+      ],
+      "actual": 200,
+      "passed": true
+    },
+    {
+      "operation": "PATCH /api/v1/simulation/connectivity",
+      "check": "authentication",
+      "expected": [
+        401
+      ],
+      "actual": 401,
+      "passed": true
+    },
+    {
+      "operation": "PATCH /api/v1/simulation/gauge",
+      "check": "functional",
+      "expected": [
+        200
+      ],
+      "actual": 200,
+      "passed": true
+    },
+    {
+      "operation": "PATCH /api/v1/simulation/gauge",
+      "check": "authentication",
+      "expected": [
+        401
+      ],
+      "actual": 401,
+      "passed": true
+    },
+    {
+      "operation": "PATCH /api/v1/simulation/tick",
+      "check": "functional",
+      "expected": [
+        200
+      ],
+      "actual": 200,
+      "passed": true
+    },
+    {
+      "operation": "PATCH /api/v1/simulation/tick",
+      "check": "authentication",
+      "expected": [
+        401
+      ],
+      "actual": 401,
+      "passed": true
+    },
+    {
+      "operation": "GET /api/v1/brain/autonomy/status",
+      "check": "functional",
+      "expected": [
+        200
+      ],
+      "actual": 200,
+      "passed": true
+    },
+    {
+      "operation": "GET /api/v1/brain/autonomy/status",
+      "check": "authentication",
+      "expected": [
+        401
+      ],
+      "actual": 401,
+      "passed": true
+    },
+    {
+      "operation": "POST /api/v1/brain/autonomy/control",
+      "check": "invalid input rejected",
+      "expected": [
+        400
+      ],
+      "actual": 400,
+      "passed": true
+    },
+    {
+      "operation": "POST /api/v1/brain/autonomy/control",
+      "check": "authentication",
+      "expected": [
+        401
+      ],
+      "actual": 401,
+      "passed": true
+    },
+    {
+      "operation": "GET /api/v1/brain/areas",
+      "check": "functional",
+      "expected": [
+        200
+      ],
+      "actual": 200,
+      "passed": true
+    },
+    {
+      "operation": "POST /api/v1/brain/household",
+      "check": "functional",
+      "expected": [
+        201
+      ],
+      "actual": 201,
+      "passed": true
+    },
+    {
+      "operation": "GET /api/v1/brain/latest",
+      "check": "functional",
+      "expected": [
+        200
+      ],
+      "actual": 200,
+      "passed": true
+    },
+    {
+      "operation": "GET /api/v1/brain/latest",
+      "check": "authentication",
+      "expected": [
+        401
+      ],
+      "actual": 401,
+      "passed": true
+    },
+    {
+      "operation": "POST /api/v1/brain/run",
+      "check": "functional",
+      "expected": [
+        201
+      ],
+      "actual": 201,
+      "passed": true
+    },
+    {
+      "operation": "POST /api/v1/brain/run",
+      "check": "authentication",
+      "expected": [
+        401
+      ],
+      "actual": 401,
+      "passed": true
+    },
+    {
+      "operation": "POST /api/v1/brain/personalize",
+      "check": "functional",
+      "expected": [
+        201
+      ],
+      "actual": 201,
+      "passed": true
+    },
+    {
+      "operation": "POST /api/v1/brain/personalize",
+      "check": "authentication",
+      "expected": [
+        401
+      ],
+      "actual": 401,
+      "passed": true
+    },
+    {
+      "operation": "POST /api/v1/brain/runs/{id}/review",
+      "check": "functional",
+      "expected": [
+        400
+      ],
+      "actual": 400,
+      "passed": true
+    },
+    {
+      "operation": "POST /api/v1/brain/runs/{id}/review",
+      "check": "authentication",
+      "expected": [
+        401
+      ],
+      "actual": 401,
+      "passed": true
+    },
+    {
+      "operation": "POST /api/v1/ai/understand-sos",
+      "check": "empty input",
+      "expected": [
+        400
+      ],
+      "actual": 400,
+      "passed": true
+    },
+    {
+      "operation": "POST /api/v1/ai/duplicate-similarity",
+      "check": "empty input",
+      "expected": [
+        400
+      ],
+      "actual": 400,
+      "passed": true
+    },
+    {
+      "operation": "POST /api/v1/alerts/evaluate",
+      "check": "empty input",
+      "expected": [
+        400
+      ],
+      "actual": 400,
+      "passed": true
+    },
+    {
+      "operation": "POST /api/v1/replay/runs",
+      "check": "empty input",
+      "expected": [
+        400
+      ],
+      "actual": 400,
+      "passed": true
+    },
+    {
+      "operation": "PUT /api/v1/ai/status/outage",
+      "check": "boolean string rejected",
+      "expected": [
+        400
+      ],
+      "actual": 400,
+      "passed": true
+    },
+    {
+      "operation": "POST /api/v1/brain/autonomy/control",
+      "check": "role restriction",
+      "expected": [
+        403
+      ],
+      "actual": 403,
+      "passed": true
+    },
+    {
+      "operation": "GET /api/v1/events/{id}",
+      "check": "unknown event",
+      "expected": [
+        404
+      ],
+      "actual": 404,
+      "passed": true
+    },
+    {
+      "operation": "GET /api/v1/replay/runs/{id}",
+      "check": "unknown run",
+      "expected": [
+        404
+      ],
+      "actual": 404,
+      "passed": true
+    },
+    {
+      "operation": "GET /api/v1/operations/snapshot",
+      "check": "authority/FENI_DIST/LIVE",
+      "expected": [
+        200
+      ],
+      "actual": 200,
+      "passed": true
+    },
+    {
+      "operation": "GET /api/v1/operations/snapshot",
+      "check": "authority/FENI_DIST/EXERCISE",
+      "expected": [
+        200
+      ],
+      "actual": 200,
+      "passed": true
+    },
+    {
+      "operation": "GET /api/v1/operations/snapshot",
+      "check": "authority/FENI_DIST/HISTORICAL",
+      "expected": [
+        200
+      ],
+      "actual": 200,
+      "passed": true
+    },
+    {
+      "operation": "GET /api/v1/operations/snapshot",
+      "check": "authority/SYLHET_DIST/LIVE",
+      "expected": [
+        200
+      ],
+      "actual": 200,
+      "passed": true
+    },
+    {
+      "operation": "GET /api/v1/operations/snapshot",
+      "check": "authority/SYLHET_DIST/EXERCISE",
+      "expected": [
+        200
+      ],
+      "actual": 200,
+      "passed": true
+    },
+    {
+      "operation": "GET /api/v1/operations/snapshot",
+      "check": "authority/SYLHET_DIST/HISTORICAL",
+      "expected": [
+        200
+      ],
+      "actual": 200,
+      "passed": true
+    },
+    {
+      "operation": "GET /api/v1/operations/snapshot",
+      "check": "responder/FENI_DIST/LIVE",
+      "expected": [
+        200
+      ],
+      "actual": 200,
+      "passed": true
+    },
+    {
+      "operation": "GET /api/v1/operations/snapshot",
+      "check": "responder/FENI_DIST/EXERCISE",
+      "expected": [
+        200
+      ],
+      "actual": 200,
+      "passed": true
+    },
+    {
+      "operation": "GET /api/v1/operations/snapshot",
+      "check": "responder/FENI_DIST/HISTORICAL",
+      "expected": [
+        200
+      ],
+      "actual": 200,
+      "passed": true
+    },
+    {
+      "operation": "GET /api/v1/operations/snapshot",
+      "check": "responder/SYLHET_DIST/LIVE",
+      "expected": [
+        200
+      ],
+      "actual": 200,
+      "passed": true
+    },
+    {
+      "operation": "GET /api/v1/operations/snapshot",
+      "check": "responder/SYLHET_DIST/EXERCISE",
+      "expected": [
+        200
+      ],
+      "actual": 200,
+      "passed": true
+    },
+    {
+      "operation": "GET /api/v1/operations/snapshot",
+      "check": "responder/SYLHET_DIST/HISTORICAL",
+      "expected": [
+        200
+      ],
+      "actual": 200,
+      "passed": true
+    },
+    {
+      "operation": "GET /api/v1/operations/snapshot",
+      "check": "recovery/FENI_DIST/LIVE",
+      "expected": [
+        200
+      ],
+      "actual": 200,
+      "passed": true
+    },
+    {
+      "operation": "GET /api/v1/operations/snapshot",
+      "check": "recovery/FENI_DIST/EXERCISE",
+      "expected": [
+        200
+      ],
+      "actual": 200,
+      "passed": true
+    },
+    {
+      "operation": "GET /api/v1/operations/snapshot",
+      "check": "recovery/FENI_DIST/HISTORICAL",
+      "expected": [
+        200
+      ],
+      "actual": 200,
+      "passed": true
+    },
+    {
+      "operation": "GET /api/v1/operations/snapshot",
+      "check": "recovery/SYLHET_DIST/LIVE",
+      "expected": [
+        200
+      ],
+      "actual": 200,
+      "passed": true
+    },
+    {
+      "operation": "GET /api/v1/operations/snapshot",
+      "check": "recovery/SYLHET_DIST/EXERCISE",
+      "expected": [
+        200
+      ],
+      "actual": 200,
+      "passed": true
+    },
+    {
+      "operation": "GET /api/v1/operations/snapshot",
+      "check": "recovery/SYLHET_DIST/HISTORICAL",
+      "expected": [
+        200
+      ],
+      "actual": 200,
+      "passed": true
+    },
+    {
+      "operation": "GET /api/v1/operations/snapshot",
+      "check": "volunteer/FENI_DIST/LIVE",
+      "expected": [
+        200
+      ],
+      "actual": 200,
+      "passed": true
+    },
+    {
+      "operation": "GET /api/v1/operations/snapshot",
+      "check": "volunteer/FENI_DIST/EXERCISE",
+      "expected": [
+        200
+      ],
+      "actual": 200,
+      "passed": true
+    },
+    {
+      "operation": "GET /api/v1/operations/snapshot",
+      "check": "volunteer/FENI_DIST/HISTORICAL",
+      "expected": [
+        200
+      ],
+      "actual": 200,
+      "passed": true
+    },
+    {
+      "operation": "GET /api/v1/operations/snapshot",
+      "check": "volunteer/SYLHET_DIST/LIVE",
+      "expected": [
+        200
+      ],
+      "actual": 200,
+      "passed": true
+    },
+    {
+      "operation": "GET /api/v1/operations/snapshot",
+      "check": "volunteer/SYLHET_DIST/EXERCISE",
+      "expected": [
+        200
+      ],
+      "actual": 200,
+      "passed": true
+    },
+    {
+      "operation": "GET /api/v1/operations/snapshot",
+      "check": "volunteer/SYLHET_DIST/HISTORICAL",
+      "expected": [
+        200
+      ],
+      "actual": 200,
+      "passed": true
+    },
+    {
+      "operation": "GET /api/v1/operations/snapshot",
+      "check": "viewer/FENI_DIST/LIVE",
+      "expected": [
+        200
+      ],
+      "actual": 200,
+      "passed": true
+    },
+    {
+      "operation": "GET /api/v1/operations/snapshot",
+      "check": "viewer/FENI_DIST/EXERCISE",
+      "expected": [
+        200
+      ],
+      "actual": 200,
+      "passed": true
+    },
+    {
+      "operation": "GET /api/v1/operations/snapshot",
+      "check": "viewer/FENI_DIST/HISTORICAL",
+      "expected": [
+        200
+      ],
+      "actual": 200,
+      "passed": true
+    },
+    {
+      "operation": "GET /api/v1/operations/snapshot",
+      "check": "viewer/SYLHET_DIST/LIVE",
+      "expected": [
+        200
+      ],
+      "actual": 200,
+      "passed": true
+    },
+    {
+      "operation": "GET /api/v1/operations/snapshot",
+      "check": "viewer/SYLHET_DIST/EXERCISE",
+      "expected": [
+        200
+      ],
+      "actual": 200,
+      "passed": true
+    },
+    {
+      "operation": "GET /api/v1/operations/snapshot",
+      "check": "viewer/SYLHET_DIST/HISTORICAL",
+      "expected": [
+        200
+      ],
+      "actual": 200,
+      "passed": true
+    },
+    {
+      "operation": "GET /api/v1/operations/snapshot",
+      "check": "admin/FENI_DIST/LIVE",
+      "expected": [
+        200
+      ],
+      "actual": 200,
+      "passed": true
+    },
+    {
+      "operation": "GET /api/v1/operations/snapshot",
+      "check": "admin/FENI_DIST/EXERCISE",
+      "expected": [
+        200
+      ],
+      "actual": 200,
+      "passed": true
+    },
+    {
+      "operation": "GET /api/v1/operations/snapshot",
+      "check": "admin/FENI_DIST/HISTORICAL",
+      "expected": [
+        200
+      ],
+      "actual": 200,
+      "passed": true
+    },
+    {
+      "operation": "GET /api/v1/operations/snapshot",
+      "check": "admin/SYLHET_DIST/LIVE",
+      "expected": [
+        200
+      ],
+      "actual": 200,
+      "passed": true
+    },
+    {
+      "operation": "GET /api/v1/operations/snapshot",
+      "check": "admin/SYLHET_DIST/EXERCISE",
+      "expected": [
+        200
+      ],
+      "actual": 200,
+      "passed": true
+    },
+    {
+      "operation": "GET /api/v1/operations/snapshot",
+      "check": "admin/SYLHET_DIST/HISTORICAL",
+      "expected": [
+        200
+      ],
+      "actual": 200,
+      "passed": true
+    }
+  ]
+}

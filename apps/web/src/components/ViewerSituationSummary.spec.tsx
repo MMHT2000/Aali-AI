@@ -1,9 +1,9 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { getOperationsSnapshot, OperationsSnapshotBase } from '../lib/operations-client';
+import { getOperationsSnapshot, OperationsSnapshotBase, OperationsSnapshotError } from '../lib/operations-client';
 import { ViewerSituationSummary } from './ViewerSituationSummary';
 
-vi.mock('../lib/operations-client', () => ({ getOperationsSnapshot: vi.fn() }));
+vi.mock('../lib/operations-client', async importOriginal => ({ ...await importOriginal<typeof import('../lib/operations-client')>(), getOperationsSnapshot: vi.fn() }));
 
 const aggregateSnapshot: OperationsSnapshotBase = {
   role: 'VIEWER',
@@ -25,7 +25,7 @@ const aggregateSnapshot: OperationsSnapshotBase = {
 };
 
 describe('ViewerSituationSummary', () => {
-  beforeEach(() => vi.mocked(getOperationsSnapshot).mockReset());
+  beforeEach(() => { vi.mocked(getOperationsSnapshot).mockReset(); });
 
   it('shows aggregate source and reference counts without operational records', async () => {
     vi.mocked(getOperationsSnapshot).mockResolvedValue(aggregateSnapshot);
@@ -47,5 +47,12 @@ describe('ViewerSituationSummary', () => {
 
     await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('aggregate-only Viewer snapshot'));
     expect(screen.queryByText('Feni situation summary')).not.toBeInTheDocument();
+  });
+  it('offers sign-in instead of a retry loop after a 401', async () => {
+    vi.mocked(getOperationsSnapshot).mockRejectedValue(new OperationsSnapshotError(401));
+    render(<ViewerSituationSummary mode="EXERCISE" />);
+    expect(await screen.findByRole('heading', { name: 'Sign-in required' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Sign in again' })).toHaveAttribute('href', '/');
+    expect(screen.queryByRole('button', { name: 'Retry' })).not.toBeInTheDocument();
   });
 });

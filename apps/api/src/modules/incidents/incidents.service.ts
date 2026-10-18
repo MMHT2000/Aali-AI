@@ -1,4 +1,4 @@
-import { Injectable, Logger, OnModuleInit, Optional } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException, OnModuleInit, Optional } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { calculateBoatPriority } from '../../domain/boat-priority/boat-priority';
@@ -197,7 +197,7 @@ export class IncidentsService implements OnModuleInit {
   ): Promise<{ status: string; incident: IncidentSummary }> {
     const inc = this.incidents.find((i) => i.id === incidentId);
     if (!inc || !inc.duplicateCandidate || inc.duplicateCandidate.candidateId !== candidateId) {
-      throw new Error('Candidate not found on incident');
+      throw new NotFoundException('Candidate not found on incident');
     }
 
     const nextStatus = decision === 'ACCEPT' ? 'ACCEPTED' : 'REJECTED';
@@ -238,7 +238,7 @@ export class IncidentsService implements OnModuleInit {
   ): Promise<{ status: string; incident: IncidentSummary }> {
     const inc = this.incidents.find((i) => i.id === incidentId);
     if (!inc || !inc.suggestedBoat) {
-      throw new Error('Suggested boat not found on incident');
+      throw new NotFoundException('Suggested boat not found on incident');
     }
 
     const prevStatus = inc.suggestedBoat.status;
@@ -301,7 +301,7 @@ export class IncidentsService implements OnModuleInit {
   ): Promise<{ originalIncident: IncidentSummary; newIncident: IncidentSummary }> {
     const inc = this.incidents.find((i) => i.id === incidentId);
     if (!inc || !inc.linkedReportIds.includes(reportIdToSeparate)) {
-      throw new Error('Report not linked to incident');
+      throw new NotFoundException('Report not linked to incident');
     }
 
     const newInc: IncidentSummary = {

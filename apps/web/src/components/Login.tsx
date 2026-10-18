@@ -86,6 +86,8 @@ export function Login({ onLoginSuccess }: LoginProps) {
         </span>
       </div>
 
+      <a href="/preparedness" style={{ display: 'block', padding: '0.8rem', marginBottom: '0.8rem', color: '#5eead4', textAlign: 'center' }}>Check your area and prepare your household · No sign-in needed</a>
+
       <button
         type="button"
         disabled={loading}
@@ -116,19 +118,8 @@ export function Login({ onLoginSuccess }: LoginProps) {
         <span>সরাসরি অপারেশন্স রুমে প্রবেশ (Enter Situation Room as DC Feni)</span>
       </button>
 
-      <button
-        type="button"
-        onClick={() => {
-          // Instant PWA Citizen Uplink without login credentials
-          const guestSession: UserSession = {
-            id: 'citizen-pwa-guest',
-            username: 'citizen_guest',
-            displayName: 'Stranded Resident (PWA Direct)',
-            role: 'VIEWER',
-            accessToken: '',
-          };
-          onLoginSuccess(guestSession);
-        }}
+      <a
+        href="/sos"
         style={{
           width: '100%',
           padding: '0.75rem',
@@ -149,7 +140,7 @@ export function Login({ onLoginSuccess }: LoginProps) {
       >
         <span>🚨</span>
         <span>জিরো-ইনস্টল জরুরি এসওএস (Zero-Install Emergency SOS PWA)</span>
-      </button>
+      </a>
 
       <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '0.9rem' }}>
         <div>

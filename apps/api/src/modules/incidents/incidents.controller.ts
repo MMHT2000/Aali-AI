@@ -1,3 +1,4 @@
+import { ReviewRequest, SplitRequest, TriageRequest } from '../../common/validation/workflow.dto';
 import {
   Body,
   Controller,
@@ -50,7 +51,7 @@ export class IncidentsController {
   async reviewDuplicate(
     @Param('id') incidentId: string,
     @Param('candidateId') candidateId: string,
-    @Body() body: { decision: 'ACCEPT' | 'REJECT'; reason: string },
+    @Body() body: ReviewRequest,
     @Request() req: { user: { id: string } },
   ) {
     return this.incidentsService.reviewDuplicateCandidate(
@@ -67,7 +68,7 @@ export class IncidentsController {
   @ApiOperation({ summary: 'Operator unmerge/split action: separates linked report into new incident' })
   async splitIncident(
     @Param('id') incidentId: string,
-    @Body() body: { reportId: string; reason: string },
+    @Body() body: SplitRequest,
     @Request() req: { user: { id: string } },
   ) {
     return this.incidentsService.splitIncident(
@@ -83,7 +84,7 @@ export class IncidentsController {
   @ApiOperation({ summary: 'Operator human review for suggested boat dispatch (ACCEPT or REJECT, no auto-dispatch)' })
   async reviewBoatRecommendation(
     @Param('id') incidentId: string,
-    @Body() body: { decision: 'ACCEPT' | 'REJECT'; reason?: string },
+    @Body() body: ReviewRequest,
     @Request() req: { user: { id: string } },
   ) {
     return this.incidentsService.reviewBoatSuggestion(
@@ -99,7 +100,7 @@ export class IncidentsController {
   @ApiOperation({ summary: 'Unified incident triage review endpoint' })
   async reviewIncident(
     @Param('id') incidentId: string,
-    @Body() body: { action?: string; decision?: 'ACCEPT' | 'REJECT'; note?: string; reason?: string },
+    @Body() body: TriageRequest,
     @Request() req: { user: { id: string } },
   ) {
     const decision = body.decision || (body.action === 'CONFIRM' ? 'ACCEPT' : 'REJECT');

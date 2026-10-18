@@ -50,5 +50,15 @@ describe('RateLimitGuard', () => {
       expect(err.getStatus()).toBe(HttpStatus.TOO_MANY_REQUESTS);
     }
   });
+  it('does not let an AI request consume the SOS route allowance', () => {
+    jest.spyOn(reflector, 'getAllAndOverride').mockReturnValue({ limit: 1, ttlSeconds: 60 });
+    const first = mockContext('192.168.1.102');
+    const second = mockContext('192.168.1.102');
+    first.getHandler = () => function analyze() {};
+    second.getHandler = () => function submitSos() {};
+    expect(guard.canActivate(first)).toBe(true);
+    expect(guard.canActivate(second)).toBe(true);
+    expect(() => guard.canActivate(first)).toThrow(HttpException);
+  });
 });
 

@@ -40,7 +40,6 @@ export class RateLimitGuard implements CanActivate {
 
     const request = context.switchToHttp().getRequest();
     const ip =
-      (request.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() ||
       request.ip ||
       request.socket?.remoteAddress ||
       'unknown-client';
@@ -48,10 +47,14 @@ export class RateLimitGuard implements CanActivate {
     const now = Date.now();
     const windowStart = now - options.ttlSeconds * 1000;
 
-    let record = this.hits.get(ip);
+    // Independent routes must not consume each other's emergency/AI allowance.
+    // request.ip respects the server's proxy configuration; arbitrary forwarded
+    // headers must not let callers bypass limits.
+    const key = `${context.getClass().name}:${context.getHandler().name}:${ip}`;
+    let record = this.hits.get(key);
     if (!record) {
       record = { timestamps: [] };
-      this.hits.set(ip, record);
+      this.hits.set(key, record);
     }
 
     // Prune expired timestamps

@@ -99,45 +99,11 @@ function RecenterButton({ onRecenter, isSylhet }: { onRecenter: () => void; isSy
 }
 
 // Robust coordinate resolver: supports both Sylhet and Feni coordinate domains
-function resolveCoordinates(point: OperationMapPoint, index: number, isSylhet = false): [number, number] {
-  const lat = Number(point.latitude);
-  const lng = Number(point.longitude);
-
-  if (isSylhet) {
-    if (Number.isFinite(lat) && Number.isFinite(lng) && lat >= 24.3 && lat <= 25.4 && lng >= 91.3 && lng <= 92.5) {
-      return [lat, lng];
-    }
-    const text = `${point.name ?? ''} ${point.label ?? ''}`.toLowerCase();
-    if (text.includes('companiganj') || text.includes('কোম্পানীগঞ্জ')) return [25.0805 + ((index % 5) - 2) * 0.002, 91.7523 + ((index % 3) - 1) * 0.002];
-    if (text.includes('gowainghat') || text.includes('গোয়াইনঘাট')) return [25.0560 + ((index % 5) - 2) * 0.002, 91.9710 + ((index % 3) - 1) * 0.002];
-    if (text.includes('rustampur') || text.includes('রুস্তমপুর')) return [25.0920 + ((index % 5) - 2) * 0.002, 91.7850 + ((index % 3) - 1) * 0.002];
-    if (text.includes('sheola') || text.includes('শেওলা') || text.includes('kushiyara')) return [24.8850 + ((index % 5) - 2) * 0.002, 92.1950 + ((index % 3) - 1) * 0.002];
-    return [SYLHET_CENTER[0] + ((index * 7) % 20 - 10) * 0.003, SYLHET_CENTER[1] + ((index * 13) % 20 - 10) * 0.003];
-  }
-
-  // Feni coordinates
-  if (Number.isFinite(lat) && Number.isFinite(lng) && lat >= 22.7 && lat <= 23.5 && lng >= 91.0 && lng <= 91.8) {
-    return [lat, lng];
-  }
-
-  // Geohash fallbacks
-  if (point.geohash7) {
-    if (point.geohash7.startsWith('wh0xs6')) return [23.2325 + ((index % 5) - 2) * 0.002, 91.4361 + ((index % 3) - 1) * 0.002]; // Parshuram
-    if (point.geohash7.startsWith('wh0xs4')) return [23.2180 + ((index % 5) - 2) * 0.002, 91.4280 + ((index % 3) - 1) * 0.002]; // Chitholia
-    if (point.geohash7.startsWith('wh0xsk')) return [23.2450 + ((index % 5) - 2) * 0.002, 91.4420 + ((index % 3) - 1) * 0.002]; // Mirzanagar
-    if (point.geohash7.startsWith('wh0xse')) return [23.1611 + ((index % 5) - 2) * 0.002, 91.4167 + ((index % 3) - 1) * 0.002]; // Fulgazi
-  }
-
-  // Village name fallbacks
-  const text = `${point.name ?? ''} ${point.label ?? ''}`.toLowerCase();
-  if (text.includes('parshuram') || text.includes('পরশুরাম')) return [23.2325 + ((index % 5) - 2) * 0.002, 91.4361 + ((index % 3) - 1) * 0.002];
-  if (text.includes('chitholia') || text.includes('চিথলিয়া')) return [23.2180 + ((index % 5) - 2) * 0.002, 91.4280 + ((index % 3) - 1) * 0.002];
-  if (text.includes('mirzanagar') || text.includes('মির্জানগর')) return [23.2450 + ((index % 5) - 2) * 0.002, 91.4420 + ((index % 3) - 1) * 0.002];
-  if (text.includes('fulgazi') || text.includes('ফুলগাজী')) return [23.1611 + ((index % 5) - 2) * 0.002, 91.4167 + ((index % 3) - 1) * 0.002];
-  if (text.includes('chandgazi') || text.includes('চাঁদগাজী')) return [23.2200 + ((index % 5) - 2) * 0.002, 91.4300 + ((index % 3) - 1) * 0.002];
-
-  // Default to Feni Sadar with jitter so points don't stack
-  return [FENI_CENTER[0] + ((index * 7) % 20 - 10) * 0.003, FENI_CENTER[1] + ((index * 13) % 20 - 10) * 0.003];
+function resolveCoordinates(point: OperationMapPoint, isSylhet = false): [number, number] | null {
+  if (point.latitude == null || point.longitude == null) return null;
+  const lat = Number(point.latitude), lng = Number(point.longitude);
+  const inArea = isSylhet ? lat >= 24.3 && lat <= 25.4 && lng >= 91.3 && lng <= 92.5 : lat >= 22.7 && lat <= 23.5 && lng >= 91.0 && lng <= 91.8;
+  return Number.isFinite(lat) && Number.isFinite(lng) && inArea ? [lat, lng] : null;
 }
 
 function marker(
@@ -148,7 +114,9 @@ function marker(
   onSelectPoint?: (point: OperationMapPoint) => void,
   isSylhet = false,
 ) {
-  const [lat, lng] = resolveCoordinates(point, index, isSylhet);
+  const coordinates = resolveCoordinates(point, isSylhet);
+  if (!coordinates) return null;
+  const [lat, lng] = coordinates;
   const label = point.label ?? point.name ?? point.id;
   const selected = point.id === selectedPointId;
   const isUrgent = layer === 'sos' || layer === 'incident';
@@ -316,7 +284,7 @@ export function OperationsMap({ layers, selectedPointId, onSelectPoint, district
 
       {tilesUnavailable && (
         <p className="map-warning" role="status">
-          Basemap tiles are currently loading. All emergency markers and operation records remain active.
+          Basemap tiles could not load. Records with valid coordinates and the list below remain available.
         </p>
       )}
 
@@ -351,7 +319,7 @@ export function OperationsMap({ layers, selectedPointId, onSelectPoint, district
                         onClick={() => onSelectPoint?.(point)}
                       >
                         <span>{point.name ?? point.label ?? point.id}</span>
-                        <small>{point.status ?? point.provenance}</small>
+                        <small>{point.status ?? point.provenance}{!resolveCoordinates(point, isSylhet) && ' ? Coordinates unavailable; not plotted'}</small>
                       </button>
                     </li>
                   ))}

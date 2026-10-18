@@ -40,6 +40,8 @@ export class CreateSosDto {
 
   @ApiPropertyOptional({ description: 'Count of elderly individuals' })
   @IsInt()
+  @Min(0)
+  @Max(99)
   @IsOptional()
   elderlyCount?: number;
 
@@ -74,11 +76,15 @@ export class CreateSosDto {
 
   @ApiPropertyOptional({ description: 'GPS latitude if permitted' })
   @IsNumber()
+  @Min(-90)
+  @Max(90)
   @IsOptional()
   locationLat?: number;
 
   @ApiPropertyOptional({ description: 'GPS longitude if permitted' })
   @IsNumber()
+  @Min(-180)
+  @Max(180)
   @IsOptional()
   locationLng?: number;
 

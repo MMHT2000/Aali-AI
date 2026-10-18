@@ -1,5 +1,5 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsEnum, IsOptional, IsString, Matches } from 'class-validator';
+import { IsEnum, IsIn, IsOptional, IsString, Matches } from 'class-validator';
 import { OperationsMode } from './operations-context';
 
 export class OperationsSnapshotQueryDto {
@@ -17,5 +17,6 @@ export class OperationsSnapshotQueryDto {
   @ApiPropertyOptional({ description: 'District tenant partition code (e.g., FENI_DIST, SYLHET_DIST)', default: 'FENI_DIST' })
   @IsOptional()
   @IsString()
+  @IsIn(['FENI_DIST', 'SYLHET_DIST'])
   districtCode?: string;
 }

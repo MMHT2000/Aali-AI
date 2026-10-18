@@ -22,6 +22,15 @@ export enum AiProvider {
 }
 
 export class EnvironmentVariables {
+  @IsString() @IsOptional()
+  OPENAI_API_KEY?: string;
+
+  @IsString() @IsOptional()
+  OPENAI_MODEL: string = 'gpt-4.1-mini';
+
+  @IsString() @IsOptional() @IsEnum({ enabled: 'true', disabled: 'false' })
+  BRAIN_AUTORUN_ENABLED: string = 'false';
+
   @IsEnum(Environment)
   @IsOptional()
   NODE_ENV: Environment = Environment.Development;

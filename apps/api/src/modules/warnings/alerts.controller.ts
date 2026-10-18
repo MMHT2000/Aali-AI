@@ -1,3 +1,4 @@
+import { AlertEvaluateRequest, ReplayStartRequest, ReplayStepRequest, GaugeStateRequest, WarningDraftRequest, WarningApproveRequest, WarningRejectRequest } from '../../common/validation/workflow.dto';
 import {
   Body,
   Controller,
@@ -9,8 +10,8 @@ import {
   Request,
 } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
-import { AlertsService, WarningDraftDto } from './alerts.service';
-import { ThreeSignalAlertInput } from '../../domain/flood-alert/three-signal-alert';
+import { AlertsService } from './alerts.service';
+
 import { Roles } from '../../common/auth/roles.decorator';
 import { Public } from '../../common/auth/public.decorator';
 import { UserRole } from '../users/entities/user-role.enum';
@@ -23,7 +24,7 @@ export class AlertsController {
   @ApiOperation({ summary: 'Evaluate pure deterministic 3-signal flood alert rules' })
   @Post('alerts/evaluate')
   @Roles(UserRole.AUTHORITY, UserRole.RESPONDER, UserRole.ADMIN, UserRole.VIEWER, UserRole.VOLUNTEER, UserRole.RECOVERY_COORDINATOR)
-  evaluateAlert(@Body() body: ThreeSignalAlertInput) {
+  evaluateAlert(@Body() body: AlertEvaluateRequest) {
     return this.alertsService.evaluateAlert(body);
   }
 
@@ -37,8 +38,8 @@ export class AlertsController {
   @ApiOperation({ summary: 'Initialize or start historical replay scenario' })
   @Post('replay/runs')
   @Roles(UserRole.AUTHORITY, UserRole.ADMIN)
-  startReplay(@Body('scenarioId') scenarioId: string) {
-    return this.alertsService.startReplay(scenarioId);
+  startReplay(@Body() body: ReplayStartRequest) {
+    return this.alertsService.startReplay(body.scenarioId);
   }
 
   @ApiOperation({ summary: 'Get current replay run state' })
@@ -53,10 +54,9 @@ export class AlertsController {
   @Roles(UserRole.AUTHORITY, UserRole.ADMIN)
   stepReplay(
     @Param('id') runId: string,
-    @Body('direction') direction: 'NEXT' | 'PREV' | 'SET_TICK',
-    @Body('targetTick') targetTick?: number,
+    @Body() body: ReplayStepRequest,
   ) {
-    return this.alertsService.stepReplay(runId, direction, targetTick);
+    return this.alertsService.stepReplay(runId, body.direction, body.targetTick);
   }
 
   @ApiOperation({ summary: 'Blank/restore river gauge sensor telemetry (simulation)' })
@@ -64,9 +64,9 @@ export class AlertsController {
   @Roles(UserRole.AUTHORITY, UserRole.ADMIN)
   setGaugeState(
     @Param('id') runId: string,
-    @Body('blanked') blanked: boolean,
+    @Body() body: GaugeStateRequest,
   ) {
-    return this.alertsService.setGaugeState(runId, blanked);
+    return this.alertsService.setGaugeState(runId, body.blanked);
   }
 
   @ApiOperation({ summary: 'List all warning drafts and approvals' })
@@ -82,7 +82,7 @@ export class AlertsController {
   @ApiOperation({ summary: 'Draft a ward-level emergency warning citing supporting signals' })
   @Post('warnings/drafts')
   @Roles(UserRole.AUTHORITY)
-  createDraft(@Body() dto: WarningDraftDto, @Request() req: { user: { id: string } }) {
+  createDraft(@Body() dto: WarningDraftRequest, @Request() req: { user: { id: string } }) {
     return this.alertsService.createWarningDraft(dto, req.user.id);
   }
 
@@ -91,10 +91,10 @@ export class AlertsController {
   @Roles(UserRole.AUTHORITY)
   approveWarning(
     @Param('id') id: string,
-    @Body('note') note: string,
+    @Body() body: WarningApproveRequest,
     @Request() req: { user: { id: string } },
   ) {
-    return this.alertsService.approveWarning(id, req.user.id, note || 'Approved by District Disaster Authority');
+    return this.alertsService.approveWarning(id, req.user.id, body.note || 'Approved by District Disaster Authority');
   }
 
   @ApiOperation({ summary: 'Reject warning draft' })
@@ -102,10 +102,10 @@ export class AlertsController {
   @Roles(UserRole.AUTHORITY)
   rejectWarning(
     @Param('id') id: string,
-    @Body('reason') reason: string,
+    @Body() body: WarningRejectRequest,
     @Request() req: { user: { id: string } },
   ) {
-    return this.alertsService.rejectWarning(id, req.user.id, reason || 'Conditions resolved');
+    return this.alertsService.rejectWarning(id, req.user.id, body.reason || 'Conditions resolved');
   }
 
   @ApiOperation({ summary: 'Simulate warning broadcast via cell broadcast/SMS (Demo only)' })

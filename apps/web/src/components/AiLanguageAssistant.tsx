@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { apiFetch as fetch } from '../lib/authenticated-fetch';
+import type { ShiftSummaryResult } from '../../../api/src/domain/ai/ai-interfaces';
 
 export interface ExtractedFields {
   peopleCount: number | null;
@@ -39,19 +40,7 @@ export interface BenchmarkReportResponse {
   evaluatedAt: string;
 }
 
-export interface ShiftSummaryData {
-  shiftTitle: string;
-  generatedAt: string;
-  sourceIncidentIds: string[];
-  summaryBn: string;
-  disclaimer: string;
-  counts: {
-    totalSosProcessed: number;
-    evacuationsCompleted: number;
-    silentVillagesFlagged: number;
-    reliefDeliveriesLogged: number;
-  };
-}
+export type ShiftSummaryData = ShiftSummaryResult;
 
 export interface BenchmarkSample {
   id: string;
@@ -150,7 +139,7 @@ export function AiLanguageAssistant({ districtCode = 'FENI_DIST' }: { districtCo
 
   const handleSaveOperatorCorrection = () => {
     setSaveFeedback(
-      `অপারেটর সংশোধন সংরক্ষিত হয়েছে: মানুষের সংখ্যা ${operatorEdits.peopleCount || 'অপরিবর্তিত'} (Operator Verified).`,
+      `মানুষের সংখ্যা ${operatorEdits.peopleCount || 'অপরিবর্তিত'} · Local preview only; no report was saved or verified.`,
     );
   };
 
@@ -161,12 +150,11 @@ export function AiLanguageAssistant({ districtCode = 'FENI_DIST' }: { districtCo
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          shiftTitle: 'রাত্রিকালীন বন্যা অপারেশন শিফট (Night Shift Handover)',
-          totalSosProcessed: 14,
-          evacuationsCompleted: 6,
-          silentVillagesFlagged: 2,
-          reliefDeliveriesLogged: 9,
-          sourceIncidentIds: ['sos-001', 'sos-002', 'sos-003', 'sos-004'],
+          totalSos: 14,
+          criticalEvacuations: 6,
+          silentVillages: 2,
+          deliveriesLogged: 9,
+          recordIds: ['synthetic-sos-001', 'synthetic-sos-002', 'synthetic-warning-001'],
         }),
       });
       if (res.ok) {
@@ -280,7 +268,7 @@ export function AiLanguageAssistant({ districtCode = 'FENI_DIST' }: { districtCo
                 {result.extracted.peopleCount !== null ? `${result.extracted.peopleCount} জন` : 'অজানা (Unknown)'}
               </div>
               <span style={{ fontSize: '0.7rem', color: '#64748b' }}>
-                নির্ভুলতা স্কোর: {(result.extracted.fieldConfidence.peopleCount * 100).toFixed(0)}%
+                Uncalibrated extraction confidence: {(result.extracted.fieldConfidence.peopleCount * 100).toFixed(0)}%
               </span>
             </div>
 
@@ -325,7 +313,7 @@ export function AiLanguageAssistant({ districtCode = 'FENI_DIST' }: { districtCo
                 onClick={handleSaveOperatorCorrection}
                 style={{ background: '#10b981', color: 'black', border: 'none', padding: '0.35rem 0.8rem', borderRadius: '4px', fontSize: '0.8rem', fontWeight: 'bold', alignSelf: 'flex-end' }}
               >
-                সংরক্ষণ করুন (Verify & Save)
+                সংশোধন দেখুন (Preview correction)
               </button>
             </div>
             {saveFeedback && (
@@ -340,7 +328,7 @@ export function AiLanguageAssistant({ districtCode = 'FENI_DIST' }: { districtCo
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
           <div>
             <h3 style={{ fontSize: '1rem', color: '#f8fafc', margin: 0 }}>
-              📊 ১০০টি সিন্থেটিক বার্তার সম্প্রসারিত মূল্যায়ন ও ROC Curve / 100-Message Dialect Benchmark
+              📊 সিন্থেটিক বার্তা মূল্যায়ন / Synthetic extraction benchmark
             </h3>
             <p style={{ fontSize: '0.8rem', color: '#94a3b8', margin: '0.2rem 0 0' }}>
               নোয়াখালী/ফেনী ও সিলেট আঞ্চলিক উপভাষা (Colloquial Dialect), বাংলিশ এবং প্রমিত বাংলা দুর্যোগ বার্তার উপর স্বয়ংক্রিয় নিষ্কাশনের নির্ভুলতা ও বৈষম্যমূলক সূচক
@@ -376,10 +364,10 @@ export function AiLanguageAssistant({ districtCode = 'FENI_DIST' }: { districtCo
               </div>
               <div>
                 <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>ROC AUC স্কোর:</span>
-                <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#38bdf8' }}>{benchmarkReport.aucScore ?? 0.945}</div>
+                <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#38bdf8' }}>{benchmarkReport.aucScore ?? 'Not measured'}</div>
               </div>
               <div>
-                <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>ফলব্যাক কার্যকারিতা:</span>
+                <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Parse completion (synthetic):</span>
                 <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#a78bfa' }}>{benchmarkReport.fallbackSuccessRate}%</div>
               </div>
             </div>
@@ -403,10 +391,10 @@ export function AiLanguageAssistant({ districtCode = 'FENI_DIST' }: { districtCo
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
           <div>
             <h3 style={{ fontSize: '1rem', color: '#f8fafc', margin: 0 }}>
-              📝 শিফট হ্যান্ডওভার বিবরণী / Fact-Constrained Shift Operations Summary
+              📝 শিফট হ্যান্ডওভার বিবরণী / Synthetic shift-summary preview
             </h3>
             <p style={{ fontSize: '0.8rem', color: '#94a3b8', margin: '0.2rem 0 0' }}>
-              শুধুমাত্র নথিবদ্ধ উদ্ধার, এসওএস ও ত্রাণ বিতরণের তথ্যের উপর ভিত্তি করে তৈরি বাস্তবভিত্তিক সারসংক্ষেপ
+              Synthetic example counts only. This preview does not query the live operations ledger.
             </p>
           </div>
           <button
@@ -422,14 +410,14 @@ export function AiLanguageAssistant({ districtCode = 'FENI_DIST' }: { districtCo
         {shiftSummary && (
           <div style={{ marginTop: '1rem', background: '#0f172a', padding: '1rem', borderRadius: '4px', border: '1px solid #059669' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', borderBottom: '1px solid #334155', paddingBottom: '0.5rem', marginBottom: '0.8rem' }}>
-              <span style={{ fontWeight: 'bold', color: '#34d399', fontSize: '0.95rem' }}>{shiftSummary.shiftTitle}</span>
-              <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>উৎস আইডি: {shiftSummary.sourceIncidentIds.join(', ')}</span>
+              <span style={{ fontWeight: 'bold', color: '#34d399', fontSize: '0.95rem' }}>রাত্রিকালীন বন্যা অপারেশন শিফট (Night Shift Handover) · Synthetic preview</span>
+              <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>উৎস আইডি: {shiftSummary.sourceRecordIds.join(', ')}</span>
             </div>
             <pre style={{ margin: 0, whiteSpace: 'pre-wrap', fontFamily: 'inherit', fontSize: '0.85rem', color: '#e2e8f0', lineHeight: '1.6' }}>
               {shiftSummary.summaryBn}
             </pre>
             <div style={{ marginTop: '0.8rem', fontSize: '0.75rem', color: '#fbbf24', background: '#451a03', padding: '0.4rem 0.6rem', borderRadius: '4px' }}>
-              ⚠️ {shiftSummary.disclaimer}
+              ⚠️ Synthetic template preview. Counts are supplied examples, not verified rescue outcomes.
             </div>
           </div>
         )}

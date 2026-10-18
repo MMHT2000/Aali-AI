@@ -1,4 +1,4 @@
-import { Controller, Get, Param } from '@nestjs/common';
+import { Controller, Get, NotFoundException, Param } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { SYNTHETIC_FENI_SEEDS } from '../../database/seeds/feni-synthetic.seeds';
 import { Roles } from '../../common/auth/roles.decorator';
@@ -19,11 +19,9 @@ export class ReferenceDataController {
   @Roles(UserRole.AUTHORITY, UserRole.RESPONDER, UserRole.VOLUNTEER, UserRole.RECOVERY_COORDINATOR, UserRole.VIEWER, UserRole.ADMIN, UserRole.RESIDENT)
   @ApiOperation({ summary: 'Get details for a specific flood event' })
   getEventById(@Param('id') id: string) {
-    return (
-      SYNTHETIC_FENI_SEEDS.floodEvents.find((e) => e.id === id) || {
-        error: 'Event not found',
-      }
-    );
+    const event = SYNTHETIC_FENI_SEEDS.floodEvents.find(e => e.id === id);
+    if (!event) throw new NotFoundException('Event not found');
+    return event;
   }
 
   @Get('areas')

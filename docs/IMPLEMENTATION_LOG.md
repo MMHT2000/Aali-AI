@@ -2,7 +2,38 @@
 
 Antigravity must append an entry after each completed phase. Do not pre-fill completion claims.
 
+### 2026-10-18 — User-authorized AI Brain extension
+
+- **Baseline:** No Node/npm/Flutter/Docker runtimes on PATH and no dependencies installed. Existing project already provided synthetic operations, deterministic rules and separate Gemini language support. Inspected requirements, architecture, data/API/security contracts and acceptance plan before implementation.
+- **Files changed:** Added `modules/brain` with area contracts, public environmental adapters, deterministic planner, bounded OpenAI tools, validated HTTP DTOs, persistence/migration and tests. Added staff AI Brain and public household web pages, route/access wiring, optional scheduler configuration and verification scripts. Fixed pre-existing lint errors, date-dependent BMD test clock, and a demo-stepper mobile overflow found during verification. See `AI_BRAIN.md` for the complete scope.
+- **Behavior delivered:** Six area profiles; free river/weather forecasts and dated Sentinel-2 scene context; honest null/stale/provider states; synthetic exercise segregation; preparation, rescue/shelter review and relief-gap tasks; optional GPT review with local fallback; role-projected responses; transactional audited task acknowledgement; GPS-optional household guidance; no operational auto-execution or external messaging.
+- **Commands run:** `npm.cmd ci --no-audit --no-fund`; `npm.cmd run typecheck`; `npm.cmd run lint`; `npm.cmd run test:api`; `npm.cmd run test:web`; `npm.cmd run build`; targeted 61-test Brain suite; existing `npm.cmd run test:e2e`; new live-source, actual-database and headless-browser smoke scripts; `git diff --check`.
+- **Results observed:** 174 backend tests/31 suites and 56 web tests/15 suites passed. Type checking and production builds passed. Lint zero errors/eight existing warnings. Real MySQL 8.4.11 migrations, save/read, simultaneous retry with one audit entry, role rejection, GPS bounds, exercise shelter candidates, area/mode isolation and state survival across API restart passed. Source calls worked for all six profiles. Actual public/staff browser flows and synthetic review passed at desktop/mobile widths. Vite retains a bundle-size warning and older component tests retain React warning output.
+- **Environment:** Downloaded checksum-verified portable Node/MySQL to task-specific temporary folders. MySQL bound only to loopback, with randomized root password and isolated demo database. No Windows services/global installation or `.env` secrets committed. Local API at port 3001 and Vite at 5173 were started for verification.
+- **Remaining limits:** GPT needs the user's key and real inference verification. Screening thresholds are experimental, not a trained flood predictor; imagery is not segmented for water/flood extent. No verified live shelter/stock/route data or notification/dispatch partners connected. Native mobile client unchanged. Tests cover documented boundaries, not every real-world flood scenario. Next acceptance increment: GPT verification and locally calibrated, verified operational-data ingestion.
+
 ## Entry template
+
+### 2026-10-18 — Follow-up Viewer 401 recovery
+- **Reproduced:** A Viewer screen could retain its React session after same-tab localStorage removal. Requests then lacked credentials, and `apiFetch` emitted expiry only when it had attached a token. The first resident-entry repair did not cover this state.
+- **Changed:** All unauthorized responses now trigger in-memory session expiry, including missing or inaccessible storage. A late unauthorized response does not clear a newer login. App reacts to cross-tab logout/storage clearing. The Viewer client exposes typed HTTP errors, stops polling on 401 and offers sign-in/public-SOS links instead of Retry.
+- **Tests:** Added four authenticated-fetch regressions and a Viewer 401 recovery regression. Corrected an existing beforeEach hook that accidentally returned a mock as cleanup. All 65 web tests passed. Web typecheck/build passed; lint zero errors/eight existing warnings. Actual Chrome test signed in as Viewer, removed storage without navigation, observed the next 401 poll return to sign-in, and also verified valid Viewer access and invalid-token recovery. Backend authorization unchanged.
+- **Next:** No further auth change needed for the reproduced case; continue the separately planned voice-to-verified-incident work.
+
+### 2026-10-18 — Resident entry 401 repair
+- **Cause:** The Zero-Install Emergency SOS control fabricated a Viewer session with an empty access token and opened an authenticated operations-summary route. Anonymous snapshot reads correctly returned 401, leaving Retry unable to recover.
+- **Changed:** Emergency entry now links to public `/sos`, with reusable three-tap intake and no protected snapshot request. Old malformed/tokenless stored sessions are discarded; tokenless in-memory sessions render public intake. Authenticated observer summary remains protected. Selected exercise/village is included in public SOS submissions.
+- **Verification:** 60 web tests passed, including four regressions for emergency routing, missing credentials and selected-area submission. Web type checking and build passed; lint zero errors/eight existing warnings. New actual-Chrome smoke verified anonymous Sylhet submission (201) without snapshot reads, valid Viewer aggregate summary and invalid-token recovery to sign-in. Backend authorization was not relaxed.
+- **Boundaries:** Public intake does not expose operational reports. The observer situation summary requires a valid Viewer login; transport simulation and synthetic exercise limitations remain.
+- **Next phase:** Continue the separately documented voice-to-verified-incident workflow; no additional backend authorization changes are required for this repair.
+
+### 2026-10-18 — OpenAI configuration and readiness verification
+
+- **Scope:** User requested sequential verification after adding the OpenAI key. Checked configuration without printing the key, rechecked the official OpenAI tool/output contracts, and inspected actual API/browser behaviour.
+- **Fixes:** Corrected local DB port/credentials inherited from the renamed template; restored a key-free `.env.example`. Removed invented ROC/AUC from the legacy benchmark; measured parse completion. Made correction preview truthful, fixed the shift-summary response contract and labelled its example counts. Explicitly marked voice fixtures simulated, removed fixed confidence and rejected unsupported audio. Added regression checks and a real-GPT smoke script.
+- **Observed:** Real GPT direct synthetic review succeeded in about 8.27 seconds with two tool reads. Saved Feni Live/Exercise and Sylhet Exercise analyses used OpenAI. Actual DB smoke, public/staff browser flows, corrected legacy panel and older five-moment demo passed. All six public-source areas responded. Key absent from 480 scanned tracked/build files; `.env` ignored by Git.
+- **Verification:** 176 backend tests/32 suites and 56 web tests/15 suites passed; type checking/builds passed; lint zero errors/eight existing warnings. `git diff --check` clean. Full results and remaining differentiation gaps: `AI_READINESS_REVIEW.md`.
+- **Remaining:** Automatic monitoring is OFF in the user's configuration. No real voice adapter, trained flood predictor, satellite water segmentation, verified live shelter/relief inventory or native mobile verification was added. Next phase: connected Bangla voice-to-verified-incident workflow and held-out accuracy/time comparison against the manual/keyword baseline.
  
 ### YYYY-MM-DD — Phase N: Name
 - **Baseline:**
@@ -868,3 +899,7 @@ Antigravity must append an entry after each completed phase. Do not pre-fill com
   - `npm --prefix apps/api run build`: Succeeded.
   - API daemon restarted on port 3001 (`task-10446`).
   - `flutter build apk --debug`: Succeeded in 63.1s (`app-debug.apk`).
+
+## 18 October 2026 ? Autonomous area monitoring
+
+Replaced browser-dependent/90-minute rotating monitoring with startup and 15-minute full sweeps. Added failure isolation, overlap/shutdown protection, change-aware GPT reviews with hourly per-area cooldown, saved briefing reuse and authenticated worker status. Enabled local/example configuration; dashboard polls saved plans every 15 seconds. Synthetic exercises stay separate; official warnings, dispatch and aid commitments retain authorization checks. Read-only smoke verified six saved live plans without a browser/manual run. Typecheck, builds, 65 web tests, final 180-test backend suite passed; lint zero errors/eight existing warnings. API/database must stay running; no phone delivery or distributed scheduler is implemented.

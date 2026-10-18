@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
 import { Login, UserSession } from './components/Login';
 import { ControlRoom } from './components/ControlRoom';
-import { BrowserRouter } from 'react-router-dom';
+import { BrowserRouter, useLocation } from 'react-router-dom';
+import { HouseholdPreparedness } from './components/HouseholdPreparedness';
+import { ResidentSos } from './components/ResidentSos';
 import './App.css';
 
 export function App() {
@@ -9,6 +11,7 @@ export function App() {
 }
 
 function AppContent() {
+  const location = useLocation();
   const [session, setSession] = useState<UserSession | null>(null);
 
   useEffect(() => {
@@ -16,7 +19,15 @@ function AppContent() {
       if (typeof window !== 'undefined' && window.localStorage) {
         const saved = window.localStorage.getItem('aali_session');
         if (saved) {
-          setSession(JSON.parse(saved));
+          const parsed: unknown = JSON.parse(saved);
+          if (typeof parsed === 'object' && parsed !== null &&
+            'id' in parsed && typeof parsed.id === 'string' &&
+            'username' in parsed && typeof parsed.username === 'string' &&
+            'displayName' in parsed && typeof parsed.displayName === 'string' &&
+            'role' in parsed && typeof parsed.role === 'string' &&
+            'accessToken' in parsed && typeof parsed.accessToken === 'string' && parsed.accessToken.trim()) {
+            setSession(parsed as UserSession);
+          } else window.localStorage.removeItem('aali_session');
         }
       }
     } catch {
@@ -35,7 +46,14 @@ function AppContent() {
     };
 
     window.addEventListener('aali_session_expired', handleExpired);
-    return () => window.removeEventListener('aali_session_expired', handleExpired);
+    const handleStorage = (event: StorageEvent) => {
+      if ((event.key === 'aali_session' || event.key === null) && !event.newValue) handleExpired();
+    };
+    window.addEventListener('storage', handleStorage);
+    return () => {
+      window.removeEventListener('aali_session_expired', handleExpired);
+      window.removeEventListener('storage', handleStorage);
+    };
   }, []);
 
   const handleLoginSuccess = (newSession: UserSession) => {
@@ -52,6 +70,9 @@ function AppContent() {
     }
     setSession(null);
   };
+
+  if (location.pathname === '/preparedness') return <HouseholdPreparedness />;
+  if (location.pathname === '/sos' || (session && !session.accessToken?.trim())) return <ResidentSos />;
 
   if (!session) {
     return (

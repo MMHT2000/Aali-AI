@@ -1,8 +1,7 @@
+import { DeliveryRequest, RecoveryReportRequest } from '../../common/validation/workflow.dto';
 import { Body, Controller, Get, Post, Query, Request } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import {
-  CreateReportDto,
-  RecordDeliveryDto,
   RecoveryService,
 } from './recovery.service';
 import { Roles } from '../../common/auth/roles.decorator';
@@ -17,7 +16,7 @@ export class RecoveryController {
   @ApiOperation({ summary: 'Submit village damage and needs assessment report' })
   @Post('reports')
   @Roles(UserRole.RECOVERY_COORDINATOR)
-  createReport(@Body() dto: CreateReportDto, @Request() req: { user: { id: string } }) {
+  createReport(@Body() dto: RecoveryReportRequest, @Request() req: { user: { id: string } }) {
     return this.recoveryService.createReport({ ...dto, reportedBy: req.user.id });
   }
 
@@ -31,7 +30,7 @@ export class RecoveryController {
   @ApiOperation({ summary: 'Record aid delivery receipt with idempotency guard' })
   @Post('deliveries')
   @Roles(UserRole.RECOVERY_COORDINATOR)
-  recordDelivery(@Body() dto: RecordDeliveryDto, @Request() req: { user: { id: string } }) {
+  recordDelivery(@Body() dto: DeliveryRequest, @Request() req: { user: { id: string } }) {
     return this.recoveryService.recordDelivery({ ...dto, recordedBy: req.user.id });
   }
 

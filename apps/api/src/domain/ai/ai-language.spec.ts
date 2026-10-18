@@ -66,7 +66,7 @@ describe('AI Language Layer & Fallback Provider', () => {
     expect(draft.sourceRecordIds).toEqual(['rec-101', 'rec-102']);
   });
 
-  it('runs benchmark across synthetic flood messages with >85% accuracy and ROC curve', () => {
+  it('measures synthetic extraction accuracy without inventing ROC/AUC values', () => {
     const report = provider.evaluateBenchmark();
 
     expect(report.totalMessages).toBeGreaterThanOrEqual(250);
@@ -75,8 +75,8 @@ describe('AI Language Layer & Fallback Provider', () => {
     expect(report.waterTrendAccuracy).toBeGreaterThanOrEqual(80.0);
     expect(report.overallAccuracy).toBeGreaterThanOrEqual(85.0);
     expect(report.fallbackSuccessRate).toBe(100.0);
-    expect(report.rocCurve).toBeDefined();
-    expect(report.aucScore).toBeGreaterThanOrEqual(0.90);
+    expect(report.rocCurve).toBeUndefined();
+    expect(report.aucScore).toBeUndefined();
   });
 
   it('generates fact-constrained shift summaries citing recorded incident and delivery data', () => {

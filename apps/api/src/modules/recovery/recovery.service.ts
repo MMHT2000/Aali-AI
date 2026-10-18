@@ -150,8 +150,8 @@ export class RecoveryService implements OnModuleInit {
     rep.need_medicine = dto.needMedicine;
     rep.need_food = dto.needFood;
     rep.needs_json = {
-      waterLitres: dto.reportedWaterLitresNeed || (dto.needWater ? 2000 : 0),
-      foodPacks: dto.reportedFoodPacksNeed || (dto.needFood ? 100 : 0),
+      waterLitres: dto.reportedWaterLitresNeed ?? (dto.needWater ? 2000 : 0),
+      foodPacks: dto.reportedFoodPacksNeed ?? (dto.needFood ? 100 : 0),
     };
     rep.evidence_note = dto.evidenceNote || null;
     rep.source_kind = 'COORDINATOR_ASSESSMENT';

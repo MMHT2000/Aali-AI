@@ -30,7 +30,9 @@ export class OperationsStreamService {
   getStream(): Observable<MessageEvent> {
     const events$ = OperationsStreamService.eventBus.pipe(
       map((event) => ({
-        data: event,
+        // EventSource is public: it only invalidates authenticated snapshots.
+        // Never expose SOS identifiers, vulnerability flags or field payloads.
+        data: { type: event.type, timestamp: event.timestamp, payload: event.type === 'DEMO_MOMENT' ? { moment: event.payload.moment, title: event.payload.title } : {} },
       } as MessageEvent)),
     );
 

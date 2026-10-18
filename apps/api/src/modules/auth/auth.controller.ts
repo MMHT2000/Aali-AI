@@ -1,3 +1,4 @@
+import { ResidentRegisterRequest } from '../../common/validation/workflow.dto';
 import {
   Body,
   Controller,
@@ -53,11 +54,7 @@ export class AuthController {
   @ApiResponse({ status: 409, description: 'Mock NID already registered' })
   async registerResident(
     @Body()
-    body: {
-      fullName: string;
-      phoneNumber: string;
-      mockNid: string;
-    },
+    body: ResidentRegisterRequest,
   ) {
     return this.authService.registerResident(body);
   }

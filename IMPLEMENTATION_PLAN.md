@@ -2,7 +2,27 @@
 
 **Purpose:** turn the Aali AI Feni flash-flood resilience proposal (Detailed Plan Rev 3 and two-page proposal, dated 9 Oct 2026) into a practical, phased full-stack prototype.
 
+## AI Brain increment — 18 October 2026
+
+User-authorized extension across area intelligence, agent planning and public household guidance. Full source provenance, boundaries and verification: [AI_BRAIN.md](docs/AI_BRAIN.md).
+
+- [x] Six bounded areas, public environmental adapters and separate synthetic exercises.
+- [x] Experimental rule screening and preparation/rescue/shelter/relief review tasks.
+- [x] Bounded GPT read-only tool loop with deterministic local fallback.
+- [x] Persisted analyses, role-specific task review and transactional audit implementation.
+- [x] Staff workspace and anonymous web household preparation page.
+- [x] Real MySQL migration, persisted state across API restart, concurrent/idempotent review, production builds and browser verification.
+- [x] Real GPT verification with user key: direct synthetic review, saved Feni Live/Exercise and Sylhet Exercise plans, browser rendering and secret-exposure check.
+- [ ] Native mobile integration and measured field/dialect evaluation.
+
 ## 0. Product definition and boundaries
+
+### Resident access repair — 18 October 2026
+- [x] Follow-up: recover from 401 even without a stored token; synchronize cross-tab logout and replace Viewer Retry with sign-in recovery. Exact browser reproduction passed; 65 web tests pass.
+- [x] Replace tokenless Viewer emergency entry with public `/sos` intake.
+- [x] Reject persisted sessions with missing/empty credentials; retain authenticated Viewer summary authorization.
+- [x] Preserve selected exercise/village in public submissions; verify real anonymous submit, authenticated aggregate summary and expired-session recovery in browser.
+- [x] Web tests (60), type check, lint (zero errors) and production build passed.
 
 Aali is an application/coordination layer around existing official data, phone/SMS capabilities and responders. It does not replace BWDB-FFWC, BMD, DDM, mobile operators, Red Crescent, Fire Service or local authorities. The prototype must demonstrate three moments:
 
@@ -328,3 +348,5 @@ These are approved redesigns being delivered in reviewable increments. The prese
 - [ ] Implement each platform in reviewable increments and mark acceptance criteria complete only after role-by-role, responsive/accessibility and real API-flow checks.
 - **Design tools installed:** `figma-create-design-system-rules` and `figma-generate-design` in the local Codex skills directory. Their Figma workflows require an available Figma MCP connection; direct codebase implementation does not.
 
+
+- [x] Server-side autonomous full-area monitoring, startup sweep, bounded GPT review, worker status and read-only no-browser verification (18 October 2026).

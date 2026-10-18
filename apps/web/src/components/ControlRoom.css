@@ -922,7 +922,8 @@
 }
 
 @media (max-width: 900px) {
-  .judge-stepper { grid-template-columns: repeat(2, 1fr); }
+  .judge-stepper { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .judge-step-btn { min-width: 0; overflow-wrap: anywhere; }
   .compact-grid, .modal-split { grid-template-columns: 1fr; }
 }
 

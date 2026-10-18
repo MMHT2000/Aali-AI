@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { IsDateString, IsNotEmpty, IsOptional, IsString, MaxLength } from 'class-validator';
 
 export class SimulatedGatewayIngestDto {
   @ApiProperty({
@@ -8,6 +8,7 @@ export class SimulatedGatewayIngestDto {
   })
   @IsString()
   @IsNotEmpty()
+  @MaxLength(160)
   packet!: string;
 
   @ApiPropertyOptional({
@@ -15,6 +16,7 @@ export class SimulatedGatewayIngestDto {
     description: 'Identifier of the simulated carrier gateway or mobile station',
   })
   @IsString()
+  @MaxLength(100)
   @IsOptional()
   gatewayId?: string;
 
@@ -22,8 +24,17 @@ export class SimulatedGatewayIngestDto {
     example: '2026-10-09T14:30:00Z',
     description: 'Timestamp when the message was received by the gateway',
   })
-  @IsString()
+  @IsDateString()
   @IsOptional()
   receivedAt?: string;
+}
+
+export class SmsGatewayRequest {
+  @IsOptional() @IsString() @MaxLength(160) packet?: string;
+  @IsOptional() @IsString() @MaxLength(160) rawMessage?: string;
+  @IsOptional() @IsString() @MaxLength(160) rawPacket?: string;
+  @IsOptional() @IsString() @MaxLength(100) gatewayId?: string;
+  @IsOptional() @IsString() @MaxLength(100) operator?: string;
+  @IsOptional() @IsDateString() receivedAt?: string;
 }
 

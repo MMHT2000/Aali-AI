@@ -41,7 +41,7 @@ export function StageDemoDirector({ districtCode = 'FENI_DIST', onMomentTriggere
       gain.connect(ctx.destination);
       osc.start();
       osc.stop(ctx.currentTime + duration);
-    } catch (_) {}
+    } catch { /* Visual demo controls remain usable when audio is unavailable. */ }
   };
 
   const triggerMoment = async (momentNum: number) => {

@@ -3,8 +3,8 @@ import { apiFetch as fetch } from '../lib/authenticated-fetch';
 
 interface AuditLogRecord {
   id: string;
-  created_at: string;
-  user_id?: string;
+  occurred_at: string;
+  actor_user_id?: string;
   actor?: string;
   action: string;
   entity_type: string;
@@ -76,7 +76,7 @@ export function AuditViewer() {
               {logs.map((log) => (
                 <tr key={log.id} style={{ borderBottom: '1px solid #334155' }}>
                   <td style={{ padding: '0.6rem 0.8rem', color: '#cbd5e1' }}>
-                    {new Date(log.created_at).toLocaleTimeString('bn-BD', { hour12: false })}
+                    {new Date(log.occurred_at).toLocaleString('en-GB', { timeZone: 'Asia/Dhaka', hour12: false })}
                   </td>
                   <td style={{ padding: '0.6rem 0.8rem', fontWeight: 'bold', color: '#38bdf8' }}>
                     {log.user_id || log.actor || 'SYSTEM'}

@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { ThreeTapSos } from './ThreeTapSos';
 
@@ -51,6 +51,19 @@ describe('ThreeTapSos Component', () => {
     expect(await screen.findByText(/ASCII Disaster Packet/i)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Copy/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Open SMS/i })).toBeInTheDocument();
+  });
+
+  it('preserves the selected Sylhet exercise and village in public SOS submission', async () => {
+    const request = vi.fn().mockResolvedValue({ ok: true, json: async () => ({ status: 'success' }) });
+    vi.stubGlobal('fetch', request);
+    render(<ThreeTapSos districtCode="SYLHET_DIST" />);
+    fireEvent.click(screen.getByRole('button', { name: /Next: Urgency Flags/i }));
+    fireEvent.click(screen.getByRole('button', { name: /Next: Location/i }));
+    fireEvent.click(screen.getByRole('button', { name: /Submit SOS/i }));
+    await waitFor(() => expect(request).toHaveBeenCalled());
+    const body = JSON.parse(request.mock.calls[0][1].body);
+    expect(body.eventId).toBe('11111111-1111-1111-1111-111111111104');
+    expect(body.village).toContain('Companiganj');
   });
 });
 

@@ -42,4 +42,9 @@ describe('SosService persistence contract', () => {
     await expect(service.createSos({ ...input, peopleCount: 3 })).rejects.toThrow('do not match');
     expect(stored.size).toBe(0);
   });
+  it('preserves zero latitude and longitude instead of replacing them with a village centroid', async () => {
+    const result = await service.createSos({ peopleCount: 1, isTrapped: false, locationLat: 0, locationLng: 0, areaId: '22222222-2222-2222-2222-222222222205' });
+    expect(result.report.location_lat).toBe(0);
+    expect(result.report.location_lng).toBe(0);
+  });
 });

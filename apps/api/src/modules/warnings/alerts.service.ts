@@ -108,7 +108,8 @@ export class AlertsService implements OnModuleInit {
   }
 
   startReplay(scenarioId: string): ReplayRunState {
-    const sc = REPLAY_SCENARIOS.find((s) => s.id === scenarioId) || REPLAY_SCENARIOS[0];
+    const sc = REPLAY_SCENARIOS.find((s) => s.id === scenarioId);
+    if (!sc) throw new NotFoundException('Replay scenario not found');
     const runId = `replay-run-${Date.now()}`;
 
     const firstTick = sc.ticks[0];
@@ -137,8 +138,7 @@ export class AlertsService implements OnModuleInit {
   getReplayRun(runId: string): ReplayRunState {
     const run = this.activeReplays.get(runId);
     if (!run) {
-      // return default initialized if not found
-      return this.startReplay(REPLAY_SCENARIOS[0].id);
+      throw new NotFoundException('Replay run not found; start a supported scenario.');
     }
     return run;
   }

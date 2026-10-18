@@ -23,7 +23,8 @@ function feed(...items: string[]) {
 describe('BmdCapService', () => {
   const originalFetch = global.fetch;
 
-  afterEach(() => { global.fetch = originalFetch; });
+  beforeEach(() => { jest.useFakeTimers().setSystemTime(new Date('2026-10-10T02:00:00Z')); });
+  afterEach(() => { global.fetch = originalFetch; jest.useRealTimers(); });
 
   it('returns only current Actual alert/update records, with public provenance and source freshness', async () => {
     global.fetch = jest.fn()
